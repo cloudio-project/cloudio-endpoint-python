@@ -1,2 +1,2 @@
 # cloudio-endpoint-python
-cloud.iO Python endpoint library/client 
+Python endpoint (IoT device) library for [cloud.iO](https://cloudio.hevs.ch).
