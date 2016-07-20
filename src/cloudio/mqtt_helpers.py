@@ -2,20 +2,28 @@
 
 import time
 import paho.mqtt.client as mqtt
+import ssl
 
 class MqttAsyncClient():
     """Mimic the behavior of the java.MqttAsyncClient class"""
 
-    def __init__(self, host):
+    def __init__(self, host, clientId='', clean_session=True):
         self._isConnected = False
         self._host = host
-        self.client = mqtt.Client()
+        self.client = mqtt.Client(client_id=clientId, clean_session=clean_session)
 
         self.client.on_connect = self.onConnect
 
     def connect(self, username, password):
         self.client.username_pw_set(username, password=password)
-        self.client.connect(self._host)
+        self.client.tls_insecure_set(True)
+        self.client.tls_set('/Users/sth/.config/cloud.io/ca.pem',    # CA certificate
+               #             '/Users/sth/.config/cloud.io/devel-8725b7b47d85-cert.pem',  # Client private key
+               #             '/Users/sth/.config/cloud.io/devel-8725b7b47d85-key.pem',   # Client certificate
+                            tls_version=ssl.PROTOCOL_TLSv1,                     # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
+                            ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
+
+        self.client.connect(self._host, port=8883)
         self.client.loop_start()
         time.sleep(1)   # Wait a bit for the callback onConnect to be called
 

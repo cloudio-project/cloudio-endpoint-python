@@ -25,6 +25,7 @@ class _InternalEndpoint():
     def __init__(self, uuid, configuration=None):
 
         self.uuid = uuid
+        self.cleanSession = True
 
         # Check if a configuration with properties is given
         if configuration is None:
@@ -46,7 +47,7 @@ class _InternalEndpoint():
         self.options._username = configuration.getProperty('username')
         self.options._password = configuration.getProperty('password')
 
-        self.mqtt = MqttAsyncClient(host)
+        self.mqtt = MqttAsyncClient(host, clientId=self.uuid, clean_session=self.cleanSession)
 
         self.thread = Thread(target=self.run, name='cloudio-endpoint-' + self.uuid)
         # Close thread as soon as main thread exits
@@ -62,7 +63,8 @@ class _InternalEndpoint():
             try:
                 self.mqtt.connect(self.options._username, self.options._password)
             except:
-                pass
+                print 'Error during broker connect!'
+                exit(0)
 
             if not self.mqtt.isConnected():
                 # If we should not retry, give up
