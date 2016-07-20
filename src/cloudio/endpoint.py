@@ -29,7 +29,7 @@ class _InternalEndpoint():
         # Check if a configuration with properties is given
         if configuration is None:
             # Try to load properties using a config file
-            properties = ResourceLoader.loadFromLocations(self.uuid + '.properties', \
+            properties = ResourceLoader.loadFromLocations(self.uuid + '.properties',
                                                           ['home:' + '/.config/cloud.io/', 'file:/etc/cloud.io/'])
             configuration = PropertiesEndpointConfiguration(properties)
 

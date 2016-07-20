@@ -23,9 +23,26 @@ class MqttAsyncClient():
         return self._isConnected
 
     def onConnect(self, client, userdata, flags, rc):
-        self._isConnected = True
+        if rc == 0:
+            self._isConnected = True
+            print 'Info: Connection to cloudio broker established.'
+        else:
+            if rc == 1:
+                print 'Error: Connection refused - incorrect protocol version'
+            elif rc == 2:
+                print 'Error: Connection refused - invalid client identifier'
+            elif rc == 3:
+                print 'Error: Connection refused - server unavailable'
+            elif rc == 4:
+                print 'Error: Connection refused - bad username or password'
+            elif rc == 5:
+                print 'Error: Connection refused - not authorised'
+            else:
+                print 'Error: Connection refused - unknown reason'
 
-        print 'Info: Connection to cloudio broker established.'
+            if rc != 3: # Expect for 'server unavailable'
+                # Close application
+                exit(0)
 
     def publish(self, topic, payload, qos, retain):
         self.client.publish(topic, payload, qos, retain)
