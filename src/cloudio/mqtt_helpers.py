@@ -16,7 +16,7 @@ class MqttAsyncClient():
 
     def connect(self, username, password):
         self.client.username_pw_set(username, password=password)
-        self.client.tls_insecure_set(True)
+        self.client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
         self.client.tls_set('/Users/sth/.config/cloud.io/ca.pem',    # CA certificate
                #             '/Users/sth/.config/cloud.io/devel-8725b7b47d85-cert.pem',  # Client private key
                #             '/Users/sth/.config/cloud.io/devel-8725b7b47d85-key.pem',   # Client certificate
