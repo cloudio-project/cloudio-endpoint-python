@@ -8,9 +8,18 @@ class TopicUuid(uuid.Uuid):
     In the case of topic based MQTT communication the topic is used directly in order to identify objects
     """
 
-    def __init__(self):
+    def __init__(self, cloudIoElement=None):
         # The topic is the UUID for every object
         self._topic = None  # type: str
+
+        if cloudIoElement:
+            from cloudio_attribute import CloudioAttribute
+            if isinstance(cloudIoElement, CloudioAttribute):
+                try:
+                    self._topic = self._getAttributeTopic(cloudIoElement)
+                except:
+                    self._topic = None
+
 
 
     ######################################################################
@@ -40,15 +49,37 @@ class TopicUuid(uuid.Uuid):
         return self.topic
 
     ######################################################################
-    # API
+    # Public API
     #
-
     @property
     def topic(self):
         return self._topic
 
     # topic.setter should only be used for testing.
-    # To change the topic use one of the setTopic methods.
     @topic.setter
     def topic(self, value):
         self._topic = value
+
+    ######################################################################
+    # Private methods
+    #
+    def _getAttributeTopic(self, cloudioAttribute):
+        return self._getAttributeContainerTopic(cloudioAttribute.getParent() + u'/attributes/' +
+                                                cloudioAttribute.getName())
+
+    def _getAttributeContainerTopic(self, attributeContainer):
+        return self._getObjectContainerTopic(attributeContainer.getParentObjectContainer()) + u'/objects/' + \
+                                             attributeContainer.getName()
+
+    def _getObjectContainerTopic(self, objectContainer):
+        parentObjectContainer = objectContainer.getParentObjectContainer()
+        if parentObjectContainer:
+            return self._getObjectContainerTopic(parentObjectContainer) + u'/objects/' + objectContainer.getName()
+
+        parentNodeContainer = objectContainer.getParentNodeContainer()
+        if parentNodeContainer:
+            return self._getNodeContainerTopic(parentNodeContainer) + u'/nodes/' + objectContainer.getName()
+
+    def _getNodeContainerTopic(self, nodeContainer):
+        # As the name of an node container is unique in cloud.io, we just take the name.
+        return nodeContainer.getName()
