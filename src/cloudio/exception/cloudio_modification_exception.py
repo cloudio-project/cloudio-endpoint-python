@@ -2,4 +2,4 @@
 
 class CloudioModificationException(Exception):
     def __init__(self, message):
-        super(CloudioModificationException).__init__(message)
+        super(CloudioModificationException, self).__init__(message)
