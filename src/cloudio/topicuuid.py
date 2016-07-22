@@ -13,8 +13,8 @@ class TopicUuid(uuid.Uuid):
         self._topic = None  # type: str
 
         if cloudIoElement:
-            from cloudio_attribute import CloudioAttribute
-            if isinstance(cloudIoElement, CloudioAttribute):
+            from cloudio_attribute import _InternalAttribute
+            if isinstance(cloudIoElement, _InternalAttribute):
                 try:
                     self._topic = self._getAttributeTopic(cloudIoElement)
                 except:
@@ -64,10 +64,13 @@ class TopicUuid(uuid.Uuid):
     # Private methods
     #
     def _getAttributeTopic(self, cloudioAttribute):
-        return self._getAttributeContainerTopic(cloudioAttribute.getParent() + u'/attributes/' +
-                                                cloudioAttribute.getName())
+        return self._getAttributeContainerTopic(cloudioAttribute.getParent()) + u'/attributes/' + \
+                                                cloudioAttribute.getName()
 
     def _getAttributeContainerTopic(self, attributeContainer):
+        # TODO Remove check below and put an assert for attributeContainer
+        if not attributeContainer:
+            return '<no parent>' + u'/objects/' + '<no parent>'
         return self._getObjectContainerTopic(attributeContainer.getParentObjectContainer()) + u'/objects/' + \
                                              attributeContainer.getName()
 

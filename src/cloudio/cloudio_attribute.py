@@ -43,7 +43,7 @@ class _InternalAttribute(UniqueIdentifiable):
         self._value = None      # type: dynamic
         self._listeners = None
 
-    #
+    ######################################################################
     # UniqueIdentifiable implementation
     #
     def getUuid(self):
@@ -52,9 +52,12 @@ class _InternalAttribute(UniqueIdentifiable):
 
         return self._topicUuid
 
-    #
+    ######################################################################
     # Named item implementation
     #
+    def getName(self):
+        return self._name
+
     def setName(self, name):
         """
         :type name: str
@@ -66,9 +69,6 @@ class _InternalAttribute(UniqueIdentifiable):
         assert name and name != '', 'Name not valid!'
         self._name = name
 
-    def getName(self):
-        return self._name
-
     def getValue(self):
         """Returns the current value of the attribute.
         :return: Attributes current value.
@@ -78,3 +78,50 @@ class _InternalAttribute(UniqueIdentifiable):
     def getType(self):
         """Returns the actual type of the attribute."""
         return type(self._value)
+
+    ######################################################################
+    # Public API
+    #
+    def setStaticValue(self, value):
+        """Initializes the static value
+
+        This can be only done using static attributes (@StaticAttribute or @Static).
+        The value of a static attribute can be changed as often as wanted, the only constraint is that the node
+        containing the static attribute has not been registered within the endpoint.
+
+        :param value: The initial value to set
+        :return:
+        """
+        # TODO Check constraint
+        #self._constraint.endpointWillChangeStatic()
+
+        self._value = value
+
+    def getParent(self):
+        return self._parent
+
+    def setParent(self, parent):
+        """Sets the parent of the attribute. Note that attributes can not be moved, so this method throws a runtime
+           exception if someone tries to move the attribute to a new parent.
+        """
+        # If the attribute already has a parent (we are moving the attribute) then fail with a runtime exception.
+        if self._parent:
+            raise CloudioModificationException('The parent of an Attribute can never be changed ' +
+                                               '(Attributes can not be moved)!')
+
+    def getConstraint(self):
+        return self._constraint
+
+    def setConstraint(self, constaint):
+        """
+
+        :param constaint:
+        :type constaint: str (for the moment)
+        :return:
+        """
+        # TODO Change constraint type to CloudioAttributeConstraint
+        if self._constraint:
+            raise CloudioModificationException('The Attribute has already a constraint ' +
+                                               '(Changing constraints is not allowed)!')
+        # Set the constraint
+        self._constraint = constaint
