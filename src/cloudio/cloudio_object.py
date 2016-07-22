@@ -8,7 +8,21 @@ from .exception.cloudio_modification_exception import CloudioModificationExcepti
 from .cloudio_attribute import CloudioAttribute
 from .topicuuid import TopicUuid
 
+
 class CloudioObject():
+    """Base class for all cloud.iO objects.
+
+    An object can either contain attributes (CloudioAttribute, @StaticAttribute) or child
+    objects. Using this it is possible to create data models with a great flexibility.
+
+    An object can be annotated with the @Conforms annotation to conform to a cloud.io class. A class in cloud.io is just
+    a scheme what attributes and child objects an object has to have. An object is conform to such a scheme if it
+    matches exactly the structure of the class. It can not contain more attributes or child objects, then it would be
+    not anymore conform to that class.
+
+    Todo: Add example code.
+
+    """
     def __init__(self):
         self._internal = _InternalObject(self)
 
@@ -57,16 +71,16 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
     def getName(self):
         return self.name
 
+    def attributeHasChangedByEndpoint(self, attribute):
+        if self.parent:
+            self.parent.attributeHasChangedByEndpoint(attribute)
+
     def attributeHasChangedByCloud(self, attribute):
         if self.parent:
             self.parent.attributeHasChangedByCloud(attribute)
 
     def isNodeRegisteredWithinEndpoint(self):
         return self.parent and self.parent.isNodeRegisteredWithinEndpoint()
-
-    def attributeHasChangedByEndpoint(self, attribute):
-        if self.parent:
-            self.parent.attributeHasChangedByEndpoint(attribute)
 
     def getObjects(self):
         return self.objects
