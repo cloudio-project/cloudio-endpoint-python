@@ -8,7 +8,7 @@ class CloudioObjectContainer(UniqueIdentifiable):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def attributeHasChangedByEndpoint(attribute):
+    def attributeHasChangedByEndpoint(self, attribute):
         """
         :param attribute: Attribute which has changed.
         :type attribute: CloudioAttribute
