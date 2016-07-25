@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import types
 from .interface.object_container import CloudioObjectContainer
 from .exception.cloudio_modification_exception import CloudioModificationException
 from .topicuuid import TopicUuid
+from .cloudio_object import CloudioObject
 
 
 class CloudioNode(CloudioObjectContainer):
@@ -10,7 +12,24 @@ class CloudioNode(CloudioObjectContainer):
         self.parent = None
         self.name = None
         self.interfaces = {}
-        self.objects = {}
+        self.objects = {}           # type: {CloudioObject}
+
+        self._updateCloudioObjects()
+
+        # TODO Implement add to annotation
+        self._addImplementedInterfaceToAnnotation()
+
+    def _updateCloudioObjects(self):
+        # Check each field of the actual node
+        for field in dir(self):
+            # Check if it is an attribute and ...
+            attr = getattr(self, field)
+            if attr:
+                if isinstance(attr, CloudioObject):
+                    print 'Node: Got an attribute based on an CloudioObject class'
+
+    def _addImplementedInterfaceToAnnotation(self):
+        pass
 
     ######################################################################
     # Interface implementations
@@ -35,7 +54,7 @@ class CloudioNode(CloudioObjectContainer):
         return self.objects
 
     def getParentNodeContainer(self):
-        return None
+        return self.parent
 
     def setParentNodeContainer(self, nodeContainer):
         # If the object already has a parent (we are moving the object)
@@ -48,17 +67,10 @@ class CloudioNode(CloudioObjectContainer):
         self.parent = nodeContainer
 
     def getParentObjectContainer(self):
-        return self.parent
+        return None
 
     def setParentObjectContainer(self, objectContainer):
-        # If the node already has a parent (we are moving the node)
-        # then fail with a runtime exception.
-        if self.parent:
-            raise CloudioModificationException('The parent of an node can never be changed ' +
-                                               '(Nodes can not be moved)!')
-
-        # Set the parent
-        self.parent = objectContainer
+        raise CloudioModificationException('A node can not have an object container as parent!')
 
     def attributeHasChangedByEndpoint(self, attribute):
         if self.parent:
@@ -83,7 +95,8 @@ class CloudioNode(CloudioObjectContainer):
                 if location[0] == u'objects':
                     location.pop(0)     # Remove first item
                     if len(location) > 0:
-                        obj = self.getObjects().getItem(location.pop(0))
+                        # Get object from container (dictionary) by key
+                        obj = self.getObjects()[location.pop(0)]
                         if obj:
                             return obj.findAttribute(location)
         return None
