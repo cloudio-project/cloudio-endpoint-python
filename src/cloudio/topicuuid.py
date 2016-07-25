@@ -14,11 +14,24 @@ class TopicUuid(uuid.Uuid):
 
         if cloudIoElement:
             from cloudio_attribute import _InternalAttribute
+            from .interface.node_container import CloudioNodeContainer
+            from .interface.object_container import CloudioObjectContainer
+
             if isinstance(cloudIoElement, _InternalAttribute):
                 try:
                     self._topic = self._getAttributeTopic(cloudIoElement)
                 except:
-                    self._topic = None
+                    raise RuntimeError()
+            elif isinstance(cloudIoElement, CloudioNodeContainer):
+                try:
+                    self._topic = self._getNodeContainerTopic(cloudIoElement)
+                except:
+                    raise RuntimeError()
+            elif isinstance(cloudIoElement, CloudioObjectContainer):
+                try:
+                    self._topic = self._getObjectContainerTopic(cloudIoElement)
+                except:
+                    raise RuntimeError()
 
 
 

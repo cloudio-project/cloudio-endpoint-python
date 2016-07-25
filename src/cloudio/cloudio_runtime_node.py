@@ -50,8 +50,8 @@ class CloudioRuntimeNode(CloudioNode):
                                u' interfaces is only possible as long as the node is not online' +
                                u' (registered within endpoint)!')
 
-        if not self.getInterfaces().has_key(interfaceName):
-            self.getInterfaces()[interfaceName]
+        if not self.interfaces.has_key(interfaceName):
+            self.interfaces[interfaceName] = interfaceName
 
     def declareImplementedInterfaces(self, interfaceNames):
         for interfaceName in interfaceNames:

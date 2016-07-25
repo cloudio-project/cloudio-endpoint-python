@@ -6,7 +6,7 @@ from cloudio_attribute import CloudioAttribute
 
 class CloudioRuntimeObject(CloudioObject):
     def __init__(self):
-        super(CloudioRuntimeObject, self).__init__()
+        CloudioObject.__init__(self)
         pass
 
     def getObject(self, name):

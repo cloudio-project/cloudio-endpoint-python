@@ -90,10 +90,7 @@ class _InternalAttribute(UniqueIdentifiable):
         if self._value:
             raise CloudioModificationException(u'The Attribute has already a type (Changing the type is not allowed)!')
 
-        if isinstance(theType, types.BooleanType) or \
-           isinstance(theType, types.IntType) or \
-           isinstance(theType, types.FloatType) or \
-           isinstance(theType, types.StringType):
+        if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType, types.StringType):
             self._value = theType()
         else:
             raise InvalidCloudioAttributeException(theType)

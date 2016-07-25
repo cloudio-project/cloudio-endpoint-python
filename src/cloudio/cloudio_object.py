@@ -26,6 +26,9 @@ class CloudioObject():
     def __init__(self):
         self._internal = _InternalObject(self)
 
+    def setName(self, name):
+        self._internal.setName(name)
+
 class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
 
     def __init__(self, externalObject):
