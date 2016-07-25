@@ -16,9 +16,9 @@ class CloudioRuntimeNode(CloudioNode):
         return self.objects
 
     def addObject(self, name, clsOrObject):
-        """Adds an object (or an object of the given class) with the given name to the custom node."""
+        """Adds an object (or an object of the given class) with the given name to the runtime node."""
         if self.isNodeRegisteredWithinEndpoint():
-            raise RuntimeError(u'A CloudioAdLibNode\'s structure can only be modified before it is registered within' +
+            raise RuntimeError(u'A CloudioRuntimeNode\'s structure can only be modified before it is registered within' +
                                u' the endpoint!')
 
         # Check if parameter is a class

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import types
 from topicuuid import TopicUuid
 from interface.unique_identifiable import UniqueIdentifiable
 from exception.cloudio_modification_exception import CloudioModificationException
+from exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 import utils.timestamp as TimeStampProvider
 
 class CloudioAttribute():
@@ -78,6 +80,23 @@ class _InternalAttribute(UniqueIdentifiable):
     def getType(self):
         """Returns the actual type of the attribute."""
         return type(self._value)
+
+    def setType(self, theType):
+        """Sets the type of the attribute.
+
+        Note that the type of an attribute is not allowed to change over time, so if
+        the attribute already has a type, the method fails with an runtime exception.
+        """
+        if self._value:
+            raise CloudioModificationException(u'The Attribute has already a type (Changing the type is not allowed)!')
+
+        if isinstance(theType, types.BooleanType) or \
+           isinstance(theType, types.IntType) or \
+           isinstance(theType, types.FloatType) or \
+           isinstance(theType, types.StringType):
+            self._value = theType()
+        else:
+            raise InvalidCloudioAttributeException(theType)
 
     ######################################################################
     # Public API
