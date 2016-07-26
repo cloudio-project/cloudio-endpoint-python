@@ -84,3 +84,11 @@ class MqttConnectOptions():
         self._caFile = None                 # type: str
         self._clientCertFile = None         # type: str
         self._clientKeyFile = None          # type: str
+
+class MqttClientPersistence():
+    """Mimic the behavior of the java.MqttClientPersistence interface"""
+    def __init__(self):
+        pass
+
+    def put(self, key, persistable):
+        pass

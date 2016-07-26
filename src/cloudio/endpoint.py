@@ -2,16 +2,26 @@
 
 from threading import Thread, Lock
 import time
-import uuid
-import types
-from .mqtt_helpers import MqttAsyncClient, MqttConnectOptions
-from cloudio.properties_endpoint_configuration import PropertiesEndpointConfiguration
+import logging
+import traceback
+import utils.timestamp as TimeStampProvider
+from .mqtt_helpers import MqttAsyncClient, MqttConnectOptions, MqttClientPersistence
+from .cloudio_node import CloudioNode
+from .properties_endpoint_configuration import PropertiesEndpointConfiguration
+from .interface.node_container import CloudioNodeContainer
+from exception.cloudio_modification_exception import CloudioModificationException
 from utils.resource_loader import ResourceLoader
-from cloudio.cloudio_node import CloudioNode
 from message_format.json_format import JsonMessageFormat
 from utils import path_helpers
+from pending_update import PendingUpdate
+from topicuuid import TopicUuid
 
-class CloudioEndpoint():
+# Enable logging
+logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    level=logging.DEBUG)
+
+class CloudioEndpoint(CloudioNodeContainer):
     """Internal Endpoint structure used by CloudioEndpoint.
 
     Contains among other things the mqtt client to talk to the cloudio broker.
@@ -26,12 +36,17 @@ class CloudioEndpoint():
     ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.clientCert'   # (*.pem)
     ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.clientKey'     # (*.pem)
 
+    log = logging.getLogger(__name__)
+
     def __init__(self, uuid, configuration=None):
 
         self.uuid = uuid            # type: str
         self.nodes = {}             # type: dict as CloudioNode
         self.cleanSession = True
         self.messageFormat = None   # type: CloudioMessageFormat
+        self.persistence = None     # type MqttClientPersistence
+
+        self.log.debug('Creating Endpoint %s' % uuid)
 
         # Check if a configuration with properties is given
         if configuration is None:
@@ -42,6 +57,9 @@ class CloudioEndpoint():
 
         self._retryInterval = 10    # Connect retry interval in seconds
         self.messageFormat = JsonMessageFormat()
+
+        # Create persistence object.
+        self.persistence = MqttClientPersistence()  # Temp
 
         # Check if 'host' property is present in config file
         host = configuration.getProperty(self.MQTT_HOST_URI_PROPERTY)
@@ -68,11 +86,11 @@ class CloudioEndpoint():
         self.thread.setDaemon(True)
         self.thread.start()
 
-    def getName(self): return self.uuid
-
     def addNode(self, nodeName, clsOrObject):
         if nodeName != '' and clsOrObject != None:
             node = None
+
+            self.log.debug('Adding node %s' % nodeName)
 
             # Add node to endpoint
 #            if clsOrObject == types.InstanceType:
@@ -97,8 +115,59 @@ class CloudioEndpoint():
                     data = self.messageFormat.serializeNode(node)
                     print data
                     self.mqtt.publish(u'@nodeAdded/' + node.getUuid().toString(), data, 1, False)
+                else:
+                    self.log.info(u'Not sending \'@nodeAdded\' message. No connection to broker!')
 
+    def getNode(self, nodeName):
+        return self.nodes[nodeName];
 
+    ######################################################################
+    # Interface implementations
+    #
+    def getUuid(self):
+        return TopicUuid(self)
+
+    def getName(self):
+        return self.uuid
+
+    def setName(self, name):
+        raise CloudioModificationException(u'CloudioEndpoint name can not be changed!')
+
+    def attributeHasChangedByEndpoint(self, attribute):
+        """
+        :param attribute:
+        :type attribute: CloudioAttribute
+        :return:
+        """
+        # Create the MQTT message using the given message format.
+        data = self.messageFormat.serializeAttribute(attribute)
+
+        messageSend = False
+        if self.mqtt.isConnected():
+            try:
+                self.mqtt.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
+                messageSend = True
+            except Exception as exception:
+                self.log.error(u'Exception :' + exception.message())
+                traceback.print_exc()
+
+        # If the message could not be send for any reason, add the message to the pending
+        # updates persistence if available.
+        if not messageSend and self.persistence:
+            try:
+                self.persistence.put("PendingUpdate-" + attribute.getUuid().toString().replace("/", ";")
+                                        + "-" + TimeStampProvider.getTimeInMilliseconds(),
+                                     PendingUpdate(data))
+            except Exception as exception:
+                self.log.error(u'Exception :' + exception.message())
+                traceback.print_exc()
+
+    def attributeHasChangedByCloud(self, attribute):
+        self.attributeHasChangedByEndpoint(attribute)
+
+    ######################################################################
+    # Active part
+    #
     def run(self):
         """Called by the internal thread"""
 

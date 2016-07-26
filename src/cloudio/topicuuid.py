@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import traceback
 from .interface import uuid
 
 class TopicUuid(uuid.Uuid):
@@ -17,23 +18,16 @@ class TopicUuid(uuid.Uuid):
             from .interface.node_container import CloudioNodeContainer
             from .interface.object_container import CloudioObjectContainer
 
-            if isinstance(cloudIoElement, _InternalAttribute):
-                try:
+            try:
+                if isinstance(cloudIoElement, _InternalAttribute):
                     self._topic = self._getAttributeTopic(cloudIoElement)
-                except:
-                    raise RuntimeError()
-            elif isinstance(cloudIoElement, CloudioNodeContainer):
-                try:
+                elif isinstance(cloudIoElement, CloudioNodeContainer):
                     self._topic = self._getNodeContainerTopic(cloudIoElement)
-                except:
-                    raise RuntimeError()
-            elif isinstance(cloudIoElement, CloudioObjectContainer):
-                try:
+                elif isinstance(cloudIoElement, CloudioObjectContainer):
                     self._topic = self._getObjectContainerTopic(cloudIoElement)
-                except:
-                    raise RuntimeError()
-
-
+            except Exception as exception:
+                traceback.print_exc()
+                raise RuntimeError(u'Error in TopicUuid')
 
     ######################################################################
     # interface.Uuid implementation

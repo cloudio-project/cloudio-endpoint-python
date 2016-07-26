@@ -3,6 +3,7 @@
 import types
 from topicuuid import TopicUuid
 from interface.unique_identifiable import UniqueIdentifiable
+from interface.attribute_container import CloudioAttributeContainer
 from exception.cloudio_modification_exception import CloudioModificationException
 from exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 import utils.timestamp as TimeStampProvider
@@ -26,12 +27,26 @@ class CloudioAttribute():
         self._internal._timestamp = timestamp
         self._internal._value = value
 
-        # TODO Send change to cloud.
+        # Send change to cloud.
+        if self.getParent():
+            self.getParent().attributeHasChangedByEndpoint(self)
 
         # TODO Inform all registered listeners.
 
     def getParent(self):
         return self._internal._parent
+
+    def getUuid(self):
+        return self._internal.getUuid()
+
+    def getType(self):
+        return self._internal.getType()
+
+    def getConstraint(self):
+        return self._internal.getConstraint()
+
+    def getTimestamp(self):
+        return self._internal.getTimestamp()
 
 class _InternalAttribute(UniqueIdentifiable):
     def __init__(self):
@@ -98,6 +113,9 @@ class _InternalAttribute(UniqueIdentifiable):
     ######################################################################
     # Public API
     #
+    def getTimestamp(self):
+        return self._timestamp
+
     def setStaticValue(self, value):
         """Initializes the static value
 
@@ -124,6 +142,8 @@ class _InternalAttribute(UniqueIdentifiable):
         if self._parent:
             raise CloudioModificationException('The parent of an Attribute can never be changed ' +
                                                '(Attributes can not be moved)!')
+        #assert isinstance(parent, CloudioAttributeContainer), u'Wrong type for parent attribute!'
+        self._parent = parent
 
     def getConstraint(self):
         return self._constraint

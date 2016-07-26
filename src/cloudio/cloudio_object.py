@@ -26,8 +26,20 @@ class CloudioObject():
     def __init__(self):
         self._internal = _InternalObject(self)
 
+    def getName(self):
+        return self._internal.getName()
+
     def setName(self, name):
         self._internal.setName(name)
+
+    def findAttribute(self, location):
+        return self._internal.findAttribute(location)
+
+    def attributeHasChangedByEndpoint(self, attribute):
+        self._internal.attributeHasChangedByEndpoint(attribute)
+
+    def getParentObjectContainer(self):
+        return self._internal.getParentObjectContainer()
 
 class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
 
@@ -44,13 +56,13 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         for field in dir(externalObject):
             # Check if it is an attribute and go get it
             attr = getattr(externalObject, field)
-            if attr:
-                if isinstance(attr, CloudioObject):
-                   print 'Got an attribute based on an CloudioObject class'
-                elif type(field) == CloudioAttribute:
-                    print 'Got an attribute based on an CloudioAttribute class'
-                else:
-                    print 'Got an attribute with non-relevant type'
+#           if attr:
+#               if isinstance(attr, CloudioObject):
+#                  print 'Got an attribute based on an CloudioObject class'
+#               elif type(field) == CloudioAttribute:
+#                   print 'Got an attribute based on an CloudioAttribute class'
+#               else:
+#                   print 'Got an attribute with non-relevant type'
 
     def getExternalObject(self):
         return self._externalObject
@@ -62,6 +74,9 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         # TODO Store topic uuid as attribute
         return TopicUuid(self)
 
+    def getName(self):
+        return self.name
+
     def setName(self, name):
         # If the object already has a name (we are renaming the object)
         # then fail with a runtime exception.
@@ -70,9 +85,6 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
 
         # Set the local name
         self.name = name
-
-    def getName(self):
-        return self.name
 
     def attributeHasChangedByEndpoint(self, attribute):
         if self.parent:
@@ -119,14 +131,14 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                 if location[0] == u'objects':
                     location.pop(0)     # Remove first item
                     if len(location) > 0:
-                        object = self.getObjects().getItem(location.pop(0))
+                        object = self.getObjects()[location.pop(0)]
                         if object:
                             return object.findAttribute(location)
                 elif location[0] == u'attributes':
                     self.getAttributes()    # Update attributes list
                     location.pop(0)         # Remove first item
                     if len(location) > 0:
-                        attribute = self.getAttributes().getItem(location.pop(0))
+                        attribute = self.getAttributes()[location.pop(0)]
                         if attribute:
                             return attribute
         return None

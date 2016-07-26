@@ -28,7 +28,26 @@ class JsonMessageFormat(CloudioMessageFormat):
         return message
 
     def serializeAttribute(self, attribute):
-        return super(JsonMessageFormat, self).serializeAttribute(attribute)
+        data = {}
+        data[u'type'] = attribute.getType().__name__
+        data[u'constraint'] = attribute.getConstraint()
+
+        # Add timestamp only if attribute is not static
+        if attribute.getConstraint() != 'static':
+            timestamp = attribute.getTimestamp()
+            if timestamp:
+                data[u'timestamp'] = timestamp / 1000.0
+
+        attributeValue = attribute.getValue()
+        data[u'value'] = attributeValue
+
+        message = bytearray()
+        #message += self._encoder.startObject()
+
+        message += json.dumps(data)
+
+        #message += self._encoder.endObject()
+        return message
 
     def deserializeAttribute(self, data, attribute):
         super(JsonMessageFormat, self).deserializeAttribute(data, attribute)
