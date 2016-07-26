@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from threading import Thread, Lock
+from threading import Thread
 import time
 import logging
 import traceback
@@ -9,6 +9,7 @@ from .mqtt_helpers import MqttAsyncClient, MqttConnectOptions, MqttClientPersist
 from .cloudio_node import CloudioNode
 from .properties_endpoint_configuration import PropertiesEndpointConfiguration
 from .interface.node_container import CloudioNodeContainer
+from .interface.message_format import CloudioMessageFormat
 from exception.cloudio_modification_exception import CloudioModificationException
 from utils.resource_loader import ResourceLoader
 from message_format.json_format import JsonMessageFormat
@@ -61,12 +62,17 @@ class CloudioEndpoint(CloudioNodeContainer):
         # Create persistence object.
         self.persistence = MqttClientPersistence()  # Temp
 
-        # Check if 'host' property is present in config file
+          # Check if 'host' property is present in config file
         host = configuration.getProperty(self.MQTT_HOST_URI_PROPERTY)
         if host == '':
             exit('Missing mandatory property "' + self.MQTT_HOST_URI_PROPERTY + '"')
 
         self.options = MqttConnectOptions()
+
+        # Last will is a message with the UUID of the endpoint and no payload.
+        willMessage = bytearray();
+        willMessage += 'DEAD'
+        self.options.setWill(u'@offline/' + uuid, willMessage, 1, False)
 
         self.options._caFile = configuration.getProperty(self.CERT_AUTHORITY_FILE_PROPERTY, None)
         self.options._clientCertFile = configuration.getProperty(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
@@ -119,7 +125,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                     self.log.info(u'Not sending \'@nodeAdded\' message. No connection to broker!')
 
     def getNode(self, nodeName):
-        return self.nodes[nodeName];
+        return self.nodes[nodeName]
 
     ######################################################################
     # Interface implementations
@@ -148,7 +154,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                 self.mqtt.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
                 messageSend = True
             except Exception as exception:
-                self.log.error(u'Exception :' + exception.message())
+                self.log.error(u'Exception :' + exception.message)
                 traceback.print_exc()
 
         # If the message could not be send for any reason, add the message to the pending
@@ -159,7 +165,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                                         + "-" + TimeStampProvider.getTimeInMilliseconds(),
                                      PendingUpdate(data))
             except Exception as exception:
-                self.log.error(u'Exception :' + exception.message())
+                self.log.error(u'Exception :' + exception.message)
                 traceback.print_exc()
 
     def attributeHasChangedByCloud(self, attribute):
@@ -176,7 +182,8 @@ class CloudioEndpoint(CloudioNodeContainer):
         while not self.mqtt.isConnected():
             try:
                 self.mqtt.connect(self.options)
-            except:
+            except Exception as exception:
+                traceback.print_exc()
                 print u'Error during broker connect!'
                 exit(1)
 
@@ -204,6 +211,6 @@ class CloudioEndpoint(CloudioNodeContainer):
 
     def announce(self):
         # Send birth message
-        print u'Sending birth message...'
+        self.log.info(u'Sending birth message...')
         strMessage = u'TBD'
         self.mqtt.publish(u'@online/' + self.uuid, strMessage, 1, True)

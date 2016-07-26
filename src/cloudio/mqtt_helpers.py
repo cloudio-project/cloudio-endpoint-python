@@ -16,6 +16,12 @@ class MqttAsyncClient():
 
     def connect(self, options):
 
+        if options.will:
+            self.client.will_set(options.will['topic'],
+                                 options.will['message'],
+                                 options.will['qos'],
+                                 options.will['retained'])
+
         if options._caFile:
             # Check if file exists
             if not os.path.isfile(options._caFile):
@@ -84,6 +90,14 @@ class MqttConnectOptions():
         self._caFile = None                 # type: str
         self._clientCertFile = None         # type: str
         self._clientKeyFile = None          # type: str
+        self.will = None                    # type dict
+
+    def setWill(self, topic, message, qos, retained):
+        self.will = {}
+        self.will['topic'] = topic
+        self.will['message'] = message
+        self.will['qos'] = qos
+        self.will['retained'] = retained
 
 class MqttClientPersistence():
     """Mimic the behavior of the java.MqttClientPersistence interface"""
