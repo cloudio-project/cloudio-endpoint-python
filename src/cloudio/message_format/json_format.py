@@ -17,12 +17,23 @@ class JsonMessageFormat(CloudioMessageFormat):
         pass
 
     def serializeEndpoint(self, endpoint):
-        return super(JsonMessageFormat, self).serializeEndpoint(endpoint)
+        data = {}
+        nodes = {}
+
+        for key, node in endpoint.nodes.iteritems():
+            nodes[node.getName()] = self.serializeNode(node)
+
+        data[u'nodes'] = nodes
+
+        message = bytearray()
+        # Encode data to json formatted byte array
+        message += json.dumps(data)
 
     def serializeNode(self, node):
         message = bytearray()
 
         #message += self._encoder.startObject()
+        # Encode data to json formatted byte array
         message += self._encoder.encode(node)
         #message += self._encoder.endObject()
         return message
@@ -42,11 +53,9 @@ class JsonMessageFormat(CloudioMessageFormat):
         data[u'value'] = attributeValue
 
         message = bytearray()
-        #message += self._encoder.startObject()
-
+        # Encode data to json formatted byte array
         message += json.dumps(data)
 
-        #message += self._encoder.endObject()
         return message
 
     def deserializeAttribute(self, data, attribute):

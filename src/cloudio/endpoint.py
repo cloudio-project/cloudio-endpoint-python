@@ -200,8 +200,10 @@ class CloudioEndpoint(CloudioNodeContainer):
                     # TODO Do I need to stop the thread here?!
                     return
 
+        self.log.info(u'Connected to cloud.iO broker')
+
         # Announce our presence to the broker
-        self.announce()
+        #self.announce()
 
         # If we arrive here, we are online, so we can inform listeners about that and stop the connecting thread
 #        self.mqtt.setCallback(self)
@@ -212,5 +214,5 @@ class CloudioEndpoint(CloudioNodeContainer):
     def announce(self):
         # Send birth message
         self.log.info(u'Sending birth message...')
-        strMessage = u'TBD'
+        strMessage = self.messageFormat.serializeEndpoint(self)
         self.mqtt.publish(u'@online/' + self.uuid, strMessage, 1, True)
