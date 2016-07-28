@@ -13,6 +13,7 @@ class MqttAsyncClient():
         self.client = mqtt.Client(client_id=clientId, clean_session=clean_session)
 
         self.client.on_connect = self.onConnect
+        self.client.on_disconnect = self.onDisconnect
 
     def connect(self, options):
 
@@ -79,6 +80,9 @@ class MqttAsyncClient():
             if rc != 3: # Expect for 'server unavailable'
                 # Close application
                 exit(0)
+
+    def onDisconnect(self, client, userdata, rc):
+        print 'Disconnect: %d' % rc
 
     def publish(self, topic, payload, qos, retain):
         self.client.publish(topic, payload, qos, retain)
