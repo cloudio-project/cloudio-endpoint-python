@@ -119,7 +119,6 @@ class CloudioEndpoint(CloudioNodeContainer):
                 # If the endpoint is online, send node add message
                 if self.isOnline():
                     data = self.messageFormat.serializeNode(node)
-                    print data
                     self.mqtt.publish(u'@nodeAdded/' + node.getUuid().toString(), data, 1, False)
                 else:
                     self.log.info(u'Not sending \'@nodeAdded\' message. No connection to broker!')
