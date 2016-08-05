@@ -4,7 +4,7 @@ import urllib
 import urlparse
 import os
 from os.path import expanduser
-from configobj import ConfigObj
+from configobj import ConfigObj         # pip install configobj
 
 class ResourceLoader():
 
