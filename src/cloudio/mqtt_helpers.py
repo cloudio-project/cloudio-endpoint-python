@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os, time
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as mqtt     # pip install paho-mqtt
 import ssl
 
 class MqttAsyncClient():

@@ -21,13 +21,14 @@ class JsonMessageFormat(CloudioMessageFormat):
         nodes = {}
 
         for key, node in endpoint.nodes.iteritems():
-            nodes[node.getName()] = self.serializeNode(node)
+            nodes[node.getName()] = node
 
         data[u'nodes'] = nodes
 
         message = bytearray()
         # Encode data to json formatted byte array
-        message += json.dumps(data)
+        message += self._encoder.encode(data)
+        return message
 
     def serializeNode(self, node):
         message = bytearray()
