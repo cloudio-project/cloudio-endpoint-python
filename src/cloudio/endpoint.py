@@ -21,6 +21,7 @@ from topicuuid import TopicUuid
 logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.DEBUG)
+logging.getLogger(__name__).setLevel(logging.CRITICAL)
 
 class CloudioEndpoint(CloudioNodeContainer):
     """Internal Endpoint structure used by CloudioEndpoint.
@@ -70,7 +71,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options = MqttConnectOptions()
 
         # Last will is a message with the UUID of the endpoint and no payload.
-        willMessage = bytearray();
+        willMessage = bytearray()
         willMessage += 'DEAD'
         self.options.setWill(u'@offline/' + uuid, willMessage, 1, False)
 
@@ -86,11 +87,20 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options._clientKeyFile = path_helpers.prettify(self.options._clientKeyFile)
 
         self.mqtt = MqttAsyncClient(host, clientId=self.uuid, clean_session=self.cleanSession)
+        # Register callback method to be called when receiving a message over MQTT
+        self.mqtt.setOnMessageCallback(self._onMessageArrived)
 
         self.thread = Thread(target=self.run, name='cloudio-endpoint-' + self.uuid)
         # Close thread as soon as main thread exits
         self.thread.setDaemon(True)
         self.thread.start()
+
+    def _onMessageArrived(self, client, userdata, msg):
+        print msg.topic + ': ' + str(msg.payload)
+
+    def subscribeToSetCommands(self):
+        (result, mid) = self.mqtt.subscribe("@set/" + self.getUuid().toString() + "/#", 1)
+        return True if result == self.mqtt.MQTT_ERR_SUCCESS else False
 
     def addNode(self, nodeName, clsOrObject):
         if nodeName != '' and clsOrObject != None:
@@ -203,6 +213,10 @@ class CloudioEndpoint(CloudioNodeContainer):
 
         # Announce our presence to the broker
         #self.announce()
+
+        success = self.subscribeToSetCommands()
+        if not success:
+            self.log.critical('Could not subscribe to @set topic!')
 
         # If we arrive here, we are online, so we can inform listeners about that and stop the connecting thread
 #        self.mqtt.setCallback(self)

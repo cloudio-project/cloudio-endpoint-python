@@ -6,7 +6,7 @@ def prettify(pathName):
     """Makes all necessary stuff to get a usable path (specially under Windows)
 
     :param pathName: Path to make pretty
-    :type pathName: str
+    :type pathName: str The new 'pretty' path
     """
 
     if pathName:

@@ -7,6 +7,9 @@ import ssl
 class MqttAsyncClient():
     """Mimic the behavior of the java.MqttAsyncClient class"""
 
+    # Errors from mqtt module - mirrored into this class
+    MQTT_ERR_SUCCESS = mqtt.MQTT_ERR_SUCCESS
+
     def __init__(self, host, clientId='', clean_session=True):
         self._isConnected = False
         self._host = host
@@ -14,6 +17,9 @@ class MqttAsyncClient():
 
         self.client.on_connect = self.onConnect
         self.client.on_disconnect = self.onDisconnect
+
+    def setOnMessageCallback(self, onMessageCallback):
+        self.client.on_message = onMessageCallback
 
     def connect(self, options):
 
@@ -86,6 +92,9 @@ class MqttAsyncClient():
 
     def publish(self, topic, payload, qos, retain):
         self.client.publish(topic, payload, qos, retain)
+
+    def subscribe(self, topic, qos=0):
+        return self.client.subscribe(topic, qos)
 
 class MqttConnectOptions():
     def __init__(self):
