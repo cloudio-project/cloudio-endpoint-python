@@ -10,6 +10,7 @@ from .cloudio_node import CloudioNode
 from .properties_endpoint_configuration import PropertiesEndpointConfiguration
 from .interface.node_container import CloudioNodeContainer
 from .interface.message_format import CloudioMessageFormat
+from .message_format.factory import MessageFormatFactory
 from exception.cloudio_modification_exception import CloudioModificationException
 from utils.resource_loader import ResourceLoader
 from message_format.json_format import JsonMessageFormat
@@ -96,7 +97,27 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.thread.start()
 
     def _onMessageArrived(self, client, userdata, msg):
-        print msg.topic + ': ' + str(msg.payload)
+        #print msg.topic + ': ' + str(msg.payload)
+        try:
+            # First determine the message format (first byte identifies the message format).
+            messageFormat = MessageFormatFactory.messageFormat(msg.payload[0])
+            if messageFormat == None:
+                self.log.error('Message-format ' + msg.payload[0] + " not supported!")
+                return
+
+             # Create attribute location path stack.
+            location = msg.topic.split('/')
+
+            # Read the action tag from the topic
+            action = location[0]
+            if action == '@set':
+                location.pop(0)
+                self._set(msg.topic, location, messageFormat, msg.payload)
+            else:
+                self.log.error('Method \"' + location[0] + '\" not supported!')
+        except Exception as exception:
+            self.log.error(u'Exception :' + exception.message)
+            traceback.print_exc()
 
     def subscribeToSetCommands(self):
         (result, mid) = self.mqtt.subscribe("@set/" + self.getUuid().toString() + "/#", 1)
@@ -136,6 +157,9 @@ class CloudioEndpoint(CloudioNodeContainer):
     def getNode(self, nodeName):
         return self.nodes[nodeName]
 
+    def _set(self, topic, location, messageFormat, data):
+        pass
+
     ######################################################################
     # Interface implementations
     #
@@ -164,7 +188,6 @@ class CloudioEndpoint(CloudioNodeContainer):
                 messageSend = True
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
-                traceback.print_exc()
 
         # If the message could not be send for any reason, add the message to the pending
         # updates persistence if available.
