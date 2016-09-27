@@ -60,7 +60,21 @@ class JsonMessageFormat(CloudioMessageFormat):
         return message
 
     def deserializeAttribute(self, data, attribute):
-        super(JsonMessageFormat, self).deserializeAttribute(data, attribute)
+
+        dataDict = json.loads(data)
+        """:type: dict"""
+
+        if isinstance(dataDict, 'dict') and \
+           dataDict.has_key('timestamp') and \
+           dataDict.has_key('value'):
+
+            timestamp = int(dataDict['timestamp'] * 1000)
+            value = dataDict['timestamp']
+
+            if timestamp != 0 and value != 0:
+                type = attribute.getType()
+                print type
+
 
 
 class _JsonMessageEncoder(json.JSONEncoder):
