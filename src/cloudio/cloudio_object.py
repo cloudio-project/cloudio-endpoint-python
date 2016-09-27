@@ -128,18 +128,18 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         """
         if location:
             if len(location) > 0:
-                if location[0] == u'objects':
-                    location.pop(0)     # Remove first item
+                if location[-1] == u'objects':  # Compare with last element (peek element)
+                    location.pop()     # Remove last item
                     if len(location) > 0:
-                        object = self.getObjects()[location.pop(0)]
+                        object = self.getObjects()[location.pop()]
                         if object:
                             return object.findAttribute(location)
-                elif location[0] == u'attributes':
+                elif location[-1] == u'attributes':
                     self.getAttributes()    # Update attributes list
-                    location.pop(0)         # Remove first item
+                    location.pop()         # Remove last item
                     if len(location) > 0:
-                        if self.getAttributes().has_key(location[0]):
-                            attribute = self.getAttributes()[location.pop(0)]
+                        if self.getAttributes().has_key(location[-1]):
+                            attribute = self.getAttributes()[location.pop()]
                             if attribute:
                                 return attribute
         return None

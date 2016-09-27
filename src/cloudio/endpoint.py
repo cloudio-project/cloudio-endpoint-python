@@ -22,7 +22,7 @@ from topicuuid import TopicUuid
 logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.DEBUG)
-logging.getLogger(__name__).setLevel(logging.CRITICAL)
+logging.getLogger('gibscom'+__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 class CloudioEndpoint(CloudioNodeContainer):
     """Internal Endpoint structure used by CloudioEndpoint.
@@ -105,16 +105,19 @@ class CloudioEndpoint(CloudioNodeContainer):
                 self.log.error('Message-format ' + msg.payload[0] + " not supported!")
                 return
 
-             # Create attribute location path stack.
-            location = msg.topic.split('/')
+            topicLevels = msg.topic.split('/')
+            # Create attribute location path stack.
+            location = []
+            for topicLevel in topicLevels:
+                location.insert(0, topicLevel)
 
             # Read the action tag from the topic
-            action = location[0]
+            action = topicLevels[0]
             if action == '@set':
-                location.pop(0)
+                location.pop()
                 self._set(msg.topic, location, messageFormat, msg.payload)
             else:
-                self.log.error('Method \"' + location[0] + '\" not supported!')
+                self.log.error('Method \"' + action + '\" not supported!')
         except Exception as exception:
             self.log.error(u'Exception :' + exception.message)
             traceback.print_exc()
@@ -158,7 +161,38 @@ class CloudioEndpoint(CloudioNodeContainer):
         return self.nodes[nodeName]
 
     def _set(self, topic, location, messageFormat, data):
-        pass
+        """Assigns a new value to a cloud.iO attribute.
+
+        :param topic: Topic representing the attribute
+        :param location: Location stack
+        :type location list
+        :param messageFormat: Message format according to the data parameter
+        :param data: Contains among other things the value to be assigned
+        :return:
+        """
+        # The path to the location must be start with the actual UUID of the endpoint.
+        if location and self.uuid == location.pop() and \
+           location and 'nodes' == location.pop() and \
+           location:
+            # Get the node with the name according to the topic
+            node = self.nodes.get(location[-1])
+            if node:
+                location.pop()
+                # Get the attribute reference
+                attribute = node.findAttribute(location)
+                if attribute:
+                    # Deserialize the message into the attribute
+                    messageFormat.deserializeAttribute(data, attribute)
+                else:
+                    self.log.error('Attribute at \"' + topic + '\" not found!')
+            else:
+                self.log.error('Node \"' + location.pop() + '\" not found!')
+        else:
+            self.log.error('Invalid topic: ' + topic)
+
+#            and \
+ #               !location.isEmpty() && "nodes".equals(location.pop()) &&
+  #              !location.isEmpty())
 
     ######################################################################
     # Interface implementations
