@@ -4,6 +4,7 @@ import types
 from topicuuid import TopicUuid
 from interface.unique_identifiable import UniqueIdentifiable
 from interface.attribute_container import CloudioAttributeContainer
+from interface.attribute_listener import AttributeListener
 from exception.cloudio_modification_exception import CloudioModificationException
 from exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 import utils.timestamp as TimeStampProvider
@@ -13,14 +14,37 @@ class CloudioAttribute(UniqueIdentifiable):
     """The leaf information in the cloud.io data model
     """
     def __init__(self):
-        self._name = None  # type: str
+        self._name = None           # type: str
         self._parent = None
-        self._topicUuid = None  # type: TopicUuid
+        self._topicUuid = None      # type: TopicUuid
         self._constraint = None
         self._rawType = None
         self._timestamp = None
-        self._value = None  # type: dynamic
-        self._listeners = None
+        self._value = None          # type: dynamic
+        self._listeners = None      # type: list[AttributeListener]
+
+    def addListener(self, listener):
+        """Adds the given listener to the list of listeners that will get informed about a change of the attribute.
+
+        :param listener: Reference to the object implementing the AttributeListener interface to add.
+        :type listener: AttributeListener
+        """
+        if listener is not None:
+            # Lazy initialization of the listener list
+            if self._listeners is None:
+                self._listeners = []
+
+            # Finally add the listener
+            self._listeners.append(listener)
+
+    def removeListener(self, listener):
+        """Removes the given listener from the list of listeners.
+
+        :param listener: Reference to the object implementing the AttributeListener interface to remove.
+        :type listener: AttributeListener
+        """
+        if listener is not None and self._listeners is not None:
+            self._listeners.remove(listener)
 
     ######################################################################
     # UniqueIdentifiable implementation
@@ -63,13 +87,14 @@ class CloudioAttribute(UniqueIdentifiable):
 
         # Check if the value from the cloud is older than the actual one and do nothing if that is the case.
         if self._timestamp is not None and self._timestamp >= timestamp:
+            print 'Warning: Ignoring new value from cloud.iO. Not valid timestamp!'
             return False
 
         # TODO: Maybe we should check that the timestamp is not older than a given number of seconds.
 
         # Update the value
-        self.timestamp = timestamp
-        self.value = value
+        self._timestamp = timestamp
+        self._value = value
 
         # Notify the cloud.
         if self._parent is not None:
