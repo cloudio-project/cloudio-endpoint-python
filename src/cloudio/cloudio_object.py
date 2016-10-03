@@ -173,12 +173,12 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                        isinstance(attr, float) or \
                        isinstance(attr, str):
                         attribute = CloudioAttribute()
-                        attribute._internal.setConstraint('static')
-                        attribute._internal.setName(field)
-                        attribute._internal.setParent(self)
-                        attribute._internal.setStaticValue(attr)
+                        attribute.setConstraint('static')
+                        attribute.setName(field)
+                        attribute.setParent(self)
+                        attribute.setStaticValue(attr)
 
-                        topicUuid = attribute._internal.getUuid().toString()
+                        topicUuid = attribute.getUuid().toString()
                         if topicUuid and not topicUuid in self._attributes:
                             self._attributes[topicUuid] = attribute
                         else:

@@ -14,12 +14,12 @@ class TopicUuid(uuid.Uuid):
         self._topic = None  # type: str
 
         if cloudIoElement:
-            from cloudio_attribute import _InternalAttribute
+            from cloudio_attribute import CloudioAttribute
             from .interface.node_container import CloudioNodeContainer
             from .interface.object_container import CloudioObjectContainer
 
             try:
-                if isinstance(cloudIoElement, _InternalAttribute):
+                if isinstance(cloudIoElement, CloudioAttribute):
                     self._topic = self._getAttributeTopic(cloudIoElement)
                 elif isinstance(cloudIoElement, CloudioNodeContainer):
                     self._topic = self._getNodeContainerTopic(cloudIoElement)

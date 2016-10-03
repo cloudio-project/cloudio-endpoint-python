@@ -48,9 +48,9 @@ class CloudioRuntimeObject(CloudioObject):
         # Create cloud.iO attribute
         attribute = CloudioAttribute()
 
-        attribute._internal.setParent(self)
-        attribute._internal.setName(name)
-        attribute._internal.setType(type)
+        attribute.setParent(self)
+        attribute.setName(name)
+        attribute.setType(type)
 
         # TODO Set attribute constraint
         #if constraint:

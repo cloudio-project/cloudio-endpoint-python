@@ -9,14 +9,27 @@ from exception.invalid_cloudio_attribute_exception import InvalidCloudioAttribut
 import utils.timestamp as TimeStampProvider
 from cloudio_attribute_type import CloudioAttributeType as AttributeType
 
-class CloudioAttribute():
+class CloudioAttribute(UniqueIdentifiable):
     """The leaf information in the cloud.io data model
     """
     def __init__(self):
-        self._internal = _InternalAttribute()
+        self._name = None  # type: str
+        self._parent = None
+        self._topicUuid = None  # type: TopicUuid
+        self._constraint = None
+        self._rawType = None
+        self._timestamp = None
+        self._value = None  # type: dynamic
+        self._listeners = None
 
-    def getValue(self):
-        return self._internal._value
+    ######################################################################
+    # UniqueIdentifiable implementation
+    #
+    def getUuid(self):
+        if not self._topicUuid:
+            self._topicUuid = TopicUuid(self)
+
+        return self._topicUuid
 
     def setValue(self, value, timestamp=None):
         if not timestamp:
@@ -25,8 +38,8 @@ class CloudioAttribute():
         # TODO Check constraint.
 
         # Update value
-        self._internal._timestamp = timestamp
-        self._internal._value = value
+        self._timestamp = timestamp
+        self._value = value
 
         # Send change to cloud.
         if self.getParent():
@@ -49,62 +62,30 @@ class CloudioAttribute():
         # self.constraint.cloudWillChange()
 
         # Check if the value from the cloud is older than the actual one and do nothing if that is the case.
-        if self._internal._timestamp is not None and self._internal._timestamp >= timestamp:
+        if self._timestamp is not None and self._timestamp >= timestamp:
             return False
 
         # TODO: Maybe we should check that the timestamp is not older than a given number of seconds.
 
         # Update the value
-        self._internal.timestamp = timestamp
-        self._internal.value = value
+        self.timestamp = timestamp
+        self.value = value
 
         # Notify the cloud.
-        if self._internal._parent is not None:
-            self._internal._parent.attributeHasChangedByCloud(self)
+        if self._parent is not None:
+            self._parent.attributeHasChangedByCloud(self)
 
         # Notify all listeners.
-        if self._internal._listeners is not None:
-            for listener in self._internal._listeners:
+        if self._listeners is not None:
+            for listener in self._listeners:
                 # noinspection unchecked
                 listener.attributeHasChanged(self)
 
         return True
 
-    def getParent(self):
-        return self._internal._parent
-
-    def getUuid(self):
-        return self._internal.getUuid()
-
     def getType(self):
-        return AttributeType.fromRawType(self._internal.getType())
-
-    def getConstraint(self):
-        return self._internal.getConstraint()
-
-    def getTimestamp(self):
-        return self._internal.getTimestamp()
-
-class _InternalAttribute(UniqueIdentifiable):
-    def __init__(self):
-        # TODO Explain each of the attributes
-        self._name = None       # type: str
-        self._parent = None
-        self._topicUuid = None  # type: TopicUuid
-        self._constraint = None
-        self._rawType = None
-        self._timestamp = None
-        self._value = None      # type: dynamic
-        self._listeners = None
-
-    ######################################################################
-    # UniqueIdentifiable implementation
-    #
-    def getUuid(self):
-        if not self._topicUuid:
-            self._topicUuid = TopicUuid(self)
-
-        return self._topicUuid
+        """Returns the actual type of the attribute."""
+        return AttributeType.fromRawType(type(self._value))
 
     ######################################################################
     # Named item implementation
@@ -128,10 +109,6 @@ class _InternalAttribute(UniqueIdentifiable):
         :return: Attributes current value.
         """
         return self._value
-
-    def getType(self):
-        """Returns the actual type of the attribute."""
-        return type(self._value)
 
     def setType(self, theType):
         """Sets the type of the attribute.
@@ -198,3 +175,6 @@ class _InternalAttribute(UniqueIdentifiable):
                                                '(Changing constraints is not allowed)!')
         # Set the constraint
         self._constraint = constaint
+
+
+
