@@ -3,6 +3,7 @@
 import json
 import inspect
 from ..interface.message_format import CloudioMessageFormat
+from ..cloudio_attribute_type import CloudioAttributeType as AttributeType
 
 # Links:
 # - http://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
@@ -41,7 +42,7 @@ class JsonMessageFormat(CloudioMessageFormat):
 
     def serializeAttribute(self, attribute):
         data = {}
-        data[u'type'] = attribute.getType().__name__
+        data[u'type'] = attribute.getType()
         data[u'constraint'] = attribute.getConstraint()
 
         # Add timestamp only if attribute is not static
@@ -64,18 +65,28 @@ class JsonMessageFormat(CloudioMessageFormat):
         dataDict = json.loads(data)
         """:type: dict"""
 
-        if isinstance(dataDict, 'dict') and \
+        if isinstance(dataDict, dict) and \
            dataDict.has_key('timestamp') and \
            dataDict.has_key('value'):
 
             timestamp = int(dataDict['timestamp'] * 1000)
-            value = dataDict['timestamp']
+            value = dataDict['value']
 
             if timestamp != 0 and value != 0:
                 type = attribute.getType()
-                print type
 
-
+                if type == AttributeType.Invalid:
+                    pass
+                elif type == AttributeType.Boolean:
+                    attribute.setValueFromCloud(bool(value), timestamp)
+                elif type == AttributeType.Integer:
+                    attribute.setValueFromCloud(int(value), timestamp)
+                elif type == AttributeType.Number:
+                    attribute.setValueFromCloud(float(value), timestamp)
+                elif type == AttributeType.String:
+                    attribute.setValueFromCloud(str(value), timestamp)
+                else:
+                    raise IOError('Attribute type not supported!')
 
 class _JsonMessageEncoder(json.JSONEncoder):
     def __init__(self):

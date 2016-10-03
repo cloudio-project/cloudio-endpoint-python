@@ -7,6 +7,7 @@ from interface.attribute_container import CloudioAttributeContainer
 from exception.cloudio_modification_exception import CloudioModificationException
 from exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 import utils.timestamp as TimeStampProvider
+from cloudio_attribute_type import CloudioAttributeType as AttributeType
 
 class CloudioAttribute():
     """The leaf information in the cloud.io data model
@@ -33,6 +34,42 @@ class CloudioAttribute():
 
         # TODO Inform all registered listeners.
 
+    def setValueFromCloud(self, value, timestamp):
+        """Updates the value from the cloud.
+
+         Note that this method should not be used by endpoints, as it guarantees
+         that only attributes with semantics compatible with cloud updates can be updated.
+
+        :param value: New value to set from cloud.
+        :param timestamp: Timestamp of the value from the cloud.
+        :return: True if the value was updated, false if not.
+        """
+
+        # TODO: Check if the cloud can change the attribute.
+        # self.constraint.cloudWillChange()
+
+        # Check if the value from the cloud is older than the actual one and do nothing if that is the case.
+        if self._internal._timestamp is not None and self._internal._timestamp >= timestamp:
+            return False
+
+        # TODO: Maybe we should check that the timestamp is not older than a given number of seconds.
+
+        # Update the value
+        self._internal.timestamp = timestamp
+        self._internal.value = value
+
+        # Notify the cloud.
+        if self._internal._parent is not None:
+            self._internal._parent.attributeHasChangedByCloud(self)
+
+        # Notify all listeners.
+        if self._internal._listeners is not None:
+            for listener in self._internal._listeners:
+                # noinspection unchecked
+                listener.attributeHasChanged(self)
+
+        return True
+
     def getParent(self):
         return self._internal._parent
 
@@ -40,7 +77,7 @@ class CloudioAttribute():
         return self._internal.getUuid()
 
     def getType(self):
-        return self._internal.getType()
+        return AttributeType.fromRawType(self._internal.getType())
 
     def getConstraint(self):
         return self._internal.getConstraint()

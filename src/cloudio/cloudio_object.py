@@ -38,6 +38,9 @@ class CloudioObject():
     def attributeHasChangedByEndpoint(self, attribute):
         self._internal.attributeHasChangedByEndpoint(attribute)
 
+    def attributeHasChangedByCloud(self, attribute):
+        self._internal.attributeHasChangedByCloud(attribute)
+
     def getParentObjectContainer(self):
         return self._internal.getParentObjectContainer()
 
@@ -89,6 +92,10 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
     def attributeHasChangedByEndpoint(self, attribute):
         if self.parent:
             self.parent.attributeHasChangedByEndpoint(attribute)
+
+    def attributeHasChangedByCloud(self, attribute):
+        if self.parent:
+            self.parent.attributeHasChangedByCloud(attribute)
 
     def attributeHasChangedByCloud(self, attribute):
         if self.parent:
