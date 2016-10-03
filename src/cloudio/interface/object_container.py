@@ -75,3 +75,10 @@ class CloudioObjectContainer(UniqueIdentifiable):
            found at the given location, a reference to that attribute is returned, otherwise null is returned.
         """
         pass
+
+    @abstractmethod
+    def findObject(self, location):
+        """Finds the given object inside the objects tree using the given location path (stack). If the object was
+           found at the given location, a reference to that object is returned, otherwise null is returned.
+        """
+        pass

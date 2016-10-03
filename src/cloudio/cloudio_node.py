@@ -100,3 +100,20 @@ class CloudioNode(CloudioObjectContainer):
                         if obj:
                             return obj.findAttribute(location)
         return None
+
+    def findObject(self, location):
+        """Searches for object.
+
+        :param location: List containing the 'topic levels' constructed out of the topic uuid identifying the attribute.
+        :type location [str]
+        :return: The cloudio object found or None
+                """
+        if location:
+            if len(location) > 0:
+                if location[-1] == u'objects':  # Compare with the last element
+                    location.pop()  # Remove last item (peek item)
+                    if len(location) > 0:
+                        # Get object from container (dictionary) by key
+                        obj = self.getObjects()[location.pop()]
+                        return obj
+        return None

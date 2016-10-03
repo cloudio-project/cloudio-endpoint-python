@@ -35,6 +35,12 @@ class CloudioObject():
     def findAttribute(self, location):
         return self._internal.findAttribute(location)
 
+    def findObject(self, location):
+        return self._internal.findObject(location)
+
+    def getAttributes(self):
+        return self._internal.getAttributes()
+
     def attributeHasChangedByEndpoint(self, attribute):
         self._internal.attributeHasChangedByEndpoint(attribute)
 
@@ -151,6 +157,26 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                                 return attribute
         return None
 
+    def findObject(self, location):
+        """Searches for an object.
+
+        :param location: List containing the 'topic levels' constructed out of the topic uuid identifying the object.
+        :type location [str]
+        :return: The cloudio object found or None
+        """
+        if location:
+            if len(location) > 0:
+                if location[-1] == u'objects':  # Compare with last element (peek element)
+                    location.pop()     # Remove last item
+                    if len(location) > 0:
+                        object = self.getObjects()[location.pop()]
+                        return object
+                elif location[-1] == u'attributes':
+                    object = self.getAttributes()    # Update attributes list
+                    location.pop()         # Remove last item
+                    return object
+        return None
+
     def getAttributes(self):
         """Returns the contained attributes in this object as a list
         :return A dictionary of attributes
@@ -172,17 +198,19 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                        isinstance(attr, int)   or \
                        isinstance(attr, float) or \
                        isinstance(attr, str):
-                        attribute = CloudioAttribute()
-                        attribute.setConstraint('static')
-                        attribute.setName(field)
-                        attribute.setParent(self)
-                        attribute.setStaticValue(attr)
 
-                        topicUuid = attribute.getUuid().toString()
-                        if topicUuid and not topicUuid in self._attributes:
-                            self._attributes[topicUuid] = attribute
-                        else:
-                            raise CloudioModificationException('Duplicate name for fields')
+                        if field not in ('__module__', ):  # Some excludes:
+                            attribute = CloudioAttribute()
+                            attribute.setConstraint('static')
+                            attribute.setName(field)
+                            attribute.setParent(self)
+                            attribute.setStaticValue(attr)
+
+                            topicUuid = attribute.getUuid().toString()
+                            if topicUuid and not topicUuid in self._attributes:
+                                self._attributes[topicUuid] = attribute
+                            else:
+                                raise CloudioModificationException('Duplicate name for fields')
 
                     elif isinstance(attr, types.MethodType) or \
                          isinstance(attr, types.InstanceType) or \
