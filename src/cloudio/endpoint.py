@@ -91,7 +91,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         # Register callback method to be called when receiving a message over MQTT
         self.mqtt.setOnMessageCallback(self._onMessageArrived)
 
-        self.thread = Thread(target=self.run, name='cloudio-endpoint-' + self.uuid)
+        self.thread = Thread(target=self._run, name='cloudio-endpoint-' + self.uuid)
         # Close thread as soon as main thread exits
         self.thread.setDaemon(True)
         self.thread.start()
@@ -240,7 +240,7 @@ class CloudioEndpoint(CloudioNodeContainer):
     ######################################################################
     # Active part
     #
-    def run(self):
+    def _run(self):
         """Called by the internal thread"""
 
         print u'Cloudio endpoint thread running...'
