@@ -1,0 +1,26 @@
+<configs>
+    <config deviceId="TheVacuumCleaner">
+	<deviceType typeId="VacuumCleaner">
+		<object id="Parameters">
+			<attribute id="setIdentification" template="String" constraint="Parameter">
+			</attribute>
+			<attribute id="setPowerOn" template="Boolean" constraint="Parameter">
+			</attribute>
+			<attribute id="setThroughput" template="Number" constraint="Parameter">
+			</attribute>
+			<attribute id="setOperatingMode" template="Integer" constraint="Parameter">
+			</attribute>
+		</object>
+		<object id="Status">
+			<attribute id="identification" template="String" constraint="Measure">
+			</attribute>
+			<attribute id="isPoweredOn" template="Boolean" constraint="Measure">
+			</attribute>
+			<attribute id="throughput" template="Number" constraint="Measure">
+			</attribute>
+			<attribute id="operatingMode" template="Integer" constraint="Measure">
+			</attribute>
+		 </object>
+	</deviceType>
+    </config>
+</configs>
