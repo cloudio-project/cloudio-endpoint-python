@@ -11,9 +11,7 @@ from cloudio.cloudio_runtime_node import CloudioRuntimeNode
 from cloudio.cloudio_runtime_object import CloudioRuntimeObject
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    level=logging.INFO)
+logging.getLogger(__name__).setLevel(logging.INFO)
 
 class VacuumCleanerConnector(object):
     """Creates the cloud.iO endpoint according to the model file.
@@ -61,6 +59,9 @@ class VacuumCleanerConnector(object):
 
         # After the endpoint is fully created the presents can be announced
         self.endpoint.announce()
+
+    def close(self):
+        self.endpoint.close()
 
     def _parseDeviceTypeFromXmlDomElement(self, deviceType):
         """Parses a device type from an xml dom element

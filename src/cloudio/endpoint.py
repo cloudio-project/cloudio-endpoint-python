@@ -96,6 +96,10 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.thread.setDaemon(True)
         self.thread.start()
 
+    def close(self):
+        # TODO Stop mqtt loop and stop thread
+        pass
+
     def _onMessageArrived(self, client, userdata, msg):
         #print msg.topic + ': ' + str(msg.payload)
         try:

@@ -5,7 +5,10 @@ import datetime
 EPOCH = datetime.datetime.utcfromtimestamp(0)
 
 def getTimeInMilliseconds(dt=None):
+    """Creates a timestamp using the current date and time.
 
+    If no parameters is given the actual UTC time is taken.
+    """
     if not dt:
         dt = datetime.datetime.utcnow()
 

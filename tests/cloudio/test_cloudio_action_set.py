@@ -42,7 +42,9 @@ class TestCloudioSetAction(unittest.TestCase):
         self.log.info('Setup finished')
 
     def tearDown(self):
-        pass
+        self.vacuumCleanerClient = None
+        self.vacuumCleaner = None
+        self.connector = None
 
     def test_objectAttributes(self):
         self.assertTrue(hasattr(self.vacuumCleaner, '_identification'))
