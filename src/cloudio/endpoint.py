@@ -43,6 +43,8 @@ class CloudioEndpoint(CloudioNodeContainer):
 
     def __init__(self, uuid, configuration=None):
 
+        self._connectionThreadLooping = True        # Set to false in case the connection thread should leave.s
+
         self.uuid = uuid            # type: str
         self.nodes = {}             # type: dict as CloudioNode
         self.cleanSession = True
@@ -97,8 +99,13 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.thread.start()
 
     def close(self):
-        # TODO Stop mqtt loop and stop thread
-        pass
+        # Stop connection thread
+        if self.thread:
+            self._connectionThreadLooping = False
+            self.thread.join()
+
+        # Stop Mqtt client
+        self.mqtt.disconnect()
 
     def _onMessageArrived(self, client, userdata, msg):
         #print msg.topic + ': ' + str(msg.payload)
@@ -194,10 +201,6 @@ class CloudioEndpoint(CloudioNodeContainer):
         else:
             self.log.error('Invalid topic: ' + topic)
 
-#            and \
- #               !location.isEmpty() && "nodes".equals(location.pop()) &&
-  #              !location.isEmpty())
-
     ######################################################################
     # Interface implementations
     #
@@ -249,7 +252,7 @@ class CloudioEndpoint(CloudioNodeContainer):
 
         print u'Cloudio endpoint thread running...'
 
-        while not self.mqtt.isConnected():
+        while not self.mqtt.isConnected() and self._connectionThreadLooping:
             try:
                 self.mqtt.connect(self.options)
             except Exception as exception:
@@ -257,10 +260,16 @@ class CloudioEndpoint(CloudioNodeContainer):
                 print u'Error during broker connect!'
                 exit(1)
 
+            # Check if thread should leave
+            if not self._connectionThreadLooping:
+                self._onConnectionThreadFinished()
+                return
+
             if not self.mqtt.isConnected():
                 # If we should not retry, give up
                 if self._retryInterval == 0:
                     # TODO Do I need to stop the thread here?!
+                    self._onConnectionThreadFinished()
                     return
 
                 time.sleep(self._retryInterval)
@@ -268,12 +277,15 @@ class CloudioEndpoint(CloudioNodeContainer):
                 # Again, if we should not retry, give up
                 if self._retryInterval == 0:
                     # TODO Do I need to stop the thread here?!
+                    self._onConnectionThreadFinished()
                     return
 
         self.log.info(u'Connected to cloud.iO broker')
 
         # Announce our presence to the broker
         #self.announce()
+        # It is too early here because the endpoint model
+        # is not loaded at this moment
 
         success = self.subscribeToSetCommands()
         if not success:
@@ -281,6 +293,12 @@ class CloudioEndpoint(CloudioNodeContainer):
 
         # If we arrive here, we are online, so we can inform listeners about that and stop the connecting thread
 #        self.mqtt.setCallback(self)
+
+        self._onConnectionThreadFinished()
+
+    def _onConnectionThreadFinished(self):
+        self.log.info('Connection thread finished')
+        self.thread = None
 
     def isOnline(self):
         return self.mqtt.isConnected()

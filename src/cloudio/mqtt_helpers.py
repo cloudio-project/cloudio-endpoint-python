@@ -62,6 +62,15 @@ class MqttAsyncClient():
         self.client.loop_start()
         time.sleep(1)   # Wait a bit for the callback onConnect to be called
 
+    def disconnect(self):
+        """Disconnects MQTT client
+        """
+        # Stop MQTT client if still running
+        if self.client:
+            self.client.loop_stop()
+            self.client.disconnect()
+            self.client = None
+
     def isConnected(self):
         return self._isConnected
 
