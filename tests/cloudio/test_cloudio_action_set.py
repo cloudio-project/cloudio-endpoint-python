@@ -20,7 +20,7 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # Wait until connected to cloud.iO
         self.log.info('Waiting to connect endpoint to cloud.iO...')
-        while (not self.cloudioEndPoint.isOnline()):
+        while not self.cloudioEndPoint.isOnline():
             time.sleep(0.2)
 
         # Load cloud.iO endpoint model from file

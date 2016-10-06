@@ -24,6 +24,7 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s -
                     level=logging.DEBUG)
 logging.getLogger('gibscom'+__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
+# TODO: Remove connection thread as the paho MQTT client launches its own thread and reconnects in case of connection loss.
 class CloudioEndpoint(CloudioNodeContainer):
     """Internal Endpoint structure used by CloudioEndpoint.
 
@@ -43,7 +44,8 @@ class CloudioEndpoint(CloudioNodeContainer):
 
     def __init__(self, uuid, configuration=None):
 
-        self._connectionThreadLooping = True        # Set to false in case the connection thread should leave.s
+        self._connectionThreadLooping = True        # Set to false in case the connection thread should leave
+        self._endPointIsReady = False               # Set to true after connection and subsription
 
         self.uuid = uuid            # type: str
         self.nodes = {}             # type: dict as CloudioNode
@@ -291,6 +293,8 @@ class CloudioEndpoint(CloudioNodeContainer):
         if not success:
             self.log.critical('Could not subscribe to @set topic!')
 
+        self._endPointIsReady = True
+
         # If we arrive here, we are online, so we can inform listeners about that and stop the connecting thread
 #        self.mqtt.setCallback(self)
 
@@ -301,7 +305,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.thread = None
 
     def isOnline(self):
-        return self.mqtt.isConnected()
+        return self.mqtt.isConnected() and self._endPointIsReady
 
     def announce(self):
         # Send birth message

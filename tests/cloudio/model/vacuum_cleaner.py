@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from cloudio.interface.attribute_listener import AttributeListener
+
+logging.getLogger(__name__).setLevel(logging.INFO)
 
 class VacuumCleaner(AttributeListener):
     """Class representing the 'real' vacuum cleaner.
     """
+
+    log = logging.getLogger(__name__)
 
     def __init__(self):
         self.cloudioNode = None
@@ -27,12 +32,15 @@ class VacuumCleaner(AttributeListener):
         :param cloudioAttribute: The cloud.iO attribute
         :return:
         """
-        internalAttributeName = attributeName
-
-        if attributeName.startswith('set'):
-            internalAttributeName = '_' + attributeName[3:3+1].lower() + attributeName[4:]
+        internalAttributeName = self._convertToInternalAttributeName(attributeName)
 
         setattr(self, internalAttributeName, cloudioAttribute.getValue())
+
+    def _convertToInternalAttributeName(self, cloudioAttributeName):
+        internalAttributeName = cloudioAttributeName
+        if cloudioAttributeName.startswith('set'):
+            internalAttributeName = '_' + cloudioAttributeName[3:3 + 1].lower() + cloudioAttributeName[4:]
+        return internalAttributeName
 
 
     ######################################################################
@@ -47,8 +55,10 @@ class VacuumCleaner(AttributeListener):
         :param attribute Attribute that has changed.
         """
 
+        internalAttributeName = self._convertToInternalAttributeName(attribute.getName())
+
         # Check if we have an attribute with the same name
-        if hasattr(self, attribute.getName()):
-            setattr(self, attribute.getName(), attribute.getValue())
+        if hasattr(self, internalAttributeName):
+            setattr(self, internalAttributeName, attribute.getValue())
         else:
-            self.log.warning('Attribute \'' + attribute.getName() + '\' not found in ' + self.__class__.__name__)
+            self.log.warning('Attribute \'' + internalAttributeName + '\' not found in ' + self.__class__.__name__)

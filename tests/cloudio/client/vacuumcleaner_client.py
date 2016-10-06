@@ -26,7 +26,7 @@ class VacuumCleanerClient():
         self._endPointName = config['endpoint']['name']
         self._nodeName = config['node']['name']
 
-        print 'Starting MQTT client...'
+        self.log.info('Starting MQTT client...')
         self._client = mqtt.Client()
 
         self._client.on_connect = self.onConnect
