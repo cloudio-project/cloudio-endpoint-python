@@ -45,19 +45,64 @@ class TestCloudioSetAction(unittest.TestCase):
         self.vacuumCleanerClient.close()
         self.connector.close()
 
-    def test_objectAttributes(self):
-        self.assertTrue(hasattr(self.vacuumCleaner, '_identification'))
+    def _waitCloudioAttributeToChange(self, cloudioAttribute, newValue, waitTime=2.0, decrValue=.1):
+        """Waits some time and checks that a cloud.iO attribute changes to a given value.
+        """
+        assert decrValue > 0
+        assert waitTime > decrValue
+
+        result = False
+
+        while waitTime > 0:
+            time.sleep(decrValue)
+            waitTime -= decrValue
+            if cloudioAttribute.getValue() == newValue:
+                result = True
+                break
+
+        return result
+
+#    def test_objectAttributes(self):
+#        self.assertTrue(hasattr(self.vacuumCleaner, '_identification'))
 
     def test_setActionWithStringParameter(self):
+        # Create location stack and get the according cloud.iO attribute
+        attrLocation = ['setIdentification', 'attributes', 'Parameters', 'objects']
+        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+
         # Change the vacuum cleaner's identification string
-        self.vacuumCleanerClient.setIdentification('My first VC')
+        newIdent = 'My first VC'
+        self.vacuumCleanerClient.setIdentification(newIdent)
 
-        # TODO Check if changes are updated in the cloud
-        # TODO Check if vacuum cleaner model gets notified upon the change
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newIdent)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == newIdent)            # Value not changed in the cloud
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._identification == newIdent)     # Value not changed in local model
 
-        self.vacuumCleanerClient.setIdentification('My second VC')
-        self.vacuumCleanerClient.setIdentification('My only VC')
-        pass
+        # Try with an other value
+        newIdent = 'My second VC'
+        self.vacuumCleanerClient.setIdentification(newIdent)
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newIdent)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == newIdent)
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._identification == newIdent)
+
+        # ... and one more
+        newIdent = 'My only VC'
+        self.vacuumCleanerClient.setIdentification(newIdent)
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newIdent)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == newIdent)
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._identification == newIdent)
+
+        # TODO What to do if string is empty?
+        # TODO What to do if string contains only spaces (non visible characters)?
 
 if __name__ == '__main__':
 
