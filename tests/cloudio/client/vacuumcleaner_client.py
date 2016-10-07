@@ -115,3 +115,11 @@ class VacuumCleanerClient():
         payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
         payload['value'] = newIdentification
         self._client.publish(topic, json.dumps(payload), qos=self._qos)
+
+    def setPowerOn(self, powerState=True):
+        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + '/objects/Parameters/attributes/setPowerOn'
+
+        payload = {}
+        payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
+        payload['value'] = powerState
+        self._client.publish(topic, json.dumps(payload), qos=self._qos)

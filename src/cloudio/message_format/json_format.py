@@ -72,7 +72,7 @@ class JsonMessageFormat(CloudioMessageFormat):
             timestamp = int(dataDict['timestamp'] * 1000)
             value = dataDict['value']
 
-            if timestamp != 0 and value != 0:
+            if timestamp != 0 and value is not None:
                 type = attribute.getType()
 
                 if type == AttributeType.Invalid:

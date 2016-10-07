@@ -62,9 +62,11 @@ class TestCloudioSetAction(unittest.TestCase):
 
         return result
 
-#    def test_objectAttributes(self):
-#        self.assertTrue(hasattr(self.vacuumCleaner, '_identification'))
+    #@unittest.skip('because adding a new test')
+    def test_objectAttributes(self):
+        self.assertTrue(hasattr(self.vacuumCleaner, '_identification'))
 
+    #@unittest.skip('because adding a new test')
     def test_setActionWithStringParameter(self):
         # Create location stack and get the according cloud.iO attribute
         attrLocation = ['setIdentification', 'attributes', 'Parameters', 'objects']
@@ -103,6 +105,89 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # TODO What to do if string is empty?
         # TODO What to do if string contains only spaces (non visible characters)?
+
+    def test_setActionWithBooleanParameter(self):
+        # Create location stack and get the according cloud.iO attribute
+        attrLocation = ['setPowerOn', 'attributes', 'Parameters', 'objects']
+        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+
+        # Change the vacuum cleaner's power state to 'false'
+        newPowerStateValue = False
+        self.vacuumCleanerClient.setPowerOn(newPowerStateValue)
+
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newPowerStateValue)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == newPowerStateValue)  # Value not changed in the cloud
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._powerOn == newPowerStateValue)  # Value not changed in local model
+
+        # Change the vacuum cleaner's power state to 'true'
+        newPowerStateValue = True
+        self.vacuumCleanerClient.setPowerOn(newPowerStateValue)
+
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newPowerStateValue)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == newPowerStateValue)
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._powerOn == newPowerStateValue)
+
+        # ... and again to 'false'
+        newPowerStateValue = False
+        self.vacuumCleanerClient.setPowerOn(newPowerStateValue)
+
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newPowerStateValue)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == newPowerStateValue)
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._powerOn == newPowerStateValue)
+
+        # ... and what's with 1
+        newPowerStateValue = 1
+        self.vacuumCleanerClient.setPowerOn(newPowerStateValue)
+
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newPowerStateValue)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == newPowerStateValue)
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._powerOn == newPowerStateValue)
+
+        # ... and with 0
+        newPowerStateValue = 0
+        self.vacuumCleanerClient.setPowerOn(newPowerStateValue)
+
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newPowerStateValue)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == newPowerStateValue)
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._powerOn == newPowerStateValue)
+
+        # ... and what's with '1'
+        newPowerStateValue = '1'
+        self.vacuumCleanerClient.setPowerOn(newPowerStateValue)
+
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newPowerStateValue)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == bool(newPowerStateValue))
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._powerOn == bool(newPowerStateValue))
+
+        # ... and with '0'
+        newPowerStateValue = '0'
+        self.vacuumCleanerClient.setPowerOn(newPowerStateValue)
+
+        # Wait a short time to let to new value propagate
+        self._waitCloudioAttributeToChange(cloudioAttribute, newPowerStateValue)
+        # Check if changes are updated in the cloud
+        self.assertTrue(cloudioAttribute.getValue() == bool(newPowerStateValue))
+        # Check if vacuum cleaner model gets notified upon the change
+        self.assertTrue(self.vacuumCleaner._powerOn == bool(newPowerStateValue))
+
 
 if __name__ == '__main__':
 
