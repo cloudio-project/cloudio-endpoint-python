@@ -106,6 +106,7 @@ class TestCloudioSetAction(unittest.TestCase):
         # TODO What to do if string is empty?
         # TODO What to do if string contains only spaces (non visible characters)?
 
+    #@unittest.skip('because adding a new test')
     def test_setActionWithBooleanParameter(self):
         # Create location stack and get the according cloud.iO attribute
         attrLocation = ['setPowerOn', 'attributes', 'Parameters', 'objects']
@@ -188,6 +189,45 @@ class TestCloudioSetAction(unittest.TestCase):
         # Check if vacuum cleaner model gets notified upon the change
         self.assertTrue(self.vacuumCleaner._powerOn == bool(newPowerStateValue))
 
+    #@unittest.skip('because adding a new test')
+    def test_setActionWithNumberParameter(self):
+        # Create location stack and get the according cloud.iO attribute
+        attrLocation = ['setThroughput', 'attributes', 'Parameters', 'objects']
+        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+
+        # Values to test
+        throughputs = [100.0, 981.7, 0.0, 200.0, -500.0, 1.0, 1.54, 1800]
+
+        for newThroughput in throughputs:
+            # Change the vacuum cleaner's throughput
+            self.vacuumCleanerClient.setThroughput(newThroughput)
+
+            # Wait a short time to let to new value propagate
+            self._waitCloudioAttributeToChange(cloudioAttribute, newThroughput)
+            # Check if changes are updated in the cloud
+            self.assertEqual(cloudioAttribute.getValue(), newThroughput)       # Value not changed in the cloud
+            # Check if vacuum cleaner model gets notified upon the change
+            self.assertEqual(self.vacuumCleaner._throughput, newThroughput)    # Value not changed in local model
+
+    #@unittest.skip('because adding a new test')
+    def test_setActionWithIntegerParameter(self):
+        # Create location stack and get the according cloud.iO attribute
+        attrLocation = ['setOperatingMode', 'attributes', 'Parameters', 'objects']
+        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+
+        # Values to test
+        operationModes = [3, 5, 2, -1, 0, 10, 8, 2, -2, 1.0, 1800.1]
+
+        for newOperationMode in operationModes:
+            # Change the vacuum cleaner's operation mode
+            self.vacuumCleanerClient.setOperatingMode(newOperationMode)
+
+            # Wait a short time to let to new value propagate
+            self._waitCloudioAttributeToChange(cloudioAttribute, newOperationMode)
+            # Check if changes are updated in the cloud
+            self.assertEqual(cloudioAttribute.getValue(), int(newOperationMode))
+            # Check if vacuum cleaner model gets notified upon the change
+            self.assertEqual(self.vacuumCleaner._operatingMode, int(newOperationMode))
 
 if __name__ == '__main__':
 

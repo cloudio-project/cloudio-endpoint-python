@@ -123,3 +123,19 @@ class VacuumCleanerClient():
         payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
         payload['value'] = powerState
         self._client.publish(topic, json.dumps(payload), qos=self._qos)
+
+    def setThroughput(self, newThroughputValue):
+        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + '/objects/Parameters/attributes/setThroughput'
+
+        payload = {}
+        payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
+        payload['value'] = newThroughputValue
+        self._client.publish(topic, json.dumps(payload), qos=self._qos)
+
+    def setOperatingMode(self, newOperatingMode):
+        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + '/objects/Parameters/attributes/setOperatingMode'
+
+        payload = {}
+        payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
+        payload['value'] = newOperatingMode
+        self._client.publish(topic, json.dumps(payload), qos=self._qos)
