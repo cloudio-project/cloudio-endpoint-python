@@ -103,7 +103,7 @@ class VacuumCleanerClient():
                 exit(0)
 
     def onDisconnect(self, client, userdata, rc):
-        self.log.info('Disconnect: ' + rc)
+        self.log.info('Disconnect: ' + str(rc))
 
     def onMessage(mosq, obj, mqttMsg):
         pass

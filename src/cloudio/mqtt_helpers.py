@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os, time
+from threading import Lock
 from abc import ABCMeta, abstractmethod
 import paho.mqtt.client as mqtt     # pip install paho-mqtt
 import ssl
@@ -14,15 +15,39 @@ class MqttAsyncClient():
     def __init__(self, host, clientId='', clean_session=True):
         self._isConnected = False
         self._host = host
-        self.client = mqtt.Client(client_id=clientId, clean_session=clean_session)
+        self._onDisconnectCallback = None
+        self._onMessageCallback = None
+        self.client = None
+        self._clientLock = Lock()
 
-        self.client.on_connect = self.onConnect
-        self.client.on_disconnect = self.onDisconnect
+        # Store mqtt client parameter for potential later reconnection
+        # to cloud.iO
+        self._clientClientId = clientId
+        self._clientCleanSession = clean_session
+
+    def _createMqttClient(self):
+        self._clientLock.acquire()
+        print '--> _createMqttClient'
+        if self.client is None:
+            print '--> Create client'
+            self.client = mqtt.Client(client_id=self._clientClientId,
+                                      clean_session=self._clientCleanSession)
+
+            self.client.on_connect = self.onConnect
+            self.client.on_disconnect = self.onDisconnect
+            self.client.on_message = self.onMessage
+        self._clientLock.release()
+
+    def setOnDisconnectCallback(self, onDisconnectCallback):
+        self._onDisconnectCallback = onDisconnectCallback
 
     def setOnMessageCallback(self, onMessageCallback):
-        self.client.on_message = onMessageCallback
+        self._onMessageCallback = onMessageCallback
 
     def connect(self, options):
+
+        # Create MQTT client if necessary
+        self._createMqttClient()
 
         if options.will:
             self.client.will_set(options.will['topic'],
@@ -51,26 +76,35 @@ class MqttAsyncClient():
             else:
                 clientKeyFile = options._clientKeyFile
 
-        self.client.username_pw_set(options._username, password=options._password)
-        self.client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
-        self.client.tls_set(options._caFile,    # CA certificate
-                            certfile=clientCertFile,  # Client certificate
-                            keyfile=clientKeyFile,    # Client private key
-                            tls_version=ssl.PROTOCOL_TLSv1,                     # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
-                            ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
+        self._clientLock.acquire()
+        if self.client:
+            self.client.username_pw_set(options._username, password=options._password)
+            self.client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
+            self.client.tls_set(options._caFile,    # CA certificate
+                                certfile=clientCertFile,  # Client certificate
+                                keyfile=clientKeyFile,    # Client private key
+                                tls_version=ssl.PROTOCOL_TLSv1,                     # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
+                                ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
 
-        self.client.connect(self._host, port=8883)
-        self.client.loop_start()
-        time.sleep(1)   # Wait a bit for the callback onConnect to be called
+            try:
+                self.client.connect(self._host, port=8883)
+                self.client.loop_start()
+                time.sleep(1)   # Wait a bit for the callback onConnect to be called
+            except Exception as e:
+                pass
+        self._clientLock.release()
 
     def disconnect(self):
         """Disconnects MQTT client
         """
+        self._clientLock.acquire()
+        print '--> disconnect'
         # Stop MQTT client if still running
         if self.client:
             self.client.loop_stop()
             self.client.disconnect()
             self.client = None
+        self._clientLock.release()
 
     def isConnected(self):
         return self._isConnected
@@ -100,8 +134,36 @@ class MqttAsyncClient():
     def onDisconnect(self, client, userdata, rc):
         print 'Disconnect: %d' % rc
 
+        self._isConnected = False
+
+        # Notify container class if disconnect callback
+        # was registered.
+        if self._onDisconnectCallback:
+            self._onDisconnectCallback(rc)
+
+        self.disconnect()
+
+    def onMessage(self, client, userdata, msg):
+        # Delegate to container class
+        if self._onMessageCallback:
+            self._onMessageCallback(client, userdata, msg)
+
     def publish(self, topic, payload, qos, retain):
-        self.client.publish(topic, payload, qos, retain)
+        timeout = 2.0
+        message_info = self.client.publish(topic, payload, qos, retain)
+
+        # Cannot use message_info.wait_for_publish() because it is blocking and
+        # has no timeout parameter
+        #message_info.wait_for_publish()
+        #
+        # Poll is_published() method
+        while timeout > 0:
+            if message_info.is_published():
+                break
+            timeout -= 0.1
+            time.sleep(0.1)
+
+        return message_info.is_published()
 
     def subscribe(self, topic, qos=0):
         return self.client.subscribe(topic, qos)
@@ -204,3 +266,38 @@ class MqttClientPersistence(object):
         :return None
         """
         pass
+
+class MemoryPersistence(MqttClientPersistence):
+    """Persistance store that uses memory.
+    """
+    def __init__(self):
+        super(MemoryPersistence, self).__init__()
+        self._persistance = {}
+
+    def open(self, clientId, serverUri):
+        pass
+
+    def close(self):
+        self.clear()
+
+    def put(self, key, persistable):
+        self._persistance[key] = persistable
+
+    def get(self, key):
+        if self._persistance.has_key(key):
+            return self._persistance[key]
+
+    def containsKey(self, key):
+        return True if self._persistance.has_key(key) else False
+
+    def keys(self):
+        for key in self._persistance.iterkeys():
+            yield key
+
+    def remove(self, key):
+        # Remove the key if it exist. If it does not exist
+        # leave silently
+        self._persistance.pop(key, None)
+
+    def clear(self):
+        self._persistance.clear()

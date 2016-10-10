@@ -5,13 +5,15 @@ import time
 import logging
 import traceback
 import utils.timestamp as TimeStampProvider
-from .mqtt_helpers import MqttAsyncClient, MqttConnectOptions, MqttClientPersistence
+from .mqtt_helpers import MqttAsyncClient, MqttConnectOptions
+import mqtt_helpers as mqtt
 from .cloudio_node import CloudioNode
 from .properties_endpoint_configuration import PropertiesEndpointConfiguration
 from .interface.node_container import CloudioNodeContainer
 from .interface.message_format import CloudioMessageFormat
 from .message_format.factory import MessageFormatFactory
 from exception.cloudio_modification_exception import CloudioModificationException
+from exception.invalid_property_exception import InvalidPropertyException
 from utils.resource_loader import ResourceLoader
 from message_format.json_format import JsonMessageFormat
 from utils import path_helpers
@@ -26,13 +28,18 @@ logging.getLogger('gibscom'+__name__).setLevel(logging.INFO)    # DEBUG, INFO, W
 
 # TODO: Remove connection thread as the paho MQTT client launches its own thread and reconnects in case of connection loss.
 class CloudioEndpoint(CloudioNodeContainer):
-    """Internal Endpoint structure used by CloudioEndpoint.
+    """The cloud.iO endpoint.
 
     Contains among other things the mqtt client to talk to the cloudio broker.
     """
 
     # Constants ######################################################################################
-    MQTT_HOST_URI_PROPERTY = u'ch.hevs.cloudio.endpoint.hostUri'
+    MQTT_HOST_URI_PROPERTY    = u'ch.hevs.cloudio.endpoint.hostUri'
+    MQTT_PERSISTENCE_MEMORY   = u'memory'
+    MQTT_PERSISTENCE_FILE     = u'file'
+    MQTT_PERSISTENCE_NONE     = u'none'
+    MQTT_PERSISTENCE_PROPERTY = u'ch.hevs.cloudio.endpoint.persistence'
+    MQTT_PERSISTENCE_DEFAULT  = MQTT_PERSISTENCE_FILE
 
     CERT_AUTHORITY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.authorityCert'
 
@@ -43,9 +50,9 @@ class CloudioEndpoint(CloudioNodeContainer):
     log = logging.getLogger(__name__)
 
     def __init__(self, uuid, configuration=None):
-
+        self.thread = None
         self._connectionThreadLooping = True        # Set to false in case the connection thread should leave
-        self._endPointIsReady = False               # Set to true after connection and subsription
+        self._endPointIsReady = False               # Set to true after connection and subscription
 
         self.uuid = uuid            # type: str
         self.nodes = {}             # type: dict as CloudioNode
@@ -66,7 +73,18 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.messageFormat = JsonMessageFormat()
 
         # Create persistence object.
-        self.persistence = MqttClientPersistence()  # Temp
+        persistenceType = configuration.getProperty(self.MQTT_PERSISTENCE_PROPERTY, self.MQTT_PERSISTENCE_DEFAULT)
+        if persistenceType == self.MQTT_PERSISTENCE_MEMORY:
+            self.persistence = mqtt.MemoryPersistence()
+        elif persistenceType == self.MQTT_PERSISTENCE_FILE:
+            assert False, 'Ooops! Feature not implemented jet. See: https://github.com/cloudio-project/cloudio-endpoint-python/issues/8'
+            #self.persistence = mqtt.MqttDefaultFilePersistence()
+        elif persistenceType == self.MQTT_PERSISTENCE_NONE:
+            self.persistence = None
+        else:
+            raise InvalidPropertyException('Unknown persistence implementation ' +
+                                           '(ch.hevs.cloudio.endpoint.persistence): ' +
+                                           '\'' + persistenceType + '\'')
 
           # Check if 'host' property is present in config file
         host = configuration.getProperty(self.MQTT_HOST_URI_PROPERTY)
@@ -92,22 +110,37 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options._clientKeyFile = path_helpers.prettify(self.options._clientKeyFile)
 
         self.mqtt = MqttAsyncClient(host, clientId=self.uuid, clean_session=self.cleanSession)
+        # Register callback method to be called when connection to cloud.iO gets lost
+        self.mqtt.setOnDisconnectCallback(self._onDisconnectFromCloud)
         # Register callback method to be called when receiving a message over MQTT
         self.mqtt.setOnMessageCallback(self._onMessageArrived)
+
+        self._startConnectionThread()
+
+    def _startConnectionThread(self):
+        self._stopConnectionThread()
 
         self.thread = Thread(target=self._run, name='cloudio-endpoint-' + self.uuid)
         # Close thread as soon as main thread exits
         self.thread.setDaemon(True)
+
+        self._connectionThreadLooping = True
         self.thread.start()
 
-    def close(self):
-        # Stop connection thread
+    def _stopConnectionThread(self):
         if self.thread:
             self._connectionThreadLooping = False
             self.thread.join()
+            self.thread = None
+
+    def close(self):
+        self._stopConnectionThread()
 
         # Stop Mqtt client
         self.mqtt.disconnect()
+
+    def _onDisconnectFromCloud(self, rc):
+        self._startConnectionThread()
 
     def _onMessageArrived(self, client, userdata, msg):
         #print msg.topic + ': ' + str(msg.payload)
@@ -227,8 +260,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         messageSend = False
         if self.mqtt.isConnected():
             try:
-                self.mqtt.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
-                messageSend = True
+                messageSend = self.mqtt.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
 
@@ -236,8 +268,8 @@ class CloudioEndpoint(CloudioNodeContainer):
         # updates persistence if available.
         if not messageSend and self.persistence:
             try:
-                self.persistence.put("PendingUpdate-" + attribute.getUuid().toString().replace("/", ";")
-                                        + "-" + TimeStampProvider.getTimeInMilliseconds(),
+                self.persistence.put('PendingUpdate-' + attribute.getUuid().toString().replace('/', ';')
+                                        + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
                                      PendingUpdate(data))
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
@@ -252,10 +284,11 @@ class CloudioEndpoint(CloudioNodeContainer):
     def _run(self):
         """Called by the internal thread"""
 
-        print u'Cloudio endpoint thread running...'
+        self.log.info(u'Connection thread for cloud.iO endpoint running...')
 
         while not self.mqtt.isConnected() and self._connectionThreadLooping:
             try:
+                self.log.info(u'Trying to connect to cloud.iO...')
                 self.mqtt.connect(self.options)
             except Exception as exception:
                 traceback.print_exc()
@@ -269,34 +302,32 @@ class CloudioEndpoint(CloudioNodeContainer):
 
             if not self.mqtt.isConnected():
                 # If we should not retry, give up
+                if self._retryInterval > 0:
+                    # Wait until it is time for the next connect
+                    time.sleep(self._retryInterval)
+                # TODO Work with a wait condition + timeout
+                #      Condition gets notified in onConnectionSucceed callback
+
+                # If we should not retry, give up
                 if self._retryInterval == 0:
-                    # TODO Do I need to stop the thread here?!
-                    self._onConnectionThreadFinished()
-                    return
+                    break
 
-                time.sleep(self._retryInterval)
+        if self.mqtt.isConnected():
+            self.log.info(u'Connected to cloud.iO broker')
 
-                # Again, if we should not retry, give up
-                if self._retryInterval == 0:
-                    # TODO Do I need to stop the thread here?!
-                    self._onConnectionThreadFinished()
-                    return
+            # Announce our presence to the broker
+            #self.announce()
+            # It is too early here because the endpoint model
+            # is not loaded at this moment
 
-        self.log.info(u'Connected to cloud.iO broker')
+            success = self.subscribeToSetCommands()
+            if not success:
+                self.log.critical('Could not subscribe to @set topic!')
 
-        # Announce our presence to the broker
-        #self.announce()
-        # It is too early here because the endpoint model
-        # is not loaded at this moment
+            self._endPointIsReady = True
 
-        success = self.subscribeToSetCommands()
-        if not success:
-            self.log.critical('Could not subscribe to @set topic!')
-
-        self._endPointIsReady = True
-
-        # If we arrive here, we are online, so we can inform listeners about that and stop the connecting thread
-#        self.mqtt.setCallback(self)
+            # If we arrive here, we are online, so we can inform listeners about that and stop the connecting thread
+    #        self.mqtt.setCallback(self)
 
         self._onConnectionThreadFinished()
 
