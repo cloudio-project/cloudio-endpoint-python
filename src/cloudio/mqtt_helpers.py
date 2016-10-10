@@ -17,8 +17,8 @@ class MqttAsyncClient():
         self._host = host
         self._onDisconnectCallback = None
         self._onMessageCallback = None
-        self.client = None
-        self._clientLock = Lock()
+        self._client = None
+        self._clientLock = Lock()   # Protects access to _client attribute
 
         # Store mqtt client parameter for potential later reconnection
         # to cloud.iO
@@ -28,14 +28,14 @@ class MqttAsyncClient():
     def _createMqttClient(self):
         self._clientLock.acquire()
         print '--> _createMqttClient'
-        if self.client is None:
+        if self._client is None:
             print '--> Create client'
-            self.client = mqtt.Client(client_id=self._clientClientId,
-                                      clean_session=self._clientCleanSession)
+            self._client = mqtt.Client(client_id=self._clientClientId,
+                                       clean_session=self._clientCleanSession)
 
-            self.client.on_connect = self.onConnect
-            self.client.on_disconnect = self.onDisconnect
-            self.client.on_message = self.onMessage
+            self._client.on_connect = self.onConnect
+            self._client.on_disconnect = self.onDisconnect
+            self._client.on_message = self.onMessage
         self._clientLock.release()
 
     def setOnDisconnectCallback(self, onDisconnectCallback):
@@ -50,10 +50,10 @@ class MqttAsyncClient():
         self._createMqttClient()
 
         if options.will:
-            self.client.will_set(options.will['topic'],
-                                 options.will['message'],
-                                 options.will['qos'],
-                                 options.will['retained'])
+            self._client.will_set(options.will['topic'],
+                                  options.will['message'],
+                                  options.will['qos'],
+                                  options.will['retained'])
 
         if options._caFile:
             # Check if file exists
@@ -77,18 +77,18 @@ class MqttAsyncClient():
                 clientKeyFile = options._clientKeyFile
 
         self._clientLock.acquire()
-        if self.client:
-            self.client.username_pw_set(options._username, password=options._password)
-            self.client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
-            self.client.tls_set(options._caFile,    # CA certificate
+        if self._client:
+            self._client.username_pw_set(options._username, password=options._password)
+            self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
+            self._client.tls_set(options._caFile,  # CA certificate
                                 certfile=clientCertFile,  # Client certificate
-                                keyfile=clientKeyFile,    # Client private key
-                                tls_version=ssl.PROTOCOL_TLSv1,                     # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
+                                keyfile=clientKeyFile,  # Client private key
+                                tls_version=ssl.PROTOCOL_TLSv1,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
                                 ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
 
             try:
-                self.client.connect(self._host, port=8883)
-                self.client.loop_start()
+                self._client.connect(self._host, port=8883)
+                self._client.loop_start()
                 time.sleep(1)   # Wait a bit for the callback onConnect to be called
             except Exception as e:
                 pass
@@ -100,10 +100,10 @@ class MqttAsyncClient():
         self._clientLock.acquire()
         print '--> disconnect'
         # Stop MQTT client if still running
-        if self.client:
-            self.client.loop_stop()
-            self.client.disconnect()
-            self.client = None
+        if self._client:
+            self._client.loop_stop()
+            self._client.disconnect()
+            self._client = None
         self._clientLock.release()
 
     def isConnected(self):
@@ -150,7 +150,7 @@ class MqttAsyncClient():
 
     def publish(self, topic, payload, qos, retain):
         timeout = 2.0
-        message_info = self.client.publish(topic, payload, qos, retain)
+        message_info = self._client.publish(topic, payload, qos, retain)
 
         # Cannot use message_info.wait_for_publish() because it is blocking and
         # has no timeout parameter
@@ -166,7 +166,7 @@ class MqttAsyncClient():
         return message_info.is_published()
 
     def subscribe(self, topic, qos=0):
-        return self.client.subscribe(topic, qos)
+        return self._client.subscribe(topic, qos)
 
 class MqttConnectOptions():
     def __init__(self):
