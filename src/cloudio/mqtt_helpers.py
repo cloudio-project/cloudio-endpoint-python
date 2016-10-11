@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os, time
-from threading import Lock
+from threading import RLock
 from abc import ABCMeta, abstractmethod
 import paho.mqtt.client as mqtt     # pip install paho-mqtt
 import ssl
@@ -18,7 +18,7 @@ class MqttAsyncClient():
         self._onDisconnectCallback = None
         self._onMessageCallback = None
         self._client = None
-        self._clientLock = Lock()   # Protects access to _client attribute
+        self._clientLock = RLock()   # Protects access to _client attribute
 
         # Store mqtt client parameter for potential later reconnection
         # to cloud.iO
@@ -27,9 +27,7 @@ class MqttAsyncClient():
 
     def _createMqttClient(self):
         self._clientLock.acquire()
-        print '--> _createMqttClient'
         if self._client is None:
-            print '--> Create client'
             self._client = mqtt.Client(client_id=self._clientClientId,
                                        clean_session=self._clientCleanSession)
 
@@ -45,15 +43,6 @@ class MqttAsyncClient():
         self._onMessageCallback = onMessageCallback
 
     def connect(self, options):
-
-        # Create MQTT client if necessary
-        self._createMqttClient()
-
-        if options.will:
-            self._client.will_set(options.will['topic'],
-                                  options.will['message'],
-                                  options.will['qos'],
-                                  options.will['retained'])
 
         if options._caFile:
             # Check if file exists
@@ -76,7 +65,16 @@ class MqttAsyncClient():
             else:
                 clientKeyFile = options._clientKeyFile
 
-        self._clientLock.acquire()
+        self._clientLock.acquire()  # Protect _client attribute
+
+        # Create MQTT client if necessary
+        self._createMqttClient()
+
+        if options.will:
+            self._client.will_set(options.will['topic'],
+                                  options.will['message'],
+                                  options.will['qos'],
+                                  options.will['retained'])
         if self._client:
             self._client.username_pw_set(options._username, password=options._password)
             self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
@@ -98,7 +96,6 @@ class MqttAsyncClient():
         """Disconnects MQTT client
         """
         self._clientLock.acquire()
-        print '--> disconnect'
         # Stop MQTT client if still running
         if self._client:
             self._client.loop_stop()
@@ -126,10 +123,6 @@ class MqttAsyncClient():
                 print u'Error: Connection refused - not authorised'
             else:
                 print u'Error: Connection refused - unknown reason'
-
-            if rc != 3: # Expect for 'server unavailable'
-                # Close application
-                exit(0)
 
     def onDisconnect(self, client, userdata, rc):
         print 'Disconnect: %d' % rc
@@ -291,8 +284,10 @@ class MemoryPersistence(MqttClientPersistence):
         return True if self._persistance.has_key(key) else False
 
     def keys(self):
+        keys = []
         for key in self._persistance.iterkeys():
-            yield key
+            keys.append(key)
+        return keys
 
     def remove(self, key):
         # Remove the key if it exist. If it does not exist

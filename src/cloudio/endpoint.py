@@ -169,7 +169,7 @@ class CloudioEndpoint(CloudioNodeContainer):
             traceback.print_exc()
 
     def subscribeToSetCommands(self):
-        (result, mid) = self.mqtt.subscribe("@set/" + self.getUuid().toString() + "/#", 1)
+        (result, mid) = self.mqtt.subscribe(u'@set/' + self.getUuid().toString() + '/#', 1)
         return True if result == self.mqtt.MQTT_ERR_SUCCESS else False
 
     def addNode(self, nodeName, clsOrObject):
@@ -324,6 +324,8 @@ class CloudioEndpoint(CloudioNodeContainer):
             if not success:
                 self.log.critical('Could not subscribe to @set topic!')
 
+            self._copyPersistentData()
+
             self._endPointIsReady = True
 
             # If we arrive here, we are online, so we can inform listeners about that and stop the connecting thread
@@ -343,3 +345,25 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.log.info(u'Sending birth message...')
         strMessage = self.messageFormat.serializeEndpoint(self)
         self.mqtt.publish(u'@online/' + self.uuid, strMessage, 1, True)
+
+    def _copyPersistentData(self):
+        if self.persistence:
+            #print str(len(self.persistence.keys())) + ' in persistence'
+            for key in self.persistence.keys():
+
+                if self.mqtt.isConnected():
+                    #print 'Copy pers: ' + key
+                    # Is it a pending update?
+                    if key.startswith('PendingUpdate-'):
+                        # Get the pending update persistent object from store
+                        pendingUpdate = self.persistence.get(key)
+
+                        # Get the uuid of the endpoint
+                        uuid = pendingUpdate.getUuidFromPersistenceKey(key)
+
+                        # Try to send the update to the broker and remove it from the storage
+                        if self.mqtt.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
+                            # Remove key from store
+                            self.persistence.remove(key)
+                else:
+                    break
