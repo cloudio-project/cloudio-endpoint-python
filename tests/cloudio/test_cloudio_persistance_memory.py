@@ -8,8 +8,26 @@ from connector.vacuumcleaner_connector import VacuumCleanerConnector
 from model.vacuum_cleaner import VacuumCleaner
 from client.vacuumcleaner_client import VacuumCleanerClient
 
+class VacuumCleanerTestClient(VacuumCleanerClient):
+    """Fake client that hooks into the reception flow to count received messages.
+    """
+    def __init__(self, configFile):
+        VacuumCleanerClient.__init__(self, configFile)
+
+        self.receivedMsgCounter = 0
+
+    def _subscribeToUpdatedCommands(self):
+        topic = u'@update/' + self._endPointName + '/#'
+        print 'Subscribing to: ' + topic + ' messages'
+        (result, mid) = self._client.subscribe(topic, 1)
+        return True if result == self.MQTT_ERR_SUCCESS else False
+
+    def onMessage(self, client, userdata, msg):
+        if '@update' in msg.topic and 'setThroughput' in msg.topic:
+            self.receivedMsgCounter += 1
+
 class TestCloudioPersistanceMemory(unittest.TestCase):
-    """Tests persistance memory feature.
+    """Tests persistence memory feature.
     """
 
     log = logging.getLogger(__name__)
@@ -17,6 +35,7 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
     def setUp(self):
         self.connector = VacuumCleanerConnector('test-vacuum-cleaner')  # Searches for file 'test-vacuum-cleaner.properties'
         self.cloudioEndPoint = self.connector.endpoint
+        msgToSend = 100     # How many messages to send
 
         # Wait until connected to cloud.iO
         self.log.info('Waiting to connect endpoint to cloud.iO...')
@@ -35,7 +54,7 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
         self.vacuumCleaner.setCloudioBuddy(cloudioVacuumCleaner)
 
         # Create CloudioClient that sends the @set commands
-        self.vacuumCleanerClient = VacuumCleanerClient('~/.config/cloud.io/client/vacuum-cleaner-client.config')
+        self.vacuumCleanerClient = VacuumCleanerTestClient('~/.config/cloud.io/client/vacuum-cleaner-client.config')
         self.log.info('Waiting to connect client to cloud.iO...')
         self.vacuumCleanerClient.waitUntilConnected()
 
@@ -50,9 +69,14 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
         attrLocation = ['setThroughput', 'attributes', 'Parameters', 'objects']
         cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
 
-        for i in range(0, 200):
+        for i in range(0, self.msgToSend):
+            print 'Sending update ' + str(i)
             self.cloudioEndPoint.attributeHasChangedByEndpoint(cloudioAttribute)
-            time.sleep(2)
+            time.sleep(.5)
+
+        time.sleep(1)
+        # Check if the update messages send are equal to the messages received by the client
+        self.assertEqual(self.msgToSend, self.vacuumCleanerClient.receivedMsgCounter)
 
 
 if __name__ == '__main__':
