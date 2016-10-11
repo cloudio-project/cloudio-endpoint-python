@@ -14,6 +14,8 @@ class VacuumCleanerClient():
     """A cloud.iO client connecting to a vacuum cleaner represented in the cloud.
     """
 
+    MQTT_ERR_SUCCESS = mqtt.MQTT_ERR_SUCCESS
+
     log = logging.getLogger(__name__)
 
     def __init__(self, configFile):
@@ -84,6 +86,9 @@ class VacuumCleanerClient():
         if rc == 0:
             self._isConnected = True
             self.log.info(u'Connection to cloudio broker established.')
+
+            self._subscribeToUpdatedCommands()
+
         else:
             if rc == 1:
                 self.log.error(u'Connection refused - incorrect protocol version')
@@ -105,8 +110,12 @@ class VacuumCleanerClient():
     def onDisconnect(self, client, userdata, rc):
         self.log.info('Disconnect: ' + str(rc))
 
-    def onMessage(mosq, obj, mqttMsg):
-        pass
+    def onMessage(self, client, userdata, msg):
+        print msg.topic
+
+    def _subscribeToUpdatedCommands(self):
+        (result, mid) = self._client.subscribe(u'@update/' + self._endPointName + '/#', 1)
+        return True if result == self.MQTT_ERR_SUCCESS else False
 
     def setIdentification(self, newIdentification):
         topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + '/objects/Parameters/attributes/setIdentification'
