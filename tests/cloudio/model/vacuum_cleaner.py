@@ -54,8 +54,8 @@ class VacuumCleaner(AttributeListener):
 
         :param attribute Attribute that has changed.
         """
-
         internalAttributeName = self._convertToInternalAttributeName(attribute.getName())
+        print 'VacuumCleaner attr changed: ' + str(attribute.getValue())
 
         # Check if we have an attribute with the same name
         if hasattr(self, internalAttributeName):

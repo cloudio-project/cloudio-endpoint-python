@@ -109,7 +109,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options._clientCertFile = path_helpers.prettify(self.options._clientCertFile)
         self.options._clientKeyFile = path_helpers.prettify(self.options._clientKeyFile)
 
-        self.mqtt = MqttAsyncClient(host, clientId=self.uuid, clean_session=self.cleanSession)
+        self.mqtt = MqttAsyncClient(host, clientId=self.uuid, clean_session=self.cleanSession, options=self.options)
         # Register callback method to be called when connection to cloud.iO gets lost
         self.mqtt.setOnDisconnectCallback(self._onDisconnectFromCloud)
         # Register callback method to be called when receiving a message over MQTT
@@ -140,7 +140,8 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.mqtt.disconnect()
 
     def _onDisconnectFromCloud(self, rc):
-        self._startConnectionThread()
+        if rc != 0:
+            self._startConnectionThread()
 
     def _onMessageArrived(self, client, userdata, msg):
         #print msg.topic + ': ' + str(msg.payload)
@@ -348,11 +349,11 @@ class CloudioEndpoint(CloudioNodeContainer):
 
     def _copyPersistentData(self):
         if self.persistence:
-            #print str(len(self.persistence.keys())) + ' in persistence'
+            print str(len(self.persistence.keys())) + ' in persistence'
             for key in self.persistence.keys():
 
                 if self.mqtt.isConnected():
-                    #print 'Copy pers: ' + key
+                    print 'Copy pers: ' + key
                     # Is it a pending update?
                     if key.startswith('PendingUpdate-'):
                         # Get the pending update persistent object from store

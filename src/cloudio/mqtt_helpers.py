@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os, time
-from threading import RLock
+from threading import Thread, RLock
+import logging
+import traceback
 from abc import ABCMeta, abstractmethod
 import paho.mqtt.client as mqtt     # pip install paho-mqtt
 import ssl
@@ -12,7 +14,7 @@ class MqttAsyncClient():
     # Errors from mqtt module - mirrored into this class
     MQTT_ERR_SUCCESS = mqtt.MQTT_ERR_SUCCESS
 
-    def __init__(self, host, clientId='', clean_session=True):
+    def __init__(self, host, clientId='', clean_session=True, options=None):
         self._isConnected = False
         self._host = host
         self._onDisconnectCallback = None
@@ -28,8 +30,11 @@ class MqttAsyncClient():
     def _createMqttClient(self):
         self._clientLock.acquire()
         if self._client is None:
-            self._client = mqtt.Client(client_id=self._clientClientId,
-                                       clean_session=self._clientCleanSession)
+            if self._clientClientId:
+                self._client = mqtt.Client(client_id=self._clientClientId,
+                                           clean_session=self._clientCleanSession)
+            else:
+                self._client = mqtt.Client()
 
             self._client.on_connect = self.onConnect
             self._client.on_disconnect = self.onDisconnect
@@ -43,6 +48,7 @@ class MqttAsyncClient():
         self._onMessageCallback = onMessageCallback
 
     def connect(self, options):
+        port = 1883 # Default port without ssl
 
         if options._caFile:
             # Check if file exists
@@ -77,15 +83,18 @@ class MqttAsyncClient():
                                   options.will['retained'])
         if self._client:
             self._client.username_pw_set(options._username, password=options._password)
-            self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
-            self._client.tls_set(options._caFile,  # CA certificate
-                                certfile=clientCertFile,  # Client certificate
-                                keyfile=clientKeyFile,  # Client private key
-                                tls_version=ssl.PROTOCOL_TLSv1,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
-                                ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
+
+            if clientCertFile:
+                port = 8883 # Port with ssl
+                self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
+                self._client.tls_set(options._caFile,  # CA certificate
+                                    certfile=clientCertFile,  # Client certificate
+                                    keyfile=clientKeyFile,  # Client private key
+                                    tls_version=ssl.PROTOCOL_TLSv1,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
+                                    ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
 
             try:
-                self._client.connect(self._host, port=8883)
+                self._client.connect(self._host, port=port)
                 self._client.loop_start()
                 time.sleep(1)   # Wait a bit for the callback onConnect to be called
             except Exception as e:
@@ -129,19 +138,19 @@ class MqttAsyncClient():
 
         self._isConnected = False
 
+        self.disconnect()
+
         # Notify container class if disconnect callback
         # was registered.
         if self._onDisconnectCallback:
             self._onDisconnectCallback(rc)
-
-        self.disconnect()
 
     def onMessage(self, client, userdata, msg):
         # Delegate to container class
         if self._onMessageCallback:
             self._onMessageCallback(client, userdata, msg)
 
-    def publish(self, topic, payload, qos, retain):
+    def publish(self, topic, payload=None, qos=0, retain=False):
         timeout = 2.0
         message_info = self._client.publish(topic, payload, qos, retain)
 
@@ -160,6 +169,119 @@ class MqttAsyncClient():
 
     def subscribe(self, topic, qos=0):
         return self._client.subscribe(topic, qos)
+
+class MqttReconnectClient(MqttAsyncClient):
+    """Same as MqttAsyncClient, but adds reconnect feature.
+    """
+
+    log = logging.getLogger(__name__)
+
+    def __init__(self, host, clientId='', clean_session=True, options=None):
+        MqttAsyncClient.__init__(self, host, clientId, clean_session, options)
+
+        # options are not used by MqttAsyncClient store them in this class
+        self._options = options
+        self._onConnectedCallback = None
+        self._onConnectionThreadFinishedCallback = None
+        self._retryInterval = 10                # Connect retry interval in seconds
+        self._autoReconnect = True
+        self.thread = None
+        self._connectionThreadLooping = True    # Set to false in case the connection thread should leave
+
+        # Register callback method to be called when connection to cloud.iO gets lost
+        MqttAsyncClient.setOnDisconnectCallback(self, self._onDisconnected)
+
+    def setOnConnectedCallback(self, onConnectedCallback):
+        self._onConnectedCallback = onConnectedCallback
+
+    def setOnDisconnectCallback(self, onDisconnect):
+        assert False, u'Not allowed in this class!'
+
+    def setOnConnectionThreadFinishedCallback(self, onConnectionThreadFinishedCallback):
+        self._onConnectionThreadFinishedCallback = onConnectionThreadFinishedCallback
+
+    def start(self):
+        self._startConnectionThread()
+
+    def stop(self):
+        self._autoReconnect = False
+        self.disconnect()
+
+    def _startConnectionThread(self):
+        if self.thread and self.thread.isAlive():
+            self.log.warning('Mqtt client connection thread already/still running!')
+
+        self._stopConnectionThread()
+
+        self.thread = Thread(target=self._run, name='mqtt-reconnect-client-' + self._clientClientId)
+        # Close thread as soon as main thread exits
+        self.thread.setDaemon(True)
+
+        self._connectionThreadLooping = True
+        self.thread.start()
+
+    def _stopConnectionThread(self):
+        if self.thread:
+            self._connectionThreadLooping = False
+            self.thread.join()
+            self.thread = None
+
+    def _onConnected(self):
+        if self._onConnectedCallback:
+            self._onConnectedCallback()
+
+    def _onDisconnected(self, rc):
+        if self._autoReconnect:
+            self._startConnectionThread()
+
+    def _onConnectionThreadFinished(self):
+        if self._onConnectionThreadFinishedCallback:
+            self._onConnectionThreadFinishedCallback()
+
+    ######################################################################
+    # Active part
+    #
+    def _run(self):
+        """Called by the internal thread"""
+
+        self.log.info(u'Mqtt client reconnect thread running...')
+
+        while not self.isConnected() and self._connectionThreadLooping:
+            try:
+                self.log.info(u'Trying to connect to cloud.iO...')
+                self.connect(self._options)
+            except Exception as exception:
+                traceback.print_exc()
+                print u'Error during broker connect!'
+                exit(1)
+
+            # Check if thread should leave
+            if not self._connectionThreadLooping:
+                # Tell subscriber connection thread has finished
+                self._onConnectionThreadFinished()
+                return
+
+            if not self.isConnected():
+                # If we should not retry, give up
+                if self._retryInterval > 0:
+                    # Wait until it is time for the next connect
+                    time.sleep(self._retryInterval)
+                # TODO Work with a wait condition + timeout
+                #      Condition gets notified in onConnectionSucceed callback
+
+                # If we should not retry, give up
+                if self._retryInterval == 0:
+                    break
+
+        if self.isConnected():
+            self.log.info(u'Connected to cloud.iO broker')
+
+            # Tell subscriber we are connected
+            self._onConnected()
+
+        # Tell subscriber connection thread has finished
+        self._onConnectionThreadFinished()
+
 
 class MqttConnectOptions():
     def __init__(self):

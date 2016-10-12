@@ -7,6 +7,7 @@ import paho.mqtt.client as mqtt
 
 from utils import path_helpers
 from utils import datetime_helpers
+from cloudio.mqtt_helpers import MqttConnectOptions, MqttReconnectClient
 
 logging.getLogger(__name__).setLevel(logging.INFO)
 
@@ -20,7 +21,7 @@ class VacuumCleanerClient():
 
     def __init__(self, configFile):
         self._isConnected = False
-
+        self._useReconnectClient = True             # Chooses the MQTT client
         config = self.parseConfigFile(configFile)
 
         self._qos = int(config['cloudio']['qos'])
@@ -29,18 +30,40 @@ class VacuumCleanerClient():
         self._nodeName = config['node']['name']
 
         self.log.info('Starting MQTT client...')
-        self._client = mqtt.Client()
 
-        self._client.on_connect = self.onConnect
-        self._client.on_disconnect = self.onDisconnect
-        self._client.on_message = self.onMessage
+        if not self._useReconnectClient:
+            self._client = mqtt.Client()
 
-        self._client.username_pw_set(config['cloudio']['username'], config['cloudio']['password'])
-        self._client.connect(config['cloudio']['host'], port=int(config['cloudio']['port']), keepalive=60)
-        self._client.loop_start()
+            self._client.on_connect = self.onConnect
+            self._client.on_disconnect = self.onDisconnect
+            self._client.on_message = self.onMessage
+
+            self._client.username_pw_set(config['cloudio']['username'], config['cloudio']['password'])
+            self._client.connect(config['cloudio']['host'], port=int(config['cloudio']['port']), keepalive=60)
+            self._client.loop_start()
+        else:
+            self.connectOptions = MqttConnectOptions()
+
+            self.connectOptions._username = config['cloudio']['username']
+            self.connectOptions._password = config['cloudio']['password']
+
+            self._client = MqttReconnectClient(config['cloudio']['host'],
+                                               clientId=self._endPointName + '-client-',
+                                               clean_session=False,
+                                               options=self.connectOptions)
+
+            # Register callback method for connection established
+            self._client.setOnConnectedCallback(self.onConnected)
+            # Register callback method to be called when receiving a message over MQTT
+            self._client.setOnMessageCallback(self.onMessage)
+
+            self._client.start()
 
     def close(self):
-        self._client.loop_stop(force=True)
+        if not self._useReconnectClient:
+            self._client.disconnect()
+        else:
+            self._client.stop()
 
     def parseConfigFile(self, configFile):
         global config
@@ -85,33 +108,17 @@ class VacuumCleanerClient():
     def onConnect(self, client, userdata, flags, rc):
         if rc == 0:
             self._isConnected = True
-            self.log.info(u'Connection to cloudio broker established.')
-
             self._subscribeToUpdatedCommands()
 
-        else:
-            if rc == 1:
-                self.log.error(u'Connection refused - incorrect protocol version')
-            elif rc == 2:
-                self.log.error(u'Connection refused - invalid client identifier')
-            elif rc == 3:
-                self.log.error(u'Connection refused - server unavailable')
-            elif rc == 4:
-                self.log.error(u'Connection refused - bad username or password')
-            elif rc == 5:
-                self.log.error(u'Connection refused - not authorised')
-            else:
-                self.log.error(u'Connection refused - unknown reason')
-
-            if rc != 3: # Expect for 'server unavailable'
-                # Close application
-                exit(0)
+    def onConnected(self):
+        self._isConnected = True
+        self._subscribeToUpdatedCommands()
 
     def onDisconnect(self, client, userdata, rc):
         self.log.info('Disconnect: ' + str(rc))
 
     def onMessage(self, client, userdata, msg):
-        print msg.topic
+        print 'VacuumCleanerClient rxed: ' + msg.topic
 
     def _subscribeToUpdatedCommands(self):
         (result, mid) = self._client.subscribe(u'@update/' + self._endPointName + '/#', 1)
