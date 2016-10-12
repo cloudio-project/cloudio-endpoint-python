@@ -35,7 +35,7 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
     def setUp(self):
         self.connector = VacuumCleanerConnector('test-vacuum-cleaner')  # Searches for file 'test-vacuum-cleaner.properties'
         self.cloudioEndPoint = self.connector.endpoint
-        msgToSend = 100     # How many messages to send
+        self.msgToSend = 100     # How many messages to send
 
         # Wait until connected to cloud.iO
         self.log.info('Waiting to connect endpoint to cloud.iO...')
