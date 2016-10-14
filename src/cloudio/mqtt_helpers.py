@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os, time
-from threading import Thread, RLock
+from threading import Thread, RLock, Event
 import logging
 import traceback
 from abc import ABCMeta, abstractmethod
@@ -17,6 +17,7 @@ class MqttAsyncClient():
     def __init__(self, host, clientId='', clean_session=True, options=None):
         self._isConnected = False
         self._host = host
+        self._onConnectCallback = None
         self._onDisconnectCallback = None
         self._onMessageCallback = None
         self._client = None
@@ -40,6 +41,9 @@ class MqttAsyncClient():
             self._client.on_disconnect = self.onDisconnect
             self._client.on_message = self.onMessage
         self._clientLock.release()
+
+    def setOnConnectCallback(self, onConnectCallback):
+        self._onConnectCallback = onConnectCallback
 
     def setOnDisconnectCallback(self, onDisconnectCallback):
         self._onDisconnectCallback = onDisconnectCallback
@@ -96,7 +100,7 @@ class MqttAsyncClient():
             try:
                 self._client.connect(self._host, port=port)
                 self._client.loop_start()
-                time.sleep(1)   # Wait a bit for the callback onConnect to be called
+                #time.sleep(1)   # Wait a bit for the callback onConnect to be called
             except Exception as e:
                 pass
         self._clientLock.release()
@@ -104,6 +108,8 @@ class MqttAsyncClient():
     def disconnect(self):
         """Disconnects MQTT client
         """
+        self._isConnected = False
+
         self._clientLock.acquire()
         # Stop MQTT client if still running
         if self._client:
@@ -119,6 +125,8 @@ class MqttAsyncClient():
         if rc == 0:
             self._isConnected = True
             print u'Info: Connection to cloudio broker established.'
+            if self._onConnectCallback:
+                self._onConnectCallback()
         else:
             if rc == 1:
                 print u'Error: Connection refused - incorrect protocol version'
@@ -135,8 +143,6 @@ class MqttAsyncClient():
 
     def onDisconnect(self, client, userdata, rc):
         print 'Disconnect: %d' % rc
-
-        self._isConnected = False
 
         self.disconnect()
 
@@ -186,16 +192,23 @@ class MqttReconnectClient(MqttAsyncClient):
         self._retryInterval = 10                # Connect retry interval in seconds
         self._autoReconnect = True
         self.thread = None
+        self._connectTimeoutEvent = Event()
         self._connectionThreadLooping = True    # Set to false in case the connection thread should leave
 
-        # Register callback method to be called when connection to cloud.iO gets lost
-        MqttAsyncClient.setOnDisconnectCallback(self, self._onDisconnected)
+        # Register callback method to be called when connection to cloud.iO gets established
+        MqttAsyncClient.setOnConnectCallback(self, self._onConnect)
 
-    def setOnConnectedCallback(self, onConnectedCallback):
-        self._onConnectedCallback = onConnectedCallback
+        # Register callback method to be called when connection to cloud.iO gets lost
+        MqttAsyncClient.setOnDisconnectCallback(self, self._onDisconnect)
+
+    def setOnConnectCallback(self, onConnect):
+        assert False, u'Not allowed in this class!'
 
     def setOnDisconnectCallback(self, onDisconnect):
         assert False, u'Not allowed in this class!'
+
+    def setOnConnectedCallback(self, onConnectedCallback):
+        self._onConnectedCallback = onConnectedCallback
 
     def setOnConnectionThreadFinishedCallback(self, onConnectionThreadFinishedCallback):
         self._onConnectionThreadFinishedCallback = onConnectionThreadFinishedCallback
@@ -226,13 +239,16 @@ class MqttReconnectClient(MqttAsyncClient):
             self.thread.join()
             self.thread = None
 
+    def _onConnect(self):
+        self._connectTimeoutEvent.set() # Free the connection thread
+
+    def _onDisconnect(self, rc):
+        if self._autoReconnect:
+            self._startConnectionThread()
+
     def _onConnected(self):
         if self._onConnectedCallback:
             self._onConnectedCallback()
-
-    def _onDisconnected(self, rc):
-        if self._autoReconnect:
-            self._startConnectionThread()
 
     def _onConnectionThreadFinished(self):
         if self._onConnectionThreadFinishedCallback:
@@ -248,6 +264,7 @@ class MqttReconnectClient(MqttAsyncClient):
 
         while not self.isConnected() and self._connectionThreadLooping:
             try:
+                self._connectTimeoutEvent.clear() # Reset connect timeout event prior to connect
                 self.log.info(u'Trying to connect to cloud.iO...')
                 self.connect(self._options)
             except Exception as exception:
@@ -265,9 +282,7 @@ class MqttReconnectClient(MqttAsyncClient):
                 # If we should not retry, give up
                 if self._retryInterval > 0:
                     # Wait until it is time for the next connect
-                    time.sleep(self._retryInterval)
-                # TODO Work with a wait condition + timeout
-                #      Condition gets notified in onConnectionSucceed callback
+                    self._connectTimeoutEvent.wait(self._retryInterval)
 
                 # If we should not retry, give up
                 if self._retryInterval == 0:

@@ -259,7 +259,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         data = self.messageFormat.serializeAttribute(attribute)
 
         messageSend = False
-        if self.mqtt.isConnected():
+        if self.isOnline():
             try:
                 messageSend = self.mqtt.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
             except Exception as exception:
@@ -275,6 +275,11 @@ class CloudioEndpoint(CloudioNodeContainer):
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
                 traceback.print_exc()
+
+        # Check if there are messages in the persistence store to send
+        if messageSend and self.persistence and len(self.persistence.keys()) > 0:
+            # Try to send stored messages to cloud.iO
+            self._purgePersistentDataStore()
 
     def attributeHasChangedByCloud(self, attribute):
         self.attributeHasChangedByEndpoint(attribute)
@@ -304,10 +309,13 @@ class CloudioEndpoint(CloudioNodeContainer):
             if not self.mqtt.isConnected():
                 # If we should not retry, give up
                 if self._retryInterval > 0:
+                    waitTime = self._retryInterval
                     # Wait until it is time for the next connect
-                    time.sleep(self._retryInterval)
-                # TODO Work with a wait condition + timeout
-                #      Condition gets notified in onConnectionSucceed callback
+                    while waitTime > 0:
+                        time.sleep(0.2)
+                        waitTime -= 0.2
+                        if self.mqtt.isConnected():
+                            break
 
                 # If we should not retry, give up
                 if self._retryInterval == 0:
@@ -325,7 +333,12 @@ class CloudioEndpoint(CloudioNodeContainer):
             if not success:
                 self.log.critical('Could not subscribe to @set topic!')
 
-            self._copyPersistentData()
+            # Try to send stored messages to cloud.iO
+            #self._purgePersistentDataStore()
+            # It may not be a good idea to send this data to cloud.iO using
+            # the connection thread!
+
+            time.sleep(4)   # Give the clients time to connect to cloud.iO and to setup the mqtt queue
 
             self._endPointIsReady = True
 
@@ -347,17 +360,19 @@ class CloudioEndpoint(CloudioNodeContainer):
         strMessage = self.messageFormat.serializeEndpoint(self)
         self.mqtt.publish(u'@online/' + self.uuid, strMessage, 1, True)
 
-    def _copyPersistentData(self):
+    def _purgePersistentDataStore(self):
+        """Tries to send stored messages to cloud.iO.
+        """
         if self.persistence:
             print str(len(self.persistence.keys())) + ' in persistence'
             for key in self.persistence.keys():
-
-                if self.mqtt.isConnected():
-                    print 'Copy pers: ' + key
+                if self.isOnline():
                     # Is it a pending update?
                     if key.startswith('PendingUpdate-'):
                         # Get the pending update persistent object from store
                         pendingUpdate = self.persistence.get(key)
+
+                        print 'Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8')
 
                         # Get the uuid of the endpoint
                         uuid = pendingUpdate.getUuidFromPersistenceKey(key)
