@@ -5,7 +5,7 @@ import time
 import logging
 import traceback
 import utils.timestamp as TimeStampProvider
-from .mqtt_helpers import MqttAsyncClient, MqttConnectOptions
+from .mqtt_helpers import MqttReconnectClient, MqttConnectOptions
 import mqtt_helpers as mqtt
 from .cloudio_node import CloudioNode
 from .properties_endpoint_configuration import PropertiesEndpointConfiguration
@@ -26,7 +26,7 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s -
                     level=logging.DEBUG)
 logging.getLogger('gibscom'+__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-# TODO: Remove connection thread as the paho MQTT client launches its own thread and reconnects in case of connection loss.
+
 class CloudioEndpoint(CloudioNodeContainer):
     """The cloud.iO endpoint.
 
@@ -50,8 +50,6 @@ class CloudioEndpoint(CloudioNodeContainer):
     log = logging.getLogger(__name__)
 
     def __init__(self, uuid, configuration=None):
-        self.thread = None
-        self._connectionThreadLooping = True        # Set to false in case the connection thread should leave
         self._endPointIsReady = False               # Set to true after connection and subscription
 
         self.uuid = uuid            # type: str
@@ -109,39 +107,20 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options._clientCertFile = path_helpers.prettify(self.options._clientCertFile)
         self.options._clientKeyFile = path_helpers.prettify(self.options._clientKeyFile)
 
-        self.mqtt = MqttAsyncClient(host, clientId=self.uuid, clean_session=self.cleanSession, options=self.options)
-        # Register callback method to be called when connection to cloud.iO gets lost
-        self.mqtt.setOnDisconnectCallback(self._onDisconnectFromCloud)
+        self._client = MqttReconnectClient(host,
+                                           clientId=self.uuid,
+                                           clean_session=self.cleanSession,
+                                           options=self.options)
+        #  Register callback method for connection established
+        self._client.setOnConnectedCallback(self._onConnected)
         # Register callback method to be called when receiving a message over MQTT
-        self.mqtt.setOnMessageCallback(self._onMessageArrived)
-
-        self._startConnectionThread()
-
-    def _startConnectionThread(self):
-        self._stopConnectionThread()
-
-        self.thread = Thread(target=self._run, name='cloudio-endpoint-' + self.uuid)
-        # Close thread as soon as main thread exits
-        self.thread.setDaemon(True)
-
-        self._connectionThreadLooping = True
-        self.thread.start()
-
-    def _stopConnectionThread(self):
-        if self.thread:
-            self._connectionThreadLooping = False
-            self.thread.join()
-            self.thread = None
+        self._client.setOnMessageCallback(self._onMessageArrived)
+        # Start the client
+        self._client.start()
 
     def close(self):
-        self._stopConnectionThread()
-
         # Stop Mqtt client
-        self.mqtt.disconnect()
-
-    def _onDisconnectFromCloud(self, rc):
-        if rc != 0:
-            self._startConnectionThread()
+        self._client.stop()
 
     def _onMessageArrived(self, client, userdata, msg):
         #print msg.topic + ': ' + str(msg.payload)
@@ -170,8 +149,8 @@ class CloudioEndpoint(CloudioNodeContainer):
             traceback.print_exc()
 
     def subscribeToSetCommands(self):
-        (result, mid) = self.mqtt.subscribe(u'@set/' + self.getUuid().toString() + '/#', 1)
-        return True if result == self.mqtt.MQTT_ERR_SUCCESS else False
+        (result, mid) = self._client.subscribe(u'@set/' + self.getUuid().toString() + '/#', 1)
+        return True if result == self._client.MQTT_ERR_SUCCESS else False
 
     def addNode(self, nodeName, clsOrObject):
         if nodeName != '' and clsOrObject != None:
@@ -180,12 +159,9 @@ class CloudioEndpoint(CloudioNodeContainer):
             self.log.debug('Adding node %s' % nodeName)
 
             # Add node to endpoint
-#            if clsOrObject == types.InstanceType:
-#                assert isinstance(clsOrObject, CloudioNode)
-#                pass    # All right. We have our needed object
             if isinstance(clsOrObject, CloudioNode):
                 node = clsOrObject
-                pass  # All right. We have our needed object
+                pass  # All right. We have the needed object
             else:
                 raise RuntimeError(u'Wrong cloud.iO object type')
 
@@ -200,7 +176,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                 # If the endpoint is online, send node add message
                 if self.isOnline():
                     data = self.messageFormat.serializeNode(node)
-                    self.mqtt.publish(u'@nodeAdded/' + node.getUuid().toString(), data, 1, False)
+                    self._client.publish(u'@nodeAdded/' + node.getUuid().toString(), data, 1, False)
                 else:
                     self.log.info(u'Not sending \'@nodeAdded\' message. No connection to broker!')
 
@@ -261,7 +237,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         messageSend = False
         if self.isOnline():
             try:
-                messageSend = self.mqtt.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
+                messageSend = self._client.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
 
@@ -284,81 +260,39 @@ class CloudioEndpoint(CloudioNodeContainer):
     def attributeHasChangedByCloud(self, attribute):
         self.attributeHasChangedByEndpoint(attribute)
 
-    ######################################################################
-    # Active part
-    #
-    def _run(self):
-        """Called by the internal thread"""
+    def _onConnected(self):
+        """This callback is called after the MQTT client has successfully connected to cloud.iO.
+        """
+        # Announce our presence to the broker
+        # self.announce()
+        # It is too early here because the endpoint model
+        # is not loaded at this moment
 
-        self.log.info(u'Connection thread for cloud.iO endpoint running...')
+        success = self.subscribeToSetCommands()
+        if not success:
+            self.log.critical('Could not subscribe to @set topic!')
 
-        while not self.mqtt.isConnected() and self._connectionThreadLooping:
-            try:
-                self.log.info(u'Trying to connect to cloud.iO...')
-                self.mqtt.connect(self.options)
-            except Exception as exception:
-                traceback.print_exc()
-                print u'Error during broker connect!'
-                exit(1)
+        # Try to send stored messages to cloud.iO
+        # self._purgePersistentDataStore()
+        # It may not be a good idea to send this data to cloud.iO using
+        # the connection thread!
 
-            # Check if thread should leave
-            if not self._connectionThreadLooping:
-                self._onConnectionThreadFinished()
-                return
+        time.sleep(4)  # Give the clients time to connect to cloud.iO and to setup the mqtt queue
 
-            if not self.mqtt.isConnected():
-                # If we should not retry, give up
-                if self._retryInterval > 0:
-                    waitTime = self._retryInterval
-                    # Wait until it is time for the next connect
-                    while waitTime > 0:
-                        time.sleep(0.2)
-                        waitTime -= 0.2
-                        if self.mqtt.isConnected():
-                            break
-
-                # If we should not retry, give up
-                if self._retryInterval == 0:
-                    break
-
-        if self.mqtt.isConnected():
-            self.log.info(u'Connected to cloud.iO broker')
-
-            # Announce our presence to the broker
-            #self.announce()
-            # It is too early here because the endpoint model
-            # is not loaded at this moment
-
-            success = self.subscribeToSetCommands()
-            if not success:
-                self.log.critical('Could not subscribe to @set topic!')
-
-            # Try to send stored messages to cloud.iO
-            #self._purgePersistentDataStore()
-            # It may not be a good idea to send this data to cloud.iO using
-            # the connection thread!
-
-            time.sleep(4)   # Give the clients time to connect to cloud.iO and to setup the mqtt queue
-
-            self._endPointIsReady = True
-
-            # If we arrive here, we are online, so we can inform listeners about that and stop the connecting thread
-    #        self.mqtt.setCallback(self)
-
-        self._onConnectionThreadFinished()
+        self._endPointIsReady = True
 
     def _onConnectionThreadFinished(self):
         self.log.info('Connection thread finished')
         self.thread = None
 
     def isOnline(self):
-        return self.mqtt.isConnected() and self._endPointIsReady
+        return self._client.isConnected() and self._endPointIsReady
 
     def announce(self):
         # Send birth message
         self.log.info(u'Sending birth message...')
         strMessage = self.messageFormat.serializeEndpoint(self)
-        self.mqtt.publish(u'@online/' + self.uuid, strMessage, 1, True)
+        self._client.publish(u'@online/' + self.uuid, strMessage, 1, True)
 
     def _purgePersistentDataStore(self):
         """Tries to send stored messages to cloud.iO.
@@ -378,7 +312,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                         uuid = pendingUpdate.getUuidFromPersistenceKey(key)
 
                         # Try to send the update to the broker and remove it from the storage
-                        if self.mqtt.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
+                        if self._client.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
                             # Remove key from store
                             self.persistence.remove(key)
                 else:
