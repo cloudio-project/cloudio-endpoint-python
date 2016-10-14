@@ -3,6 +3,7 @@
 
 import time
 import logging
+import json
 import unittest
 from connector.vacuumcleaner_connector import VacuumCleanerConnector
 from model.vacuum_cleaner import VacuumCleaner
@@ -11,10 +12,12 @@ from client.vacuumcleaner_client import VacuumCleanerClient
 class VacuumCleanerTestClient(VacuumCleanerClient):
     """Fake client that hooks into the reception flow to count received messages.
     """
-    def __init__(self, configFile):
+    def __init__(self, configFile, msgsToReceive):
         VacuumCleanerClient.__init__(self, configFile)
 
-        self.receivedMsgCounter = 0
+        self.msgsToReceive = msgsToReceive  # Amount of message the client should receive
+        self.receivedMsgCounter = 0         # Received messages counter
+        self.rxedMessages = {}
 
     def _subscribeToUpdatedCommands(self):
         topic = u'@update/' + self._endPointName + '/#'
@@ -23,8 +26,24 @@ class VacuumCleanerTestClient(VacuumCleanerClient):
         return True if result == self.MQTT_ERR_SUCCESS else False
 
     def onMessage(self, client, userdata, msg):
+        # The value of the received messages should go from 0 to msgsToReceive
+        # Values received are stored in rxedMessages
         if '@update' in msg.topic and 'setThroughput' in msg.topic:
             self.receivedMsgCounter += 1
+            value = json.loads(msg.payload)['value']
+            self.rxedMessages[value] = value
+            # TODO What about multiples?
+
+    def showMessagesSummary(self):
+        if self.receivedMsgCounter < self.msgsToReceive:
+            for index in range(0, self.msgsToReceive):
+                if not self.rxedMessages.has_key(index):
+                    print 'Error: Missing message %d' % index
+        elif self.receivedMsgCounter == self.msgsToReceive:
+            print 'The right amount of messages was received'
+        else:
+            print 'Error: More messages then expected received!'
+
 
 class TestCloudioPersistanceMemory(unittest.TestCase):
     """Tests persistence memory feature.
@@ -35,7 +54,7 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
     def setUp(self):
         self.connector = VacuumCleanerConnector('test-vacuum-cleaner')  # Searches for file 'test-vacuum-cleaner.properties'
         self.cloudioEndPoint = self.connector.endpoint
-        self.msgToSend = 100     # How many messages to send
+        self.msgToSend = 70     # How many messages to send
 
         # Wait until connected to cloud.iO
         self.log.info('Waiting to connect endpoint to cloud.iO...')
@@ -54,7 +73,8 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
         self.vacuumCleaner.setCloudioBuddy(cloudioVacuumCleaner)
 
         # Create CloudioClient that sends the @set commands
-        self.vacuumCleanerClient = VacuumCleanerTestClient('~/.config/cloud.io/client/vacuum-cleaner-client.config')
+        self.vacuumCleanerClient = VacuumCleanerTestClient('~/.config/cloud.io/client/vacuum-cleaner-client.config',
+                                                           self.msgToSend)
         self.log.info('Waiting to connect client to cloud.iO...')
         self.vacuumCleanerClient.waitUntilConnected()
 
@@ -71,13 +91,14 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
 
         for i in range(0, self.msgToSend):
             print 'Sending update ' + str(i)
-            self.cloudioEndPoint.attributeHasChangedByEndpoint(cloudioAttribute)
+            cloudioAttribute.setValue(i)
             time.sleep(.5)
 
         time.sleep(1)
+        # Show summary about received mesages
+        self.vacuumCleanerClient.showMessagesSummary()
         # Check if the update messages send are equal to the messages received by the client
         self.assertEqual(self.msgToSend, self.vacuumCleanerClient.receivedMsgCounter)
-
 
 if __name__ == '__main__':
 
