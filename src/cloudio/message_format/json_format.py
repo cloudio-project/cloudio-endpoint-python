@@ -78,7 +78,8 @@ class JsonMessageFormat(CloudioMessageFormat):
                 if type == AttributeType.Invalid:
                     pass
                 elif type == AttributeType.Boolean:
-                    attribute.setValueFromCloud(bool(value), timestamp)
+                    boolValue = False if value.lower() in ['0', 'false', 'falsch', 'faux', 'off'] else True
+                    attribute.setValueFromCloud(boolValue, timestamp)
                 elif type == AttributeType.Integer:
                     attribute.setValueFromCloud(int(value), timestamp)
                 elif type == AttributeType.Number:
