@@ -26,7 +26,7 @@ class CloudioNode(CloudioObjectContainer):
             attr = getattr(self, field)
             if attr:
                 if isinstance(attr, CloudioObject):
-                    print 'Node: Got an attribute based on an CloudioObject class'
+                    print('Node: Got an attribute based on an CloudioObject class')
 
     def _addImplementedInterfaceToAnnotation(self):
         pass
@@ -95,10 +95,11 @@ class CloudioNode(CloudioObjectContainer):
                 if location[-1] == u'objects':      # Compare with the last element
                     location.pop()     # Remove last item (peek item)
                     if len(location) > 0:
-                        # Get object from container (dictionary) by key
-                        obj = self.getObjects()[location.pop()]
-                        if obj:
-                            return obj.findAttribute(location)
+                        if self.getObjects().has_key(location[-1]):
+                            # Get object from container (dictionary) by key
+                            obj = self.getObjects()[location.pop()]
+                            if obj:
+                                return obj.findAttribute(location)
         return None
 
     def findObject(self, location):
@@ -113,7 +114,8 @@ class CloudioNode(CloudioObjectContainer):
                 if location[-1] == u'objects':  # Compare with the last element
                     location.pop()  # Remove last item (peek item)
                     if len(location) > 0:
-                        # Get object from container (dictionary) by key
-                        obj = self.getObjects()[location.pop()]
-                        return obj
+                        if self.getObjects().has_key(location[-1]):
+                            # Get object from container (dictionary) by key
+                            obj = self.getObjects()[location.pop()]
+                            return obj
         return None
