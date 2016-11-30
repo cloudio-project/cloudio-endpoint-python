@@ -298,7 +298,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         """Tries to send stored messages to cloud.iO.
         """
         if self.persistence:
-            print str(len(self.persistence.keys())) + ' in persistence'
+            print(str(len(self.persistence.keys())) + ' in persistence')
             for key in self.persistence.keys():
                 if self.isOnline():
                     # Is it a pending update?
@@ -306,14 +306,15 @@ class CloudioEndpoint(CloudioNodeContainer):
                         # Get the pending update persistent object from store
                         pendingUpdate = self.persistence.get(key)
 
-                        print 'Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8')
+                        if pendingUpdate is not None:
+                            print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8'))
 
-                        # Get the uuid of the endpoint
-                        uuid = pendingUpdate.getUuidFromPersistenceKey(key)
+                            # Get the uuid of the endpoint
+                            uuid = pendingUpdate.getUuidFromPersistenceKey(key)
 
-                        # Try to send the update to the broker and remove it from the storage
-                        if self._client.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
-                            # Remove key from store
-                            self.persistence.remove(key)
+                            # Try to send the update to the broker and remove it from the storage
+                            if self._client.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
+                                # Remove key from store
+                                self.persistence.remove(key)
                 else:
                     break

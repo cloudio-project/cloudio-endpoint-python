@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from six import iterkeys
 import os, time
 from threading import Thread, RLock, Event
 import logging
@@ -124,25 +125,25 @@ class MqttAsyncClient():
     def onConnect(self, client, userdata, flags, rc):
         if rc == 0:
             self._isConnected = True
-            print u'Info: Connection to cloudio broker established.'
+            print(u'Info: Connection to cloudio broker established.')
             if self._onConnectCallback:
                 self._onConnectCallback()
         else:
             if rc == 1:
-                print u'Error: Connection refused - incorrect protocol version'
+                print(u'Error: Connection refused - incorrect protocol version')
             elif rc == 2:
-                print u'Error: Connection refused - invalid client identifier'
+                print(u'Error: Connection refused - invalid client identifier')
             elif rc == 3:
-                print u'Error: Connection refused - server unavailable'
+                print(u'Error: Connection refused - server unavailable')
             elif rc == 4:
-                print u'Error: Connection refused - bad username or password'
+                print(u'Error: Connection refused - bad username or password')
             elif rc == 5:
-                print u'Error: Connection refused - not authorised'
+                print(u'Error: Connection refused - not authorised')
             else:
-                print u'Error: Connection refused - unknown reason'
+                print(u'Error: Connection refused - unknown reason')
 
     def onDisconnect(self, client, userdata, rc):
-        print 'Disconnect: %d' % rc
+        print('Disconnect: %d' % rc)
 
         self.disconnect()
 
@@ -269,7 +270,7 @@ class MqttReconnectClient(MqttAsyncClient):
                 self.connect(self._options)
             except Exception as exception:
                 traceback.print_exc()
-                print u'Error during broker connect!'
+                print(u'Error during broker connect!')
                 exit(1)
 
             # Check if thread should leave
@@ -416,13 +417,14 @@ class MemoryPersistence(MqttClientPersistence):
     def get(self, key):
         if self._persistance.has_key(key):
             return self._persistance[key]
+        return None
 
     def containsKey(self, key):
         return True if self._persistance.has_key(key) else False
 
     def keys(self):
         keys = []
-        for key in self._persistance.iterkeys():
+        for key in iterkeys(self._persistance):
             keys.append(key)
         return keys
 
