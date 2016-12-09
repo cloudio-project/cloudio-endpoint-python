@@ -1,5 +1,5 @@
 
-# [v0.2.0](https://github.com/cloudio-project/cloudio-endpoint-python/releases/tag/0.2.0) (2016-12-09)
+# [v0.1.3](https://github.com/cloudio-project/cloudio-endpoint-python/releases/tag/0.2.0) (2016-12-09)
 
 ### Features
 * Added _**persistence in file**_ feature. Messages not able to be transmitted to the cloud can now be 
