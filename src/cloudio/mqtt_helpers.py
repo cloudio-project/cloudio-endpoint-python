@@ -9,6 +9,10 @@ from abc import ABCMeta, abstractmethod
 import paho.mqtt.client as mqtt     # pip install paho-mqtt
 import ssl
 
+
+from utils import path_helpers
+
+
 class MqttAsyncClient():
     """Mimic the behavior of the java.MqttAsyncClient class"""
 
@@ -435,3 +439,80 @@ class MemoryPersistence(MqttClientPersistence):
 
     def clear(self):
         self._persistance.clear()
+
+class MqttDefaultFilePersistence(MqttClientPersistence):
+    """Persistance store providing file based storage.
+    """
+
+    DEFAULT_DIRECTORY = '~/mqtt-persistence'
+
+    def __init__(self, directory=None):
+        """
+        :param directory: Base directory where to store the persistent data
+        """
+        super(MqttDefaultFilePersistence, self).__init__()
+
+        if directory is None:
+            directory = self.DEFAULT_DIRECTORY
+
+        self._directory = path_helpers.prettify(directory)
+        self._perClientIdAndServerUriDirectory = None           # type: str
+
+        # Create base directory
+        if not os.path.exists(self._directory):
+            os.makedirs(self._directory)
+
+    def open(self, clientId, serverUri):
+        """Initialises the persistent store.
+
+        :param clientId: MQTT client id
+        :type clientId: str
+        :param serverUri: Connection name to the server
+        :type serverUri: str
+        """
+        self._perClientIdAndServerUriDirectory = clientId + '-' + serverUri
+
+        # Remove some unwanted characters in sub-directory name
+        self._perClientIdAndServerUriDirectory = self._perClientIdAndServerUriDirectory.replace('/', '')
+        self._perClientIdAndServerUriDirectory = self._perClientIdAndServerUriDirectory.replace('\\', '')
+        self._perClientIdAndServerUriDirectory = self._perClientIdAndServerUriDirectory.replace(':', '')
+        self._perClientIdAndServerUriDirectory = self._perClientIdAndServerUriDirectory.replace(' ', '')
+
+        # Create storage directory
+        if not os.path.exists(self._storageDirectory()):
+            os.makedirs(self._storageDirectory())
+
+    def _storageDirectory(self): return os.path.join(self._directory, self._perClientIdAndServerUriDirectory)
+    def _keyFileName(self, key): return os.path.join(self._storageDirectory(), key)
+
+    def close(self):
+        pass
+
+    def put(self, key, persistable):
+        with open(self._keyFileName(key), mode='wrb') as file:
+            file.write(persistable)
+
+    def get(self, key):
+        if os.path.exists(self._storageDirectory() + key):
+            with open(self._keyFileName(key), mode='rb') as file:
+                return file.readlines()
+        return None
+
+    def containsKey(self, key):
+        return True if os.path.exists(self._keyFileName(key)) else False
+
+    def keys(self):
+        keys = next(os.walk(self._storageDirectory()))[2]
+        return keys
+
+    def remove(self, key):
+        # Remove the key if it exist. If it does not exist
+        # leave silently
+        keyFileName = self._keyFileName(key)
+        if os.path.isfile(keyFileName):
+            os.remove(keyFileName)
+
+    def clear(self):
+        for keyFileName in os.listdir(self._storageDirectory()):
+            if os.path.isfile(keyFileName):
+                os.remove(keyFileName)
