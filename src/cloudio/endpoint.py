@@ -40,6 +40,7 @@ class CloudioEndpoint(CloudioNodeContainer):
     MQTT_PERSISTENCE_NONE     = u'none'
     MQTT_PERSISTENCE_PROPERTY = u'ch.hevs.cloudio.endpoint.persistence'
     MQTT_PERSISTENCE_DEFAULT  = MQTT_PERSISTENCE_FILE
+    MQTT_PERSISTENCE_LOCATION = u'ch.hevs.cloudio.endpoint.persistenceLocation'
 
     CERT_AUTHORITY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.authorityCert'
 
@@ -70,24 +71,27 @@ class CloudioEndpoint(CloudioNodeContainer):
         self._retryInterval = 10    # Connect retry interval in seconds
         self.messageFormat = JsonMessageFormat()
 
+        # Check if 'host' property is present in config file
+        host = configuration.getProperty(self.MQTT_HOST_URI_PROPERTY)
+        if host == '':
+            exit('Missing mandatory property "' + self.MQTT_HOST_URI_PROPERTY + '"')
+
         # Create persistence object.
         persistenceType = configuration.getProperty(self.MQTT_PERSISTENCE_PROPERTY, self.MQTT_PERSISTENCE_DEFAULT)
         if persistenceType == self.MQTT_PERSISTENCE_MEMORY:
             self.persistence = mqtt.MemoryPersistence()
         elif persistenceType == self.MQTT_PERSISTENCE_FILE:
-            assert False, 'Ooops! Feature not implemented jet. See: https://github.com/cloudio-project/cloudio-endpoint-python/issues/8'
-            #self.persistence = mqtt.MqttDefaultFilePersistence()
+            persistenceLocation = configuration.getProperty(self.MQTT_PERSISTENCE_LOCATION)
+            self.persistence = mqtt.MqttDefaultFilePersistence(directory=persistenceLocation)
         elif persistenceType == self.MQTT_PERSISTENCE_NONE:
             self.persistence = None
         else:
             raise InvalidPropertyException('Unknown persistence implementation ' +
                                            '(ch.hevs.cloudio.endpoint.persistence): ' +
                                            '\'' + persistenceType + '\'')
-
-          # Check if 'host' property is present in config file
-        host = configuration.getProperty(self.MQTT_HOST_URI_PROPERTY)
-        if host == '':
-            exit('Missing mandatory property "' + self.MQTT_HOST_URI_PROPERTY + '"')
+        # Open peristence storage
+        if self.persistence:
+            self.persistence.open(clientId=self.uuid, serverUri=host)
 
         self.options = MqttConnectOptions()
 
@@ -123,7 +127,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self._client.stop()
 
     def _onMessageArrived(self, client, userdata, msg):
-        #print msg.topic + ': ' + str(msg.payload)
+        #print(msg.topic + ': ' + str(msg.payload))
         try:
             # First determine the message format (first byte identifies the message format).
             messageFormat = MessageFormatFactory.messageFormat(msg.payload[0])
@@ -258,7 +262,13 @@ class CloudioEndpoint(CloudioNodeContainer):
             self._purgePersistentDataStore()
 
     def attributeHasChangedByCloud(self, attribute):
-        self.attributeHasChangedByEndpoint(attribute)
+        """Informs the endpoint that a underlying attribute has changed.
+
+        Attribute changes initiated from the cloud (@set) are directly received
+        by the concerning cloud.iO attribute. The cloud.iO attribute forwards the information
+        up to the parents till the endpoint.
+        """
+        pass
 
     def _onConnected(self):
         """This callback is called after the MQTT client has successfully connected to cloud.iO.
