@@ -262,7 +262,7 @@ class CloudioEndpoint(CloudioNodeContainer):
             self._purgePersistentDataStore()
 
     def attributeHasChangedByCloud(self, attribute):
-        """Informs the endpoint that a underlying attribute has changed.
+        """Informs the endpoint that an underlying attribute has changed (initiated from the cloud).
 
         Attribute changes initiated from the cloud (@set) are directly received
         by the concerning cloud.iO attribute. The cloud.iO attribute forwards the information

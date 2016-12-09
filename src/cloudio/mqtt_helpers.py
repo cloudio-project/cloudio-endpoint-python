@@ -8,9 +8,11 @@ import traceback
 from abc import ABCMeta, abstractmethod
 import paho.mqtt.client as mqtt     # pip install paho-mqtt
 import ssl
+import uuid
 
 
 from utils import path_helpers
+from pending_update import PendingUpdate
 
 
 class MqttAsyncClient():
@@ -458,6 +460,9 @@ class MqttDefaultFilePersistence(MqttClientPersistence):
         self._directory = path_helpers.prettify(directory)
         self._perClientIdAndServerUriDirectory = None           # type: str
 
+        # Give a temporary unique storage name in case open() method does not get called
+        self._perClientIdAndServerUriDirectory = str(uuid.uuid4())
+
         # Create base directory
         if not os.path.exists(self._directory):
             os.makedirs(self._directory)
@@ -489,13 +494,25 @@ class MqttDefaultFilePersistence(MqttClientPersistence):
         pass
 
     def put(self, key, persistable):
-        with open(self._keyFileName(key), mode='wrb') as file:
-            file.write(persistable)
+        """
+
+        :param key:
+        :param persistable:
+        :type persistable: str or PendingUpdate
+        :return:
+        """
+
+        # Convert string to PendingUpdate
+        if isinstance(persistable, str):
+            persistable = PendingUpdate(persistable)
+
+        with open(self._keyFileName(key), mode='wb') as file:
+            file.write(persistable.getHeaderBytes())
 
     def get(self, key):
-        if os.path.exists(self._storageDirectory() + key):
+        if os.path.exists(self._keyFileName(key)):
             with open(self._keyFileName(key), mode='rb') as file:
-                return file.readlines()
+                return PendingUpdate(file.read())
         return None
 
     def containsKey(self, key):
@@ -509,10 +526,14 @@ class MqttDefaultFilePersistence(MqttClientPersistence):
         # Remove the key if it exist. If it does not exist
         # leave silently
         keyFileName = self._keyFileName(key)
-        if os.path.isfile(keyFileName):
-            os.remove(keyFileName)
+        try:
+            if os.path.isfile(keyFileName):
+                os.remove(keyFileName)
+        except Exception as e:
+            pass
 
     def clear(self):
-        for keyFileName in os.listdir(self._storageDirectory()):
+        for key in os.listdir(self._storageDirectory()):
+            keyFileName = self._keyFileName(key)
             if os.path.isfile(keyFileName):
                 os.remove(keyFileName)

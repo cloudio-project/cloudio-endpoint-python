@@ -8,6 +8,7 @@ import unittest
 
 from cloudio.mqtt_helpers import MqttDefaultFilePersistence
 from utils import path_helpers
+from cloudio.pending_update import PendingUpdate
 
 class TestCloudioPersistanceFile(unittest.TestCase):
     """Tests persistence file feature.
@@ -91,8 +92,212 @@ class TestCloudioPersistanceFile(unittest.TestCase):
 
         # Check storage directory
         self.assertEqual(self.persistenceFile._perClientIdAndServerUriDirectory, storageDirectoryName)
-        self.assertTrue(os.path.exists(storageDirectory))  # Directory must now exist
+        # Compare storage directory name
+        self.assertEqual(self.persistenceFile._storageDirectory(), storageDirectory)
+        # Directory must now exist
+        self.assertTrue(os.path.exists(storageDirectory))
 
         # Tidy up on disk
         shutil.rmtree(testPresistenceDirectory)
 
+    def test_putPersistable(self):
+        testPresistenceDirectory = path_helpers.prettify('~/mqtt-test-persistence')
+        self.persistenceFile = MqttDefaultFilePersistence(testPresistenceDirectory)
+
+        self.persistenceFile.open('put-persistable', 'mqtt-test-server')
+
+        data = self.keys[0] # Store the key as data
+        self.persistenceFile.put(self.keys[0], data)
+
+        keyFile = os.path.join(self.persistenceFile._storageDirectory(), self.keys[0])
+        # Check if name of key file is right
+        self.assertEqual(self.persistenceFile._keyFileName(self.keys[0]), keyFile)
+        # Check if key file was created
+        self.assertTrue(os.path.isfile(keyFile))
+        # Check if file data is what we expect
+        self.assertEqual(self._getFileContent(keyFile), data)
+
+        # Tidy up on disk
+        shutil.rmtree(testPresistenceDirectory)
+
+    def _getFileContent(self, keyFile):
+        """Returns the content of a key file.
+        """
+        with open(keyFile, mode='rb') as file:
+            return file.read()
+
+    def _getStorageFileNames(self):
+        """Returns key file names stored in directory.
+        :return The key file names.
+        :type list
+        """
+        return next(os.walk(self.persistenceFile._storageDirectory()))[2]
+
+    def test_putPersistableMultiple(self):
+        keyNbrs = 3
+        testPresistenceDirectory = path_helpers.prettify('~/mqtt-test-persistence')
+        self.persistenceFile = MqttDefaultFilePersistence(testPresistenceDirectory)
+
+        self.persistenceFile.open('put-persistable', 'mqtt-test-server')
+
+        for idx, key in enumerate(self.keys):
+            if idx >= keyNbrs:
+                break
+            data = key  # Store the key as data
+            self.persistenceFile.put(key, data)
+
+        fileNames = self._getStorageFileNames()
+
+        self.assertEqual(keyNbrs, len(fileNames))
+
+        # Tidy up on disk
+        shutil.rmtree(testPresistenceDirectory)
+
+    def test_putAndGetPersistable(self):
+        keyNbrs = 10
+        testPresistenceDirectory = path_helpers.prettify('~/mqtt-test-persistence')
+        self.persistenceFile = MqttDefaultFilePersistence(testPresistenceDirectory)
+
+        self.persistenceFile.open('put-persistable', 'mqtt-test-server')
+
+        # Put some data
+        for idx, key in enumerate(self.keys):
+            if idx >= keyNbrs:
+                break
+            data = key  # Store the key as data
+            self.persistenceFile.put(key, data)
+
+        # Get data key[0]
+        data = self.persistenceFile.get(self.keys[0])
+        self.assertEqual(data.getHeaderBytes(), self.keys[0])
+
+        # Get data key[9]
+        data = self.persistenceFile.get(self.keys[9])
+        self.assertEqual(data.getHeaderBytes(), self.keys[9])
+
+        # Get data key[3]
+        data = self.persistenceFile.get(self.keys[3])
+        self.assertEqual(data.getHeaderBytes(), self.keys[3])
+
+        # Get data key[8]
+        data = self.persistenceFile.get(self.keys[8])
+        self.assertEqual(data.getHeaderBytes(), self.keys[8])
+
+        # Get none existing data
+        data = self.persistenceFile.get(self.keys[keyNbrs + 1])
+        self.assertEqual(data, None)
+
+        # Tidy up on disk
+        shutil.rmtree(testPresistenceDirectory)
+
+    def test_putAndRemovePersistable(self):
+        keyNbrs = 10
+        testPresistenceDirectory = path_helpers.prettify('~/mqtt-test-persistence')
+        self.persistenceFile = MqttDefaultFilePersistence(testPresistenceDirectory)
+
+        self.persistenceFile.open('put-persistable', 'mqtt-test-server')
+
+        # Put some data
+        for idx, key in enumerate(self.keys):
+            if idx >= keyNbrs:
+                break
+            data = key  # Store the key as data
+            self.persistenceFile.put(key, data)
+
+        # Remove in the middle
+        self.persistenceFile.remove(self.keys[5])
+        self.persistenceFile.remove(self.keys[6])
+        # Check files left
+        self.assertEqual(keyNbrs -2, len(self._getStorageFileNames()))
+
+        # Remove first and last
+        self.persistenceFile.remove(self.keys[0])
+        self.persistenceFile.remove(self.keys[keyNbrs - 1])
+        # Check files left
+        self.assertEqual(keyNbrs - 4, len(self._getStorageFileNames()))
+
+        # Check names of remaining key files
+        fileNames = self._getStorageFileNames()
+        self.assertTrue(self.keys[1] in fileNames)
+        self.assertTrue(self.keys[2] in fileNames)
+        self.assertTrue(self.keys[3] in fileNames)
+        self.assertTrue(self.keys[4] in fileNames)
+        self.assertTrue(self.keys[7] in fileNames)
+        self.assertTrue(self.keys[8] in fileNames)
+
+        # Tidy up on disk
+        shutil.rmtree(testPresistenceDirectory)
+
+    def test_containsKeys(self):
+        keyNbrs = 5
+        testPresistenceDirectory = path_helpers.prettify('~/mqtt-test-persistence')
+        self.persistenceFile = MqttDefaultFilePersistence(testPresistenceDirectory)
+
+        self.persistenceFile.open('put-persistable', 'mqtt-test-server')
+
+        # Put some data
+        for idx, key in enumerate(self.keys):
+            if idx >= keyNbrs:
+                break
+            data = key  # Store the key as data
+            self.persistenceFile.put(key, data)
+
+        self.assertTrue(self.persistenceFile.containsKey(self.keys[0]))
+        self.assertTrue(self.persistenceFile.containsKey(self.keys[1]))
+        self.assertTrue(self.persistenceFile.containsKey(self.keys[3]))
+        self.assertTrue(self.persistenceFile.containsKey(self.keys[4]))
+        self.assertFalse(self.persistenceFile.containsKey(self.keys[5]))
+        self.assertFalse(self.persistenceFile.containsKey(self.keys[10]))
+        self.assertFalse(self.persistenceFile.containsKey(self.keys[20]))
+
+        self.assertEqual(keyNbrs, len(self.persistenceFile.keys()))
+
+        # Remove one key and check again
+        self.assertTrue(self.persistenceFile.containsKey(self.keys[2]))     # Should be present
+        self.persistenceFile.remove(self.keys[2])                           # Remove it
+        self.assertFalse(self.persistenceFile.containsKey(self.keys[2]))    # Should be gone
+
+        self.assertEqual(keyNbrs - 1, len(self.persistenceFile.keys()))
+
+        # Get one key (not removing it) and check again
+        self.assertTrue(self.persistenceFile.containsKey(self.keys[4]))     # Should be present
+        self.persistenceFile.get(self.keys[4])                              # Get it
+        self.assertTrue(self.persistenceFile.containsKey(self.keys[4]))     # Should be still there
+
+        # Tidy up on disk
+        shutil.rmtree(testPresistenceDirectory)
+
+    def test_clearPresistence(self):
+        keyNbrs = 5
+        testPresistenceDirectory = path_helpers.prettify('~/mqtt-test-persistence')
+        self.persistenceFile = MqttDefaultFilePersistence(testPresistenceDirectory)
+
+        self.persistenceFile.open('put-persistable', 'mqtt-test-server')
+
+        # Put some data
+        for idx, key in enumerate(self.keys):
+            if idx >= keyNbrs:
+                break
+            data = key  # Store the key as data
+            self.persistenceFile.put(key, data)
+
+        self.assertEqual(keyNbrs, len(self.persistenceFile.keys()))
+
+        # Clear persistence
+        self.persistenceFile.clear()
+
+        self.assertEqual(0, len(self.persistenceFile.keys()))
+        self.assertEqual(0, len(self._getStorageFileNames()))
+
+        # Tidy up on disk
+        shutil.rmtree(testPresistenceDirectory)
+
+    def test_putPendingUpdate(self):
+        testPresistenceDirectory = path_helpers.prettify('~/mqtt-test-persistence')
+        self.persistenceFile = MqttDefaultFilePersistence(testPresistenceDirectory)
+
+        self.persistenceFile.open('put-persistable', 'mqtt-test-server')
+
+        self.persistenceFile.put(self.keys[8], PendingUpdate(self.keys[8]))
+
+        self.assertEqual(self.persistenceFile.get(self.keys[8]).getHeaderBytes(), self.keys[8])
