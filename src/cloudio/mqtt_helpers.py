@@ -454,7 +454,7 @@ class MqttDefaultFilePersistence(MqttClientPersistence):
         """
         super(MqttDefaultFilePersistence, self).__init__()
 
-        if directory is None:
+        if directory is None or directory == '':
             directory = self.DEFAULT_DIRECTORY
 
         self._directory = path_helpers.prettify(directory)
