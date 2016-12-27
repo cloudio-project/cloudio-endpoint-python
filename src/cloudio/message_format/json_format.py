@@ -78,7 +78,7 @@ class JsonMessageFormat(CloudioMessageFormat):
                 if type == AttributeType.Invalid:
                     pass
                 elif type == AttributeType.Boolean:
-                    if isinstance(value, str):
+                    if isinstance(value, str) or isinstance(value, unicode):
                         boolValue = False if value.lower() in ['0', 'false', 'falsch', 'faux', 'off'] else True
                     else:
                         boolValue = bool(value)
