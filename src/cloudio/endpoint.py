@@ -185,7 +185,11 @@ class CloudioEndpoint(CloudioNodeContainer):
                     self.log.info(u'Not sending \'@nodeAdded\' message. No connection to broker!')
 
     def getNode(self, nodeName):
-        return self.nodes[nodeName]
+        """Returns the node identified by the given name
+        :param nodeName The Name of the node
+        :type nodeName str
+        """
+        return self.nodes.get(nodeName, None)
 
     def _set(self, topic, location, messageFormat, data):
         """Assigns a new value to a cloud.iO attribute.

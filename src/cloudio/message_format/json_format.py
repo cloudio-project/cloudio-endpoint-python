@@ -4,6 +4,7 @@ import json
 import inspect
 from ..interface.message_format import CloudioMessageFormat
 from ..cloudio_attribute_type import CloudioAttributeType as AttributeType
+from utils import timestamp as timestamp_helpers
 
 # Links:
 # - http://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
@@ -64,6 +65,11 @@ class JsonMessageFormat(CloudioMessageFormat):
 
         dataDict = json.loads(data)
         """:type: dict"""
+
+        # In case there is no timestamp present, create one using
+        # the current time
+        if not dataDict.has_key('timestamp'):
+            dataDict['timestamp'] = timestamp_helpers.getTimeInMilliseconds()
 
         if isinstance(dataDict, dict) and \
            dataDict.has_key('timestamp') and \
