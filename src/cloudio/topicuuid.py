@@ -76,12 +76,14 @@ class TopicUuid(uuid.Uuid):
 
     def _getAttributeContainerTopic(self, attributeContainer):
         # TODO Remove check below and put an assert for attributeContainer
-        if not attributeContainer:
-            return '<no parent>' + u'/objects/' + '<no parent>'
+        if attributeContainer is None or attributeContainer.getName() is None:
+            return u'<no parent>' + u'/objects/' + u'<no name>'
         return self._getObjectContainerTopic(attributeContainer.getParentObjectContainer()) + u'/objects/' + \
                                              attributeContainer.getName()
 
     def _getObjectContainerTopic(self, objectContainer):
+        if not objectContainer:
+            return u'<no parent>' + u'/objects/' + u'<no name>'
         parentObjectContainer = objectContainer.getParentObjectContainer()
         if parentObjectContainer:
             return self._getObjectContainerTopic(parentObjectContainer) + u'/objects/' + objectContainer.getName()

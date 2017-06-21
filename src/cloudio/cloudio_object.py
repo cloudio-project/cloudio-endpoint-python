@@ -199,7 +199,7 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                        isinstance(attr, float) or \
                        isinstance(attr, str):
 
-                        if field not in ('__module__', ):  # Some excludes:
+                        if field not in ('__module__', '__doc__'):  # Some excludes:
                             attribute = CloudioAttribute()
                             attribute.setConstraint('static')
                             attribute.setName(field)

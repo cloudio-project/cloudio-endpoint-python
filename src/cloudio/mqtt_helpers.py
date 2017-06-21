@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from six import iterkeys
 import os, time
 from threading import Thread, RLock, Event
 import logging
@@ -7,6 +8,12 @@ import traceback
 from abc import ABCMeta, abstractmethod
 import paho.mqtt.client as mqtt     # pip install paho-mqtt
 import ssl
+import uuid
+
+
+from utils import path_helpers
+from pending_update import PendingUpdate
+
 
 class MqttAsyncClient():
     """Mimic the behavior of the java.MqttAsyncClient class"""
@@ -127,25 +134,25 @@ class MqttAsyncClient():
     def onConnect(self, client, userdata, flags, rc):
         if rc == 0:
             self._isConnected = True
-            print u'Info: Connection to cloudio broker established.'
+            print(u'Info: Connection to cloudio broker established.')
             if self._onConnectCallback:
                 self._onConnectCallback()
         else:
             if rc == 1:
-                print u'Error: Connection refused - incorrect protocol version'
+                print(u'Error: Connection refused - incorrect protocol version')
             elif rc == 2:
-                print u'Error: Connection refused - invalid client identifier'
+                print(u'Error: Connection refused - invalid client identifier')
             elif rc == 3:
-                print u'Error: Connection refused - server unavailable'
+                print(u'Error: Connection refused - server unavailable')
             elif rc == 4:
-                print u'Error: Connection refused - bad username or password'
+                print(u'Error: Connection refused - bad username or password')
             elif rc == 5:
-                print u'Error: Connection refused - not authorised'
+                print(u'Error: Connection refused - not authorised')
             else:
-                print u'Error: Connection refused - unknown reason'
+                print(u'Error: Connection refused - unknown reason')
 
     def onDisconnect(self, client, userdata, rc):
-        print 'Disconnect: %d' % rc
+        print('Disconnect: %d' % rc)
 
         self.disconnect()
 
@@ -272,7 +279,7 @@ class MqttReconnectClient(MqttAsyncClient):
                 self.connect(self._options)
             except Exception as exception:
                 traceback.print_exc()
-                print u'Error during broker connect!'
+                print(u'Error during broker connect!')
                 exit(1)
 
             # Check if thread should leave
@@ -419,13 +426,14 @@ class MemoryPersistence(MqttClientPersistence):
     def get(self, key):
         if self._persistance.has_key(key):
             return self._persistance[key]
+        return None
 
     def containsKey(self, key):
         return True if self._persistance.has_key(key) else False
 
     def keys(self):
         keys = []
-        for key in self._persistance.iterkeys():
+        for key in iterkeys(self._persistance):
             keys.append(key)
         return keys
 
@@ -436,3 +444,99 @@ class MemoryPersistence(MqttClientPersistence):
 
     def clear(self):
         self._persistance.clear()
+
+class MqttDefaultFilePersistence(MqttClientPersistence):
+    """Persistance store providing file based storage.
+    """
+
+    DEFAULT_DIRECTORY = '~/mqtt-persistence'
+
+    def __init__(self, directory=None):
+        """
+        :param directory: Base directory where to store the persistent data
+        """
+        super(MqttDefaultFilePersistence, self).__init__()
+
+        if directory is None or directory == '':
+            directory = self.DEFAULT_DIRECTORY
+
+        self._directory = path_helpers.prettify(directory)
+        self._perClientIdAndServerUriDirectory = None           # type: str
+
+        # Give a temporary unique storage name in case open() method does not get called
+        self._perClientIdAndServerUriDirectory = str(uuid.uuid4())
+
+        # Create base directory
+        if not os.path.exists(self._directory):
+            os.makedirs(self._directory)
+
+    def open(self, clientId, serverUri):
+        """Initialises the persistent store.
+
+        :param clientId: MQTT client id
+        :type clientId: str
+        :param serverUri: Connection name to the server
+        :type serverUri: str
+        """
+        self._perClientIdAndServerUriDirectory = clientId + '-' + serverUri
+
+        # Remove some unwanted characters in sub-directory name
+        self._perClientIdAndServerUriDirectory = self._perClientIdAndServerUriDirectory.replace('/', '')
+        self._perClientIdAndServerUriDirectory = self._perClientIdAndServerUriDirectory.replace('\\', '')
+        self._perClientIdAndServerUriDirectory = self._perClientIdAndServerUriDirectory.replace(':', '')
+        self._perClientIdAndServerUriDirectory = self._perClientIdAndServerUriDirectory.replace(' ', '')
+
+        # Create storage directory
+        if not os.path.exists(self._storageDirectory()):
+            os.makedirs(self._storageDirectory())
+
+    def _storageDirectory(self): return os.path.join(self._directory, self._perClientIdAndServerUriDirectory)
+    def _keyFileName(self, key): return os.path.join(self._storageDirectory(), key)
+
+    def close(self):
+        pass
+
+    def put(self, key, persistable):
+        """
+
+        :param key:
+        :param persistable:
+        :type persistable: str or PendingUpdate
+        :return:
+        """
+
+        # Convert string to PendingUpdate
+        if isinstance(persistable, str):
+            persistable = PendingUpdate(persistable)
+
+        with open(self._keyFileName(key), mode='wb') as file:
+            file.write(persistable.getHeaderBytes())
+
+    def get(self, key):
+        if os.path.exists(self._keyFileName(key)):
+            with open(self._keyFileName(key), mode='rb') as file:
+                return PendingUpdate(file.read())
+        return None
+
+    def containsKey(self, key):
+        return True if os.path.exists(self._keyFileName(key)) else False
+
+    def keys(self):
+        keys = next(os.walk(self._storageDirectory()))[2]
+        return keys
+
+    def remove(self, key):
+        # Remove the key if it exist. If it does not exist
+        # leave silently
+        keyFileName = self._keyFileName(key)
+        try:
+            if os.path.isfile(keyFileName):
+                os.remove(keyFileName)
+        except Exception as e:
+            pass
+
+    def clear(self):
+        for key in os.listdir(self._storageDirectory()):
+            keyFileName = self._keyFileName(key)
+            if os.path.isfile(keyFileName):
+                os.remove(keyFileName)

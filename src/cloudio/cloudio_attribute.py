@@ -87,10 +87,8 @@ class CloudioAttribute(UniqueIdentifiable):
 
         # Check if the value from the cloud is older than the actual one and do nothing if that is the case.
         if self._timestamp is not None and self._timestamp >= timestamp:
-            print 'Warning: Ignoring new value from cloud.iO. Not valid timestamp!'
+            print('Warning: Ignoring new value from cloud.iO. Not valid timestamp!')
             return False
-
-        # TODO: Maybe we should check that the timestamp is not older than a given number of seconds.
 
         # Update the value
         self._timestamp = timestamp

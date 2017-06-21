@@ -40,6 +40,7 @@ class CloudioEndpoint(CloudioNodeContainer):
     MQTT_PERSISTENCE_NONE     = u'none'
     MQTT_PERSISTENCE_PROPERTY = u'ch.hevs.cloudio.endpoint.persistence'
     MQTT_PERSISTENCE_DEFAULT  = MQTT_PERSISTENCE_FILE
+    MQTT_PERSISTENCE_LOCATION = u'ch.hevs.cloudio.endpoint.persistenceLocation'
 
     CERT_AUTHORITY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.authorityCert'
 
@@ -70,24 +71,27 @@ class CloudioEndpoint(CloudioNodeContainer):
         self._retryInterval = 10    # Connect retry interval in seconds
         self.messageFormat = JsonMessageFormat()
 
+        # Check if 'host' property is present in config file
+        host = configuration.getProperty(self.MQTT_HOST_URI_PROPERTY)
+        if host == '':
+            exit('Missing mandatory property "' + self.MQTT_HOST_URI_PROPERTY + '"')
+
         # Create persistence object.
         persistenceType = configuration.getProperty(self.MQTT_PERSISTENCE_PROPERTY, self.MQTT_PERSISTENCE_DEFAULT)
         if persistenceType == self.MQTT_PERSISTENCE_MEMORY:
             self.persistence = mqtt.MemoryPersistence()
         elif persistenceType == self.MQTT_PERSISTENCE_FILE:
-            assert False, 'Ooops! Feature not implemented jet. See: https://github.com/cloudio-project/cloudio-endpoint-python/issues/8'
-            #self.persistence = mqtt.MqttDefaultFilePersistence()
+            persistenceLocation = configuration.getProperty(self.MQTT_PERSISTENCE_LOCATION)
+            self.persistence = mqtt.MqttDefaultFilePersistence(directory=persistenceLocation)
         elif persistenceType == self.MQTT_PERSISTENCE_NONE:
             self.persistence = None
         else:
             raise InvalidPropertyException('Unknown persistence implementation ' +
                                            '(ch.hevs.cloudio.endpoint.persistence): ' +
                                            '\'' + persistenceType + '\'')
-
-          # Check if 'host' property is present in config file
-        host = configuration.getProperty(self.MQTT_HOST_URI_PROPERTY)
-        if host == '':
-            exit('Missing mandatory property "' + self.MQTT_HOST_URI_PROPERTY + '"')
+        # Open peristence storage
+        if self.persistence:
+            self.persistence.open(clientId=self.uuid, serverUri=host)
 
         self.options = MqttConnectOptions()
 
@@ -123,7 +127,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self._client.stop()
 
     def _onMessageArrived(self, client, userdata, msg):
-        #print msg.topic + ': ' + str(msg.payload)
+        #print(msg.topic + ': ' + str(msg.payload))
         try:
             # First determine the message format (first byte identifies the message format).
             messageFormat = MessageFormatFactory.messageFormat(msg.payload[0])
@@ -181,7 +185,11 @@ class CloudioEndpoint(CloudioNodeContainer):
                     self.log.info(u'Not sending \'@nodeAdded\' message. No connection to broker!')
 
     def getNode(self, nodeName):
-        return self.nodes[nodeName]
+        """Returns the node identified by the given name
+        :param nodeName The Name of the node
+        :type nodeName str
+        """
+        return self.nodes.get(nodeName, None)
 
     def _set(self, topic, location, messageFormat, data):
         """Assigns a new value to a cloud.iO attribute.
@@ -258,7 +266,13 @@ class CloudioEndpoint(CloudioNodeContainer):
             self._purgePersistentDataStore()
 
     def attributeHasChangedByCloud(self, attribute):
-        self.attributeHasChangedByEndpoint(attribute)
+        """Informs the endpoint that an underlying attribute has changed (initiated from the cloud).
+
+        Attribute changes initiated from the cloud (@set) are directly received
+        by the concerning cloud.iO attribute. The cloud.iO attribute forwards the information
+        up to the parents till the endpoint.
+        """
+        pass
 
     def _onConnected(self):
         """This callback is called after the MQTT client has successfully connected to cloud.iO.
@@ -298,7 +312,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         """Tries to send stored messages to cloud.iO.
         """
         if self.persistence:
-            print str(len(self.persistence.keys())) + ' in persistence'
+            print(str(len(self.persistence.keys())) + ' in persistence')
             for key in self.persistence.keys():
                 if self.isOnline():
                     # Is it a pending update?
@@ -306,14 +320,15 @@ class CloudioEndpoint(CloudioNodeContainer):
                         # Get the pending update persistent object from store
                         pendingUpdate = self.persistence.get(key)
 
-                        print 'Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8')
+                        if pendingUpdate is not None:
+                            print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8'))
 
-                        # Get the uuid of the endpoint
-                        uuid = pendingUpdate.getUuidFromPersistenceKey(key)
+                            # Get the uuid of the endpoint
+                            uuid = pendingUpdate.getUuidFromPersistenceKey(key)
 
-                        # Try to send the update to the broker and remove it from the storage
-                        if self._client.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
-                            # Remove key from store
-                            self.persistence.remove(key)
+                            # Try to send the update to the broker and remove it from the storage
+                            if self._client.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
+                                # Remove key from store
+                                self.persistence.remove(key)
                 else:
                     break
