@@ -86,17 +86,20 @@ class MqttAsyncClient():
                                   options.will['qos'],
                                   options.will['retained'])
         if self._client:
-            self._client.username_pw_set(options._username, password=options._password)
+            password = options._password
+            if not options._password:
+                # paho client v1.3 and higher do no more accept '' as empty string. Need None
+                password = None
+            self._client.username_pw_set(options._username, password=password)
 
             if clientCertFile:
                 port = 8883 # Port with ssl
-                self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
                 self._client.tls_set(options._caFile,  # CA certificate
                                     certfile=clientCertFile,  # Client certificate
                                     keyfile=clientKeyFile,  # Client private key
                                     tls_version=ssl.PROTOCOL_TLSv1,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
                                     ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
-
+                self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
             try:
                 self._client.connect(self._host, port=port)
                 self._client.loop_start()
