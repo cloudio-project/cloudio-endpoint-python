@@ -82,6 +82,12 @@ class MqttAsyncClient():
             else:
                 clientKeyFile = options._clientKeyFile
 
+        # Check which TSL protocol version should be used
+        tlsVersion = ssl.PROTOCOL_TLSv1_2
+        if options._tlsVersion:
+            if options._tlsVersion.lower() in ('tlsv1', 'tlsv1.0'):
+                tlsVersion = ssl.PROTOCOL_TLSv1
+
         self._clientLock.acquire()  # Protect _client attribute
 
         # Create MQTT client if necessary
@@ -104,7 +110,7 @@ class MqttAsyncClient():
                 self._client.tls_set(options._caFile,  # CA certificate
                                     certfile=clientCertFile,  # Client certificate
                                     keyfile=clientKeyFile,  # Client private key
-                                    tls_version=ssl.PROTOCOL_TLSv1,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
+                                    tls_version=tlsVersion,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
                                     ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
                 self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
             try:

@@ -43,7 +43,7 @@ class CloudioEndpoint(CloudioNodeContainer):
     MQTT_PERSISTENCE_LOCATION = u'ch.hevs.cloudio.endpoint.persistenceLocation'
 
     CERT_AUTHORITY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.authorityCert'
-
+    ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.version'    # tlsv1.0 or tlsv1.2
     ENDPOINT_IDENTITY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.clientCert'        # PKCS12 based file (*.p12)
     ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.clientCert'   # (*.pem)
     ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.clientKey'     # (*.pem)
@@ -105,6 +105,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options._clientKeyFile = configuration.getProperty(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
         self.options._username = configuration.getProperty('username')
         self.options._password = configuration.getProperty('password')
+        self.options._tlsVersion = configuration.getProperty(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
 
         # Make path usable
         self.options._caFile = path_helpers.prettify(self.options._caFile)
