@@ -113,7 +113,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options._clientKeyFile = path_helpers.prettify(self.options._clientKeyFile)
 
         self._client = MqttReconnectClient(host,
-                                           clientId=self.uuid,
+                                           clientId=self.uuid + '-endpoint-',
                                            clean_session=self.cleanSession,
                                            options=self.options)
         #  Register callback method for connection established
