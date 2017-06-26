@@ -321,6 +321,7 @@ class MqttConnectOptions():
         self._caFile = None                 # type: str
         self._clientCertFile = None         # type: str
         self._clientKeyFile = None          # type: str
+        self._tlsVersion = None             # type: str
         self.will = None                    # type dict
 
     def setWill(self, topic, message, qos, retained):
