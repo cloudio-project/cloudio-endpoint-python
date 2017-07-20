@@ -110,6 +110,10 @@ class CloudioAttribute(UniqueIdentifiable):
         """Returns the actual type of the attribute."""
         return AttributeType.fromRawType(type(self._value))
 
+    def getTypeAsString(self):
+        """Returns the actual type of the attribute as a string."""
+        return AttributeType.fromRawTypeToString(type(self._value))
+
     ######################################################################
     # Named item implementation
     #
@@ -185,11 +189,11 @@ class CloudioAttribute(UniqueIdentifiable):
     def getConstraint(self):
         return self._constraint
 
-    def setConstraint(self, constaint):
+    def setConstraint(self, constraint):
         """
 
-        :param constaint:
-        :type constaint: str (for the moment)
+        :param constraint:
+        :type constraint: str (for the moment)
         :return:
         """
         # TODO Change constraint type to CloudioAttributeConstraint
@@ -197,7 +201,7 @@ class CloudioAttribute(UniqueIdentifiable):
             raise CloudioModificationException('The Attribute has already a constraint ' +
                                                '(Changing constraints is not allowed)!')
         # Set the constraint
-        self._constraint = constaint
+        self._constraint = constraint
 
 
 

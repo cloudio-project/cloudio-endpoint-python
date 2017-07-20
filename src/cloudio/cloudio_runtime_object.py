@@ -3,6 +3,7 @@
 from exception.cloudio_modification_exception import CloudioModificationException
 from cloudio_object import CloudioObject
 from cloudio_attribute import CloudioAttribute
+from cloudio_attribute_constraint import CloudioAttributeConstraint
 
 class CloudioRuntimeObject(CloudioObject):
     def __init__(self):
@@ -52,9 +53,11 @@ class CloudioRuntimeObject(CloudioObject):
         attribute.setName(name)
         attribute.setType(type)
 
-        # TODO Set attribute constraint
-        #if constraint:
-            #attribute._internal.setConstraint('???')
+        # Set attribute constraint
+        if constraint:
+            attribute.setConstraint(constraint)
+        else:
+            attribute.setConstraint(CloudioAttributeConstraint('Invalid'))
 
         if initialValue:
             attribute.setValue(initialValue)

@@ -27,3 +27,20 @@ class CloudioAttributeType():
             return cls.String
         else:
             return cls.Invalid
+
+    @classmethod
+    def fromRawTypeToString(cls, rawType):
+        """Converts a standard type to a string.
+        :return The type represented as a string.
+        :type str
+        """
+        if isinstance(rawType, bool) or rawType == types.BooleanType:
+            return 'Boolean'
+        elif isinstance(rawType, types.IntType) or rawType == types.IntType:
+            return 'Integer'
+        elif isinstance(rawType, float) or rawType == types.FloatType:
+            return 'Number'
+        elif isinstance(rawType, str) or rawType == types.StringType:
+            return 'String'
+        else:
+            return 'Invalid'
