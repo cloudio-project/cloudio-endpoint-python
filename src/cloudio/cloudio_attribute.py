@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import types
+import logging
 from topicuuid import TopicUuid
 from interface.unique_identifiable import UniqueIdentifiable
 from interface.attribute_container import CloudioAttributeContainer
@@ -13,6 +14,9 @@ from cloudio_attribute_type import CloudioAttributeType as AttributeType
 class CloudioAttribute(UniqueIdentifiable):
     """The leaf information in the cloud.io data model
     """
+
+    log = logging.getLogger(__name__)
+
     def __init__(self):
         self._name = None           # type: str
         self._parent = None
@@ -103,6 +107,8 @@ class CloudioAttribute(UniqueIdentifiable):
             for listener in self._listeners:
                 # noinspection unchecked
                 listener.attributeHasChanged(self)
+        else:
+            self.log.warning('No listeners connected to attribute \"' + self.getName() + '\"!')
 
         return True
 
