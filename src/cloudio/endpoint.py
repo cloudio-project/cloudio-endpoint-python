@@ -216,7 +216,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                     # Deserialize the message into the attribute
                     messageFormat.deserializeAttribute(data, attribute)
                 else:
-                    self.log.error('Attribute at \"' + topic + '\" not found!')
+                    self.log.error('Attribute \"' + location[0] + '\" in node \"' + node.getName() + '\" not found!')
             else:
                 self.log.error('Node \"' + location.pop() + '\" not found!')
         else:
