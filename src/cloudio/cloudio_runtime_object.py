@@ -55,7 +55,11 @@ class CloudioRuntimeObject(CloudioObject):
 
         # Set attribute constraint
         if constraint:
-            attribute.setConstraint(constraint)
+            if isinstance(constraint, CloudioAttributeConstraint):
+                attribute.setConstraint(constraint)
+            else:
+                assert isinstance(constraint, str) or isinstance(constraint, unicode), 'Wrong type'
+                attribute.setConstraint(CloudioAttributeConstraint(constraint))
         else:
             attribute.setConstraint(CloudioAttributeConstraint('Invalid'))
 

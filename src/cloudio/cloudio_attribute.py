@@ -10,6 +10,7 @@ from exception.cloudio_modification_exception import CloudioModificationExceptio
 from exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 import utils.timestamp as TimeStampProvider
 from cloudio_attribute_type import CloudioAttributeType as AttributeType
+from cloudio_attribute_constraint import CloudioAttributeConstraint as AttributeConstraint
 
 class CloudioAttribute(UniqueIdentifiable):
     """The leaf information in the cloud.io data model
@@ -199,10 +200,11 @@ class CloudioAttribute(UniqueIdentifiable):
         """
 
         :param constraint:
-        :type constraint: str (for the moment)
+        :type constraint: CloudioAttributeType
         :return:
         """
-        # TODO Change constraint type to CloudioAttributeConstraint
+        assert isinstance(constraint, AttributeConstraint), u'Wrong type'
+
         if self._constraint:
             raise CloudioModificationException('The Attribute has already a constraint ' +
                                                '(Changing constraints is not allowed)!')
