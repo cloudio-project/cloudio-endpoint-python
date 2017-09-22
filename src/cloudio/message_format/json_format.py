@@ -107,11 +107,13 @@ class _JsonMessageEncoder(json.JSONEncoder):
         if hasattr(obj, "to_json"):
             return self.default(obj.to_json())
         elif hasattr(obj, "__dict__"):
+            # Remove attributes that could cause circular references
             d = dict((key, value)
                      for key, value in inspect.getmembers(obj)
                         if not key.startswith("__") and
                            not key.startswith("_abc_") and
                            not key in ('parent', '_parent', '_externalObject') and
+                           not key in ('log',) and
                            not inspect.isabstract(value) and
                            not inspect.isbuiltin(value) and
                            not inspect.isfunction(value) and
