@@ -89,6 +89,7 @@ class CloudioNode(CloudioObjectContainer):
         :param location: List containing the 'topic levels' constructed out of the topic uuid identifying the attribute.
         :type location [str]
         :return: The cloudio object found or None
+        :rtype CloudioAttribute
         """
         if location:
             if len(location) > 0:
@@ -108,7 +109,8 @@ class CloudioNode(CloudioObjectContainer):
         :param location: List containing the 'topic levels' constructed out of the topic uuid identifying the attribute.
         :type location [str]
         :return: The cloudio object found or None
-                """
+        :rtype CloudioObject
+        """
         if location:
             if len(location) > 0:
                 if location[-1] == u'objects':  # Compare with the last element

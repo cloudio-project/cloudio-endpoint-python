@@ -47,6 +47,9 @@ class CloudioObject():
     def attributeHasChangedByCloud(self, attribute):
         self._internal.attributeHasChangedByCloud(attribute)
 
+    def isNodeRegisteredWithinEndpoint(self):
+        return self._internal.isNodeRegisteredWithinEndpoint()
+
     def getParentObjectContainer(self):
         return self._internal.getParentObjectContainer()
 
