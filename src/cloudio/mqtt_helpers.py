@@ -83,7 +83,10 @@ class MqttAsyncClient():
                 clientKeyFile = options._clientKeyFile
 
         # Check which TSL protocol version should be used
-        tlsVersion = ssl.PROTOCOL_TLSv1_2
+        try:
+            tlsVersion = ssl.PROTOCOL_TLSv1_2
+        except:
+            tlsVersion = ssl.PROTOCOL_TLSv1
         if options._tlsVersion:
             if options._tlsVersion.lower() in ('tlsv1', 'tlsv1.0'):
                 tlsVersion = ssl.PROTOCOL_TLSv1
