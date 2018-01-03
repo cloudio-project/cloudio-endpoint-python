@@ -184,8 +184,8 @@ class MqttAsyncClient():
         while timeout > 0:
             if message_info.is_published():
                 break
-            timeout -= 0.1
-            time.sleep(0.1)
+            timeout -= 0.005
+            time.sleep(0.005)
 
         return message_info.is_published()
 
