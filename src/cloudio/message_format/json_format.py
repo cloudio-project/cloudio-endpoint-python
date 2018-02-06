@@ -106,7 +106,7 @@ class _JsonMessageEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if hasattr(obj, "to_json"):
-            return self.default(obj.to_json())
+            return self.default(obj.to_json(self))
         elif hasattr(obj, "__dict__"):
             # Remove attributes that could cause circular references
             d = dict((key, value)
