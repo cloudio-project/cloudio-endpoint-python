@@ -211,5 +211,17 @@ class CloudioAttribute(UniqueIdentifiable):
         # Set the constraint
         self._constraint = constraint
 
+    def to_json(self, encoder):
+        """Pick out the attributes we want to store / publish.
+        """
+        attrDict = {}
+        attrDict['name'] = self._name
+        attrDict['type'] = self._rawType
+        attrDict['value'] = self._value
+        attrDict['timestamp'] = self._timestamp
+        attrDict['constraint'] = self._constraint
+
+        return encoder.default(attrDict)
+
 
 
