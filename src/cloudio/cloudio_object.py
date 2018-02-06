@@ -226,6 +226,23 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
 
         return self._attributes
 
+    def to_json(self, encoder):
+        """Pick out the attributes we want to store / publish.
+        """
+        attrDict = {}
+        attrDict['name'] = self.name
+
+        if hasattr(self, 'conforms'):
+            attrDict['conforms'] = self.conforms
+
+        if hasattr(self, 'objects'):
+            attrDict['objects'] = self.objects
+
+        if hasattr(self, '_attributes'):
+            attrDict['attributes'] = self._attributes
+
+        return encoder.default(attrDict)
+
     ######################################################################
     # Privte methods
     #

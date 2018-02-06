@@ -57,5 +57,19 @@ class CloudioRuntimeNode(CloudioNode):
         for interfaceName in interfaceNames:
             self.declareImplementedInterface(interfaceName)
 
+    def to_json(self, encoder):
+        """Pick out the attributes we want to store / publish.
+        """
+        attrDict = {}
+        attrDict['name'] = self.name
+
+        if hasattr(self, 'interfaces'):
+            attrDict['interfaces'] = self.interfaces
+
+        if hasattr(self, 'objects'):
+            attrDict['objects'] = self.objects
+
+        return encoder.default(attrDict)
+
 
 # TODO Create and implement CloudioRuntimeNodeBuilder class
