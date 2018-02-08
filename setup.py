@@ -17,8 +17,8 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+#with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+#    long_description = f.read()
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
@@ -50,8 +50,6 @@ setup(
     # https://packaging.python.org/specifications/core-metadata/#summary
     description='cloud.iO endpoint library',  # Required
 
-    long_description_content_type='markdown',
-
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
     #
@@ -60,7 +58,10 @@ setup(
     #
     # This field corresponds to the "Description" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#description-optional
-    long_description=long_description,  # Optional
+    #long_description=long_description,  # Optional
+    long_description='The cloud.iO python library provides basic functionality to connect an IoT device to the cloud.',
+
+    #long_description_content_type='markdown',
 
     # This should be a valid link to your project's main homepage.
     #
@@ -95,7 +96,6 @@ setup(
         'Intended Audience :: Science/Research',
         'Intended Audience :: Information Technology',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Communications :: IoT',
 
         # Pick your license as you wish
         'License :: OSI Approved :: MIT License',
