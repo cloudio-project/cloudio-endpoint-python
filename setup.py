@@ -50,6 +50,8 @@ setup(
     # https://packaging.python.org/specifications/core-metadata/#summary
     description='Library to connect an endpoint to cloud.iO',  # Required
 
+    long_description_content_type='markdown',
+
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
     #
@@ -73,6 +75,8 @@ setup(
     # This should be a valid email address corresponding to the author listed
     # above.
     author_email='thomas.sterren@hevs.ch',  # Optional
+
+    license='MIT',
 
     # Classifiers help users find your project by categorizing it.
     #
@@ -100,6 +104,8 @@ setup(
         # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
+
+        'Operating System :: OS Independent',
     ],
 
     # This field adds keywords for your project which will appear on the
@@ -117,7 +123,8 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(exclude=['docs', 'examples', 'tests']),  # Required
+    packages=find_packages('src'),  # Required
+    package_dir={'': 'src'},
 
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
