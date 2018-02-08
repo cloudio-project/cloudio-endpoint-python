@@ -71,4 +71,12 @@ class CloudioRuntimeObject(CloudioObject):
 
         return attribute
 
+    def to_json(self, encoder):
+        """Pick out the attributes we want to store / publish.
+        """
+
+        # Noting to encode here. Delegate job further to
+        # internal object
+        return encoder.default(self._internal)
+
 # TODO Create and implement CloudioRuntimeObjectBuilder class
