@@ -62,3 +62,8 @@ class CloudioAttributeConstraint():
             return 'Measure'
         else:
             return 'Invalid'
+
+    def to_json(self, encoder):
+        """Pick out the attributes we want to store / publish.
+        """
+        return self.toString()

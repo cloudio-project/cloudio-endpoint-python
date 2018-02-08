@@ -230,15 +230,14 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         """Pick out the attributes we want to store / publish.
         """
         attrDict = {}
-        attrDict['name'] = self.name
 
-        if hasattr(self, 'conforms'):
+        if self.conforms != None and len(self.conforms) > 0:
             attrDict['conforms'] = self.conforms
 
-        if hasattr(self, 'objects'):
+        if hasattr(self, 'objects') and len(self.objects) > 0:
             attrDict['objects'] = self.objects
 
-        if hasattr(self, '_attributes'):
+        if hasattr(self, '_attributes')  and len(self._attributes) > 0:
             attrDict['attributes'] = self._attributes
 
         return encoder.default(attrDict)

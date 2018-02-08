@@ -61,12 +61,11 @@ class CloudioRuntimeNode(CloudioNode):
         """Pick out the attributes we want to store / publish.
         """
         attrDict = {}
-        attrDict['name'] = self.name
 
-        if hasattr(self, 'interfaces'):
-            attrDict['interfaces'] = self.interfaces
+        #if hasattr(self, 'interfaces'):
+        #    attrDict['interfaces'] = self.interfaces
 
-        if hasattr(self, 'objects'):
+        if hasattr(self, 'objects') and len(self.objects) > 0:
             attrDict['objects'] = self.objects
 
         return encoder.default(attrDict)
