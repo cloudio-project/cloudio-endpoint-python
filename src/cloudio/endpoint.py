@@ -331,5 +331,6 @@ class CloudioEndpoint(CloudioNodeContainer):
                             if self._client.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
                                 # Remove key from store
                                 self.persistence.remove(key)
+                    time.sleep(0)   # Give other threads time to do its job
                 else:
                     break
