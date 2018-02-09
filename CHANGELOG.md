@@ -3,6 +3,7 @@
 ## 0.2.0 - (2018-02-09)
 ### Implemented enhancements:
 - Added InvalidCloudioAttributeTypeException class
+- Optimized publish message algorithm
 ### Fixed bugs:
 - Type of CloudioAttribute value is now consistent over lifetime 
 
