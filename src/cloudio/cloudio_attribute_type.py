@@ -13,6 +13,7 @@ class CloudioAttributeType():
     String  = 4     # The attribute's value is of type String
 
     def __init__(self, cloudioAttributeType):
+        # Check if parameter is valid and yell otherwise
         if cloudioAttributeType in (self.Invalid, self.Boolean, self.Integer, self.Number, self.String):
             self._type = cloudioAttributeType
         else:
@@ -73,10 +74,12 @@ class CloudioAttributeType():
             return 'Invalid'
 
     def __eq__(self, other):
+        """== operator to work with cloudio attribute types."""
         if isinstance(other, int):
             return self._type == other
         else:
             raise InvalidCloudioAttributeTypeException(other)
 
     def __ne__(self, other):
+        """!= operator to work with cloudio attribute types."""
         return not self.__eq__(other)
