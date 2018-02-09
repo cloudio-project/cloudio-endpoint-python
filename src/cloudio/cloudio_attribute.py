@@ -174,6 +174,9 @@ class CloudioAttribute(UniqueIdentifiable):
 
         Note that the type of an attribute is not allowed to change over time, so if
         the attribute already has a type, the method fails with an runtime exception.
+
+        :param theType Python type like bool, int, float and str
+        :type [bool, int, float, str]
         """
         if self._value:
             raise CloudioModificationException(u'The Attribute has already a type (Changing the type is not allowed)!')
