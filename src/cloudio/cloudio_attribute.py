@@ -23,7 +23,7 @@ class CloudioAttribute(UniqueIdentifiable):
         self._parent = None
         self._topicUuid = None      # type: TopicUuid
         self._constraint = None
-        self._rawType = None
+        self._type = None           # type: AttributeType
         self._timestamp = None
         self._value = None          # type: dynamic
         self._listeners = None      # type: list[AttributeListener]
@@ -68,7 +68,7 @@ class CloudioAttribute(UniqueIdentifiable):
 
         # Update value
         self._timestamp = timestamp
-        self._value = value
+        self._setValueWithTypeCheck(value)
 
         # Send change to cloud.
         if self.getParent():
@@ -97,7 +97,7 @@ class CloudioAttribute(UniqueIdentifiable):
 
         # Update the value
         self._timestamp = timestamp
-        self._value = value
+        self._setValueWithTypeCheck(value)
 
         # Notify the cloud.
         if self._parent is not None:
@@ -113,13 +113,38 @@ class CloudioAttribute(UniqueIdentifiable):
 
         return True
 
+    def _setValueWithTypeCheck(self, value):
+        """Assigns a new value and checks the rvalue type.
+        """
+        if self._type == AttributeType.Boolean:
+            self._value = bool(value)
+        elif self._type == AttributeType.Integer:
+            self._value = int(value)
+        elif self._type == AttributeType.Number:
+            self._value = float(value)
+        elif self._type == AttributeType.String:
+            assert isinstance(value, str)
+            self._value = value
+        else:
+            self.log.warning('Need to assign value which has unsupported type!')
+            self._value = value
+
     def getType(self):
         """Returns the actual type of the attribute."""
-        return AttributeType.fromRawType(type(self._value))
+        if self._type is not None:
+            return self._type.type
+        else:
+            self.log.warning('Deprecated call to getType()!')
+            return AttributeType.fromRawType(type(self._value))
+
 
     def getTypeAsString(self):
         """Returns the actual type of the attribute as a string."""
-        return AttributeType.fromRawTypeToString(type(self._value))
+        if self._type is not None:
+            return self._type.toString()
+        else:
+            self.log.warning('Deprecated call to getTypeAsString()!')
+            AttributeType.fromRawTypeToString(type(self._value))
 
     ######################################################################
     # Named item implementation
@@ -155,6 +180,18 @@ class CloudioAttribute(UniqueIdentifiable):
 
         if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType, types.StringType):
             self._value = theType()
+
+            # Set cloudio attribute type accordingly
+            if theType == types.BooleanType:
+                self._type = AttributeType(AttributeType.Boolean)
+            elif theType in (types.IntType, types.LongType):
+                self._type = AttributeType(AttributeType.Integer)
+            elif theType == types.FloatType:
+                self._type = AttributeType(AttributeType.Number)
+            elif theType == types.StringType:
+                self._type = AttributeType(AttributeType.String)
+            else:
+                self._type = AttributeType(AttributeType.Invalid)
         else:
             raise InvalidCloudioAttributeException(theType)
 
@@ -177,7 +214,7 @@ class CloudioAttribute(UniqueIdentifiable):
         # TODO Check constraint
         #self._constraint.endpointWillChangeStatic()
 
-        self._value = value
+        self._setValueWithTypeCheck(value)
 
     def getParent(self):
         return self._parent
@@ -200,7 +237,7 @@ class CloudioAttribute(UniqueIdentifiable):
         """
 
         :param constraint:
-        :type constraint: CloudioAttributeType
+        :type constraint: CloudioAttributeConstraint
         :return:
         """
         assert isinstance(constraint, AttributeConstraint), u'Wrong type'
