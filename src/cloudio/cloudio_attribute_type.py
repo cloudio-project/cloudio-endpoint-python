@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import types
+from exception.invalid_cloudio_attribute_type_exception import InvalidCloudioAttributeTypeException
 
 class CloudioAttributeType():
     """Identifies the different data types of attributes currently supported by cloud.io.
@@ -10,6 +11,13 @@ class CloudioAttributeType():
     Integer = 2     # The attribute's value is of type short, int or long
     Number  = 3     # The attribute's value is of type float or double
     String  = 4     # The attribute's value is of type String
+
+    def __init__(self, cloudioAttributeType):
+        # Check if parameter is valid and yell otherwise
+        if cloudioAttributeType in (self.Invalid, self.Boolean, self.Integer, self.Number, self.String):
+            self._type = cloudioAttributeType
+        else:
+            raise InvalidCloudioAttributeTypeException(cloudioAttributeType)
 
     @classmethod
     def fromRawType(cls, rawType):
@@ -44,3 +52,34 @@ class CloudioAttributeType():
             return 'String'
         else:
             return 'Invalid'
+
+    @property
+    def type(self):
+        return self._type
+
+    def toString(self):
+        """Converts CloudioAttributeType to string.
+        :return The type in string format
+        :type str
+        """
+        if self._type == self.Boolean:
+            return 'Boolean'
+        elif self._type == self.Integer:
+            return 'Integer'
+        elif self._type == self.Number:
+            return 'Number'
+        elif self._type == self.String:
+            return 'String'
+        else:
+            return 'Invalid'
+
+    def __eq__(self, other):
+        """== operator to work with cloudio attribute types."""
+        if isinstance(other, int):
+            return self._type == other
+        else:
+            raise InvalidCloudioAttributeTypeException(other)
+
+    def __ne__(self, other):
+        """!= operator to work with cloudio attribute types."""
+        return not self.__eq__(other)

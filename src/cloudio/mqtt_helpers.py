@@ -176,7 +176,7 @@ class MqttAsyncClient():
             self._onMessageCallback(client, userdata, msg)
 
     def publish(self, topic, payload=None, qos=0, retain=False):
-        timeout = 2.0
+        timeout = 0.1
         message_info = self._client.publish(topic, payload, qos, retain)
 
         # Cannot use message_info.wait_for_publish() because it is blocking and
@@ -190,7 +190,7 @@ class MqttAsyncClient():
             timeout -= 0.005
             time.sleep(0.005)
 
-        return message_info.is_published()
+        return message_info.rc == self.MQTT_ERR_SUCCESS
 
     def subscribe(self, topic, qos=0):
         return self._client.subscribe(topic, qos)

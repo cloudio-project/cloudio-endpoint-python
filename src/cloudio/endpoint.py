@@ -243,16 +243,16 @@ class CloudioEndpoint(CloudioNodeContainer):
         # Create the MQTT message using the given message format.
         data = self.messageFormat.serializeAttribute(attribute)
 
-        messageSend = False
+        messageQueued = False
         if self.isOnline():
             try:
-                messageSend = self._client.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
+                messageQueued = self._client.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
 
         # If the message could not be send for any reason, add the message to the pending
         # updates persistence if available.
-        if not messageSend and self.persistence:
+        if not messageQueued and self.persistence:
             try:
                 self.persistence.put('PendingUpdate-' + attribute.getUuid().toString().replace('/', ';')
                                         + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
@@ -262,7 +262,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                 traceback.print_exc()
 
         # Check if there are messages in the persistence store to send
-        if messageSend and self.persistence and len(self.persistence.keys()) > 0:
+        if messageQueued and self.persistence and len(self.persistence.keys()) > 0:
             # Try to send stored messages to cloud.iO
             self._purgePersistentDataStore()
 
@@ -331,5 +331,6 @@ class CloudioEndpoint(CloudioNodeContainer):
                             if self._client.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
                                 # Remove key from store
                                 self.persistence.remove(key)
+                    time.sleep(0)   # Give other threads time to do its job
                 else:
                     break
