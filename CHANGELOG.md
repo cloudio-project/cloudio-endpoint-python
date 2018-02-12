@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 - (2018-02-09)
+## 0.2.0 - (2018-02-12)
 ### Implemented enhancements:
 - Added InvalidCloudioAttributeTypeException class
 - Optimized publish message algorithm
