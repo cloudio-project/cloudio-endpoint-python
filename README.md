@@ -22,6 +22,15 @@ receive an endpoint certificate. In case you have to set up yourself a cloud.iO 
 should jump to 
 [How to set up a cloud.iO Server](https://github.com/cloudio-project/cloudio-documentation/blob/master/ServerSetup.md).
 
+## Download and Install
+The library is available on python's package distribution system [PyPi](https://pypi.python.org/).
+
+From the console you can download and install it using the following command:
+
+```
+   pip install cloudio-endpoint-python
+```
+
 ## Development Starting Point
 
 This endpoint library provides you with classes allowing you to store variables or 
