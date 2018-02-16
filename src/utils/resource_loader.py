@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import urllib
-import urlparse
+import six
 import os
+if six.PY2:
+    import urlparse                         # pip install urllib3
+else:
+    import urllib.parse as urlparse
 from os.path import expanduser
 from configobj import ConfigObj         # pip install configobj
 
@@ -20,7 +23,7 @@ class ResourceLoader():
             url = urlparse.urlparse(location)
 
             if url.scheme == 'home':
-                basePath =  expanduser('~').replace('\\','/') + url.path
+                basePath = expanduser('~').replace('\\','/') + url.path
                 filePath = os.path.join(basePath, filename)
 
                 if os.path.isfile(filePath):
@@ -38,7 +41,7 @@ class ResourceLoader():
                 filePath = location + filename
                 try:
                     file = urllib.urlopen(filePath)
-                    print file
+                    print(file)
                 except:
                     pass
 

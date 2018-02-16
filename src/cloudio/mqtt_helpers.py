@@ -12,7 +12,7 @@ import uuid
 
 
 from utils import path_helpers
-from pending_update import PendingUpdate
+from .pending_update import PendingUpdate
 
 
 class MqttAsyncClient():

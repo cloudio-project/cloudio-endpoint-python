@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from exceptions import RuntimeError
-from cloudio_node import CloudioNode
-from cloudio_object import CloudioObject
+import six
+if six.PY2:
+    from exceptions import RuntimeError
+
+from cloudio.cloudio_node import CloudioNode
+from cloudio.cloudio_object import CloudioObject
 
 class CloudioRuntimeNode(CloudioNode):
     """The CloudioAdLibNode class allows to create the structure of a cloud.iO node at runtime.

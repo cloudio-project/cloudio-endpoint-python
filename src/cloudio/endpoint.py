@@ -5,20 +5,19 @@ import time
 import logging
 import traceback
 import utils.timestamp as TimeStampProvider
-from .mqtt_helpers import MqttReconnectClient, MqttConnectOptions
-import mqtt_helpers as mqtt
+import cloudio.mqtt_helpers as mqtt
 from .cloudio_node import CloudioNode
 from .properties_endpoint_configuration import PropertiesEndpointConfiguration
 from .interface.node_container import CloudioNodeContainer
 from .interface.message_format import CloudioMessageFormat
 from .message_format.factory import MessageFormatFactory
-from exception.cloudio_modification_exception import CloudioModificationException
-from exception.invalid_property_exception import InvalidPropertyException
+from cloudio.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.exception.invalid_property_exception import InvalidPropertyException
 from utils.resource_loader import ResourceLoader
-from message_format.json_format import JsonMessageFormat
+from cloudio.message_format.json_format import JsonMessageFormat
 from utils import path_helpers
-from pending_update import PendingUpdate
-from topicuuid import TopicUuid
+from cloudio.pending_update import PendingUpdate
+from cloudio.topicuuid import TopicUuid
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
@@ -93,7 +92,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         if self.persistence:
             self.persistence.open(clientId=self.uuid, serverUri=host)
 
-        self.options = MqttConnectOptions()
+        self.options = mqtt.MqttConnectOptions()
 
         # Last will is a message with the UUID of the endpoint and no payload.
         willMessage = bytearray()
@@ -112,10 +111,10 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options._clientCertFile = path_helpers.prettify(self.options._clientCertFile)
         self.options._clientKeyFile = path_helpers.prettify(self.options._clientKeyFile)
 
-        self._client = MqttReconnectClient(host,
-                                           clientId=self.uuid + '-endpoint-',
-                                           clean_session=self.cleanSession,
-                                           options=self.options)
+        self._client = mqtt.MqttReconnectClient(host,
+                                                clientId=self.uuid + '-endpoint-',
+                                                clean_session=self.cleanSession,
+                                                options=self.options)
         #  Register callback method for connection established
         self._client.setOnConnectedCallback(self._onConnected)
         # Register callback method to be called when receiving a message over MQTT

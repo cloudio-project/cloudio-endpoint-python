@@ -2,15 +2,15 @@
 
 import types
 import logging
-from topicuuid import TopicUuid
-from interface.unique_identifiable import UniqueIdentifiable
-from interface.attribute_container import CloudioAttributeContainer
-from interface.attribute_listener import AttributeListener
-from exception.cloudio_modification_exception import CloudioModificationException
-from exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
+from .topicuuid import TopicUuid
+from cloudio.interface.unique_identifiable import UniqueIdentifiable
+from cloudio.interface.attribute_container import CloudioAttributeContainer
+from cloudio.interface.attribute_listener import AttributeListener
+from cloudio.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 import utils.timestamp as TimeStampProvider
-from cloudio_attribute_type import CloudioAttributeType as AttributeType
-from cloudio_attribute_constraint import CloudioAttributeConstraint as AttributeConstraint
+from cloudio.cloudio_attribute_type import CloudioAttributeType as AttributeType
+from cloudio.cloudio_attribute_constraint import CloudioAttributeConstraint as AttributeConstraint
 
 class CloudioAttribute(UniqueIdentifiable):
     """The leaf information in the cloud.io data model

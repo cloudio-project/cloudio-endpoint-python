@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABCMeta, abstractmethod
-from unique_identifiable import UniqueIdentifiable
+from .unique_identifiable import UniqueIdentifiable
 
 class CloudioObjectContainer(UniqueIdentifiable):
     """Interface to be implemented by all classes that can hold cloud.iO objects."""
