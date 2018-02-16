@@ -95,8 +95,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.options = mqtt.MqttConnectOptions()
 
         # Last will is a message with the UUID of the endpoint and no payload.
-        willMessage = bytearray()
-        willMessage += 'DEAD'
+        willMessage = 'DEAD'
         self.options.setWill(u'@offline/' + uuid, willMessage, 1, False)
 
         self.options._caFile = configuration.getProperty(self.CERT_AUTHORITY_FILE_PROPERTY, None)
@@ -174,7 +173,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                 node.setName(nodeName)
                 node.setParentNodeContainer(self)
 
-                assert not self.nodes.has_key(nodeName), u'Node with given name already present!'
+                assert not nodeName in self.nodes, u'Node with given name already present!'
                 self.nodes[nodeName] = node
 
                 # If the endpoint is online, send node add message

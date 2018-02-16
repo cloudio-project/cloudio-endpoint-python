@@ -154,7 +154,7 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                     self.getAttributes()    # Update attributes list
                     location.pop()         # Remove last item
                     if len(location) > 0:
-                        if self.getAttributes().has_key(location[-1]):
+                        if location[-1] in self.getAttributes():
                             attribute = self.getAttributes()[location.pop()]
                             if attribute:
                                 return attribute

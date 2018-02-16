@@ -68,12 +68,12 @@ class JsonMessageFormat(CloudioMessageFormat):
 
         # In case there is no timestamp present, create one using
         # the current time
-        if not dataDict.has_key('timestamp'):
+        if not 'timestamp' in dataDict:
             dataDict['timestamp'] = timestamp_helpers.getTimeInMilliseconds()
 
         if isinstance(dataDict, dict) and \
-           dataDict.has_key('timestamp') and \
-           dataDict.has_key('value'):
+            'timestamp' in dataDict and \
+            'value' in dataDict:
 
             timestamp = int(dataDict['timestamp'] * 1000)
             value = dataDict['value']

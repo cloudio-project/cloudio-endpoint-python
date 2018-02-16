@@ -38,7 +38,7 @@ class CloudioRuntimeNode(CloudioNode):
             object._internal.setName(name)
 
             # Add object to the objects container
-            assert not self.objects.has_key(name), u'Object with given name already present!'
+            assert not name in self.objects, u'Object with given name already present!'
             self.objects[name] = object
 
     def declareImplementedInterface(self, interfaceName):
@@ -53,7 +53,7 @@ class CloudioRuntimeNode(CloudioNode):
                                u' interfaces is only possible as long as the node is not online' +
                                u' (registered within endpoint)!')
 
-        if not self.interfaces.has_key(interfaceName):
+        if not interfaceName in self.interfaces:
             self.interfaces[interfaceName] = interfaceName
 
     def declareImplementedInterfaces(self, interfaceNames):

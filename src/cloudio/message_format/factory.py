@@ -19,7 +19,7 @@ class MessageFormatFactory():
         """Returns the MessageFormat needed to serialize/deserialize a message.
         :param messageFormatId The message format identifying the format of a message.
         """
-        if cls.formats.has_key(messageFormatId):
+        if messageFormatId in cls.formats:
             return cls.formats[messageFormatId]
         else:
             newFormat = None

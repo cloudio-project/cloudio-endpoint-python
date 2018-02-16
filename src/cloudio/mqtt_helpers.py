@@ -434,12 +434,12 @@ class MemoryPersistence(MqttClientPersistence):
         self._persistance[key] = persistable
 
     def get(self, key):
-        if self._persistance.has_key(key):
+        if key in self._persistance:
             return self._persistance[key]
         return None
 
     def containsKey(self, key):
-        return True if self._persistance.has_key(key) else False
+        return True if key in self._persistance else False
 
     def keys(self):
         keys = []

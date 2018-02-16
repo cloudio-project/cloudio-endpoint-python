@@ -35,7 +35,7 @@ class CloudioRuntimeObject(CloudioObject):
             object._internal.setName(name)
 
             # Add object to the objects container
-            assert not self._internal.objects.has_key(name), u'Object with given name already present!'
+            assert not name in self._internal.objects, u'Object with given name already present!'
             self._internal.objects[name] = object
 
     def getAttribute(self, name):
@@ -66,7 +66,7 @@ class CloudioRuntimeObject(CloudioObject):
         if initialValue:
             attribute.setValue(initialValue)
 
-        assert not self._internal._attributes.has_key(name), u'Attribute with given name already present!'
+        assert not name in self._internal._attributes, u'Attribute with given name already present!'
         self._internal._attributes[name] = attribute
 
         return attribute
