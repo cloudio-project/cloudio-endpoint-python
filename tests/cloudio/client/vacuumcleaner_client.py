@@ -118,7 +118,7 @@ class VacuumCleanerClient():
         self.log.info('Disconnect: ' + str(rc))
 
     def onMessage(self, client, userdata, msg):
-        print 'VacuumCleanerClient rxed: ' + msg.topic
+        print('VacuumCleanerClient rxed: ' + msg.topic)
 
     def _subscribeToUpdatedCommands(self):
         (result, mid) = self._client.subscribe(u'@update/' + self._endPointName + '/#', 1)

@@ -49,7 +49,7 @@ class VacuumCleanerConnector(object):
 
                         for deviceType in deviceTypeList:
                             """:type : list of minidom.Element"""
-                            print u'Parsing elements for device: ' + deviceType.getAttribute('typeId')
+                            print(u'Parsing elements for device: ' + deviceType.getAttribute('typeId'))
                             self._parseDeviceTypeFromXmlDomElement(deviceType)
             else:
                 raise RuntimeError(u'Missing configuration file: %s' % pathName)

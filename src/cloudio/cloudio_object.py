@@ -70,11 +70,11 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
             attr = getattr(externalObject, field)
 #           if attr:
 #               if isinstance(attr, CloudioObject):
-#                  print 'Got an attribute based on an CloudioObject class'
+#                  print('Got an attribute based on an CloudioObject class')
 #               elif type(field) == CloudioAttribute:
-#                   print 'Got an attribute based on an CloudioAttribute class'
+#                   print('Got an attribute based on an CloudioAttribute class')
 #               else:
-#                   print 'Got an attribute with non-relevant type'
+#                   print('Got an attribute with non-relevant type')
 
     def getExternalObject(self):
         return self._externalObject
