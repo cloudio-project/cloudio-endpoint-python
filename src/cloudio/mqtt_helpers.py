@@ -176,6 +176,9 @@ class MqttAsyncClient():
             self._onMessageCallback(client, userdata, msg)
 
     def publish(self, topic, payload=None, qos=0, retain=False):
+        if not self._client:
+            return False
+
         timeout = 0.1
         message_info = self._client.publish(topic, payload, qos, retain)
 
