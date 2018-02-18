@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import types
 from cloudio.exception.invalid_cloudio_attribute_type_exception import InvalidCloudioAttributeTypeException
+import utils.py_version_compatibility as types
 
 class CloudioAttributeType():
     """Identifies the different data types of attributes currently supported by cloud.io.

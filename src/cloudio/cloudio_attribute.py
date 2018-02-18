@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import six
-if six.PY2:
-    import types
 import logging
 from .topicuuid import TopicUuid
 from cloudio.interface.unique_identifiable import UniqueIdentifiable
@@ -10,9 +7,10 @@ from cloudio.interface.attribute_container import CloudioAttributeContainer
 from cloudio.interface.attribute_listener import AttributeListener
 from cloudio.exception.cloudio_modification_exception import CloudioModificationException
 from cloudio.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
-import utils.timestamp as TimeStampProvider
 from cloudio.cloudio_attribute_type import CloudioAttributeType as AttributeType
 from cloudio.cloudio_attribute_constraint import CloudioAttributeConstraint as AttributeConstraint
+import utils.py_version_compatibility as types
+import utils.timestamp as TimeStampProvider
 
 class CloudioAttribute(UniqueIdentifiable):
     """The leaf information in the cloud.io data model
@@ -183,42 +181,22 @@ class CloudioAttribute(UniqueIdentifiable):
         if self._value:
             raise CloudioModificationException(u'The Attribute has already a type (Changing the type is not allowed)!')
 
-        if six.PY2:
-            if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType, types.StringType):
-                self._value = theType()
+        if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType, types.StringType):
+            self._value = theType()
 
-                # Set cloudio attribute type accordingly
-                if theType == types.BooleanType:
-                    self._type = AttributeType(AttributeType.Boolean)
-                elif theType in (types.IntType, types.LongType):
-                    self._type = AttributeType(AttributeType.Integer)
-                elif theType == types.FloatType:
-                    self._type = AttributeType(AttributeType.Number)
-                elif theType == types.StringType:
-                    self._type = AttributeType(AttributeType.String)
-                else:
-                    self._type = AttributeType(AttributeType.Invalid)
+            # Set cloudio attribute type accordingly
+            if theType == types.BooleanType:
+                self._type = AttributeType(AttributeType.Boolean)
+            elif theType in (types.IntType, types.LongType):
+                self._type = AttributeType(AttributeType.Integer)
+            elif theType == types.FloatType:
+                self._type = AttributeType(AttributeType.Number)
+            elif theType == types.StringType:
+                self._type = AttributeType(AttributeType.String)
             else:
-                raise InvalidCloudioAttributeException(theType)
+                self._type = AttributeType(AttributeType.Invalid)
         else:
-            if theType in (bool, int, float, str):
-                self._value = theType()
-
-                # Set cloudio attribute type accordingly
-                if theType is bool:
-                    self._type = AttributeType(AttributeType.Boolean)
-                elif theType is int:
-                    self._type = AttributeType(AttributeType.Integer)
-                elif theType is float:
-                    self._type = AttributeType(AttributeType.Number)
-                elif theType is str:
-                    self._type = AttributeType(AttributeType.String)
-                else:
-                    self._type = AttributeType(AttributeType.Invalid)
-            else:
-                raise InvalidCloudioAttributeException(theType)
-
-
+            raise InvalidCloudioAttributeException(theType)
 
     ######################################################################
     # Public API
