@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from six import iteritems
 import logging
 from cloudio.interface.attribute_listener import AttributeListener
 
@@ -20,7 +21,7 @@ class VacuumCleaner(AttributeListener):
         cloudioParameterObject = self.cloudioNode.findObject(['Parameters',
                                                               'objects'])
 
-        for attributeName, cloudioAttribute in cloudioParameterObject.getAttributes().iteritems():
+        for attributeName, cloudioAttribute in iteritems(cloudioParameterObject.getAttributes()):
             self._createAttribute(attributeName, cloudioAttribute)
             cloudioAttribute.addListener(self)
 

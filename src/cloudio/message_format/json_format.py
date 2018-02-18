@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from six import iteritems
 import json
 import inspect
 from ..interface.message_format import CloudioMessageFormat
@@ -22,18 +23,18 @@ class JsonMessageFormat(CloudioMessageFormat):
         data = {}
         nodes = {}
 
-        for key, node in endpoint.nodes.iteritems():
+        for key, node in iteritems(endpoint.nodes):
             nodes[node.getName()] = node
 
         data[u'nodes'] = nodes
 
-        message = bytearray()
+        message = ''
         # Encode data to json formatted byte array
         message += self._encoder.encode(data)
         return message
 
     def serializeNode(self, node):
-        message = bytearray()
+        message = ''
 
         #message += self._encoder.startObject()
         # Encode data to json formatted byte array
@@ -55,7 +56,7 @@ class JsonMessageFormat(CloudioMessageFormat):
         attributeValue = attribute.getValue()
         data[u'value'] = attributeValue
 
-        message = bytearray()
+        message = ''
         # Encode data to json formatted byte array
         message += json.dumps(data)
 
