@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import types
+import six
+if six.PY2:
+    import types
 import logging
 from .topicuuid import TopicUuid
 from cloudio.interface.unique_identifiable import UniqueIdentifiable
@@ -181,22 +183,42 @@ class CloudioAttribute(UniqueIdentifiable):
         if self._value:
             raise CloudioModificationException(u'The Attribute has already a type (Changing the type is not allowed)!')
 
-        if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType, types.StringType):
-            self._value = theType()
+        if six.PY2:
+            if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType, types.StringType):
+                self._value = theType()
 
-            # Set cloudio attribute type accordingly
-            if theType == types.BooleanType:
-                self._type = AttributeType(AttributeType.Boolean)
-            elif theType in (types.IntType, types.LongType):
-                self._type = AttributeType(AttributeType.Integer)
-            elif theType == types.FloatType:
-                self._type = AttributeType(AttributeType.Number)
-            elif theType == types.StringType:
-                self._type = AttributeType(AttributeType.String)
+                # Set cloudio attribute type accordingly
+                if theType == types.BooleanType:
+                    self._type = AttributeType(AttributeType.Boolean)
+                elif theType in (types.IntType, types.LongType):
+                    self._type = AttributeType(AttributeType.Integer)
+                elif theType == types.FloatType:
+                    self._type = AttributeType(AttributeType.Number)
+                elif theType == types.StringType:
+                    self._type = AttributeType(AttributeType.String)
+                else:
+                    self._type = AttributeType(AttributeType.Invalid)
             else:
-                self._type = AttributeType(AttributeType.Invalid)
+                raise InvalidCloudioAttributeException(theType)
         else:
-            raise InvalidCloudioAttributeException(theType)
+            if theType in (bool, int, float, str):
+                self._value = theType()
+
+                # Set cloudio attribute type accordingly
+                if theType is bool:
+                    self._type = AttributeType(AttributeType.Boolean)
+                elif theType is int:
+                    self._type = AttributeType(AttributeType.Integer)
+                elif theType is float:
+                    self._type = AttributeType(AttributeType.Number)
+                elif theType is str:
+                    self._type = AttributeType(AttributeType.String)
+                else:
+                    self._type = AttributeType(AttributeType.Invalid)
+            else:
+                raise InvalidCloudioAttributeException(theType)
+
+
 
     ######################################################################
     # Public API
