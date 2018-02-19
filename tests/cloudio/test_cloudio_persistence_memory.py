@@ -21,7 +21,7 @@ class VacuumCleanerTestClient(VacuumCleanerClient):
 
     def _subscribeToUpdatedCommands(self):
         topic = u'@update/' + self._endPointName + '/#'
-        print 'Subscribing to: ' + topic + ' messages'
+        print('Subscribing to: ' + topic + ' messages')
         (result, mid) = self._client.subscribe(topic, 1)
         return True if result == self.MQTT_ERR_SUCCESS else False
 
@@ -37,12 +37,12 @@ class VacuumCleanerTestClient(VacuumCleanerClient):
     def showMessagesSummary(self):
         if self.receivedMsgCounter < self.msgsToReceive:
             for index in range(0, self.msgsToReceive):
-                if not self.rxedMessages.has_key(index):
-                    print 'Error: Missing message %d' % index
+                if not index in self.rxedMessages:
+                    print('Error: Missing message %d' % index)
         elif self.receivedMsgCounter == self.msgsToReceive:
-            print 'The right amount of messages was received'
+            print('The right amount of messages was received')
         else:
-            print 'Error: More messages then expected received!'
+            print('Error: More messages then expected received!')
 
 
 class TestCloudioPersistanceMemory(unittest.TestCase):
@@ -90,7 +90,7 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
         cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
 
         for i in range(0, self.msgToSend):
-            print 'Sending update ' + str(i)
+            print('Sending update ' + str(i))
             cloudioAttribute.setValue(i)
             time.sleep(.5)
 

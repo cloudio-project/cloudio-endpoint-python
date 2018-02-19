@@ -30,4 +30,4 @@ class TestCloudioObject(unittest.TestCase):
         self.assertTrue(len(attributes) > 0)
 
         #for attribute in attributes:
-        #        print attribute
+        #        print(attribute)

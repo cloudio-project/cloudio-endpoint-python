@@ -79,20 +79,20 @@ class VacuumCleanerClient():
 
         if config:
             # Check if most important configuration parameters are present
-            assert config.has_key('cloudio'), 'Missing group \'cloudio\' in config file!'
-            assert config.has_key('endpoint'), 'Missing group \'endpoint\' in config file!'
-            assert config.has_key('node'), 'Missing group \'node\' in config file!'
+            assert 'cloudio' in config, 'Missing group \'cloudio\' in config file!'
+            assert 'endpoint' in config, 'Missing group \'endpoint\' in config file!'
+            assert 'node' in config, 'Missing group \'node\' in config file!'
 
-            assert config['cloudio'].has_key('host'), 'Missing \'host\' parameter in cloudio group!'
-            assert config['cloudio'].has_key('port'), 'Missing \'port\' parameter in cloudio group!'
-            assert config['cloudio'].has_key('username'), 'Missing \'username\' parameter in cloudio group!'
-            assert config['cloudio'].has_key('password'), 'Missing \'password\' parameter in cloudio group!'
-            assert config['cloudio'].has_key('subscribe_topics'), 'Missing \'subscribe_topics\' parameter in cloudio group!'
-            assert config['cloudio'].has_key('qos'), 'Missing \'qos\' parameter in cloudio group!'
+            assert 'host' in config['cloudio'], 'Missing \'host\' parameter in cloudio group!'
+            assert 'port' in config['cloudio'], 'Missing \'port\' parameter in cloudio group!'
+            assert 'username' in config['cloudio'], 'Missing \'username\' parameter in cloudio group!'
+            assert 'password' in config['cloudio'], 'Missing \'password\' parameter in cloudio group!'
+            assert 'subscribe_topics' in config['cloudio'], 'Missing \'subscribe_topics\' parameter in cloudio group!'
+            assert 'qos' in config['cloudio'], 'Missing \'qos\' parameter in cloudio group!'
 
-            assert config['endpoint'].has_key('name'), 'Missing \'name\' parameter in endpoint group!'
+            assert 'name' in config['endpoint'], 'Missing \'name\' parameter in endpoint group!'
 
-            assert config['node'].has_key('name'), 'Missing \'name\' parameter in node group!'
+            assert 'name' in config['node'], 'Missing \'name\' parameter in node group!'
         else:
             sys.exit(u'Error reading config file')
 
@@ -118,7 +118,7 @@ class VacuumCleanerClient():
         self.log.info('Disconnect: ' + str(rc))
 
     def onMessage(self, client, userdata, msg):
-        print 'VacuumCleanerClient rxed: ' + msg.topic
+        print('VacuumCleanerClient rxed: ' + msg.topic)
 
     def _subscribeToUpdatedCommands(self):
         (result, mid) = self._client.subscribe(u'@update/' + self._endPointName + '/#', 1)
