@@ -96,7 +96,7 @@ class CloudioNode(CloudioObjectContainer):
                 if location[-1] == u'objects':      # Compare with the last element
                     location.pop()     # Remove last item (peek item)
                     if len(location) > 0:
-                        if self.getObjects().has_key(location[-1]):
+                        if location[-1] in self.getObjects():
                             # Get object from container (dictionary) by key
                             obj = self.getObjects()[location.pop()]
                             if obj:
@@ -116,7 +116,7 @@ class CloudioNode(CloudioObjectContainer):
                 if location[-1] == u'objects':  # Compare with the last element
                     location.pop()  # Remove last item (peek item)
                     if len(location) > 0:
-                        if self.getObjects().has_key(location[-1]):
+                        if location[-1] in self.getObjects():
                             # Get object from container (dictionary) by key
                             obj = self.getObjects()[location.pop()]
                             return obj

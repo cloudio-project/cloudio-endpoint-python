@@ -12,7 +12,7 @@ class PropertiesEndpointConfiguration():
         :return: The property value
         :rtype: str
         """
-        if self._properties.has_key(key):
+        if key in self._properties:
             return self._properties[key]
         else:
             return defaultValue
@@ -24,4 +24,4 @@ class PropertiesEndpointConfiguration():
         :return: True if the property with the key exists
         :rtype: bool
         """
-        return self._properties.has_key(key)
+        return key in self._properties

@@ -12,7 +12,7 @@ import uuid
 
 
 from utils import path_helpers
-from pending_update import PendingUpdate
+from .pending_update import PendingUpdate
 
 
 class MqttAsyncClient():
@@ -176,6 +176,9 @@ class MqttAsyncClient():
             self._onMessageCallback(client, userdata, msg)
 
     def publish(self, topic, payload=None, qos=0, retain=False):
+        if not self._client:
+            return False
+
         timeout = 0.1
         message_info = self._client.publish(topic, payload, qos, retain)
 
@@ -434,12 +437,12 @@ class MemoryPersistence(MqttClientPersistence):
         self._persistance[key] = persistable
 
     def get(self, key):
-        if self._persistance.has_key(key):
+        if key in self._persistance:
             return self._persistance[key]
         return None
 
     def containsKey(self, key):
-        return True if self._persistance.has_key(key) else False
+        return True if key in self._persistance else False
 
     def keys(self):
         keys = []

@@ -14,7 +14,7 @@ class TopicUuid(uuid.Uuid):
         self._topic = None  # type: str
 
         if cloudIoElement:
-            from cloudio_attribute import CloudioAttribute
+            from .cloudio_attribute import CloudioAttribute
             from .interface.node_container import CloudioNodeContainer
             from .interface.object_container import CloudioObjectContainer
 
