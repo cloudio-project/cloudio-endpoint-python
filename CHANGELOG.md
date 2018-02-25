@@ -1,11 +1,15 @@
 # Changelog
 
+## 0.2.2 - (2018-02-25)
+### Fixed bugs:
+ - Fixed problems with str und byte representations 
+ 
 ## 0.2.1 - (2018-02-19)
 ### Implemented enhancements:
 - Improved python 3 compatibility
 ### Fixed bugs:
 - Fixed bug in client's `publish()` method when connection was not 
-  already established.
+  already established
 
 ## 0.2.0 - (2018-02-12)
 ### Implemented enhancements:

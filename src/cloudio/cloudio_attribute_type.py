@@ -31,7 +31,7 @@ class CloudioAttributeType():
             return cls.Integer
         elif isinstance(rawType, float) or rawType == types.FloatType:
             return cls.Number
-        elif isinstance(rawType, str) or rawType == types.StringType:
+        elif isinstance(rawType, str) or rawType in (types.StringType, types.UnicodeType):
             return cls.String
         else:
             return cls.Invalid
@@ -48,7 +48,7 @@ class CloudioAttributeType():
             return 'Integer'
         elif isinstance(rawType, float) or rawType == types.FloatType:
             return 'Number'
-        elif isinstance(rawType, str) or rawType == types.StringType:
+        elif isinstance(rawType, str) or rawType in (types.StringType, types.UnicodeType):
             return 'String'
         else:
             return 'Invalid'
