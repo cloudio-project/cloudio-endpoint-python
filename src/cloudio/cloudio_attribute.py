@@ -181,7 +181,8 @@ class CloudioAttribute(UniqueIdentifiable):
         if self._value:
             raise CloudioModificationException(u'The Attribute has already a type (Changing the type is not allowed)!')
 
-        if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType, types.StringType):
+        if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType,
+                       types.StringType, types.UnicodeType):
             self._value = theType()
 
             # Set cloudio attribute type accordingly
@@ -191,7 +192,7 @@ class CloudioAttribute(UniqueIdentifiable):
                 self._type = AttributeType(AttributeType.Integer)
             elif theType == types.FloatType:
                 self._type = AttributeType(AttributeType.Number)
-            elif theType == types.StringType:
+            elif theType in (types.StringType, types.UnicodeType):
                 self._type = AttributeType(AttributeType.String)
             else:
                 self._type = AttributeType(AttributeType.Invalid)
