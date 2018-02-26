@@ -292,7 +292,7 @@ class MqttReconnectClient(MqttAsyncClient):
             except Exception as exception:
                 traceback.print_exc()
                 print(u'Error during broker connect!')
-                exit(1)
+                # Do not exit here. Continue to try to connect
 
             # Check if thread should leave
             if not self._connectionThreadLooping:

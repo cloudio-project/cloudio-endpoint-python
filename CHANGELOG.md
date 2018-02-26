@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.2.3 - (2018-02-26)
+### Fixed bugs:
+- Now continuing to connect to cloud.iO even on error 
+
 ## 0.2.2 - (2018-02-25)
 ### Fixed bugs:
- - Fixed problems with str und byte representations 
+- Fixed problems with str und byte representations 
  
 ## 0.2.1 - (2018-02-19)
 ### Implemented enhancements:
