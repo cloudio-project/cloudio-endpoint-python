@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from six import iterkeys
-import os, time
+import os
+import time
 from threading import Thread, RLock, Event
 import logging
 import traceback
@@ -14,12 +15,17 @@ import uuid
 from utils import path_helpers
 from .pending_update import PendingUpdate
 
+# Set logging level
+logging.getLogger('cloudio.mqttasyncclient').setLevel(logging.INFO)         # DEBUG, INFO, WARNING, ERROR, CRITICAL
+logging.getLogger('cloudio.mqttreconnectclient').setLevel(logging.INFO)     # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 class MqttAsyncClient():
     """Mimic the behavior of the java.MqttAsyncClient class"""
 
     # Errors from mqtt module - mirrored into this class
     MQTT_ERR_SUCCESS = mqtt.MQTT_ERR_SUCCESS
+
+    log = logging.getLogger('cloudio.mqttasyncclient')
 
     def __init__(self, host, clientId='', clean_session=True, options=None):
         self._isConnected = False
@@ -143,25 +149,25 @@ class MqttAsyncClient():
     def onConnect(self, client, userdata, flags, rc):
         if rc == 0:
             self._isConnected = True
-            print(u'Info: Connection to cloudio broker established.')
+            self.log.info(u'Connection to cloud.iO broker established')
             if self._onConnectCallback:
                 self._onConnectCallback()
         else:
             if rc == 1:
-                print(u'Error: Connection refused - incorrect protocol version')
+                self.log.error(u'Connection refused - incorrect protocol version')
             elif rc == 2:
-                print(u'Error: Connection refused - invalid client identifier')
+                self.log.error(u'Connection refused - invalid client identifier')
             elif rc == 3:
-                print(u'Error: Connection refused - server unavailable')
+                self.log.error(u'Connection refused - server unavailable')
             elif rc == 4:
-                print(u'Error: Connection refused - bad username or password')
+                self.log.error(u'Connection refused - bad username or password')
             elif rc == 5:
-                print(u'Error: Connection refused - not authorised')
+                self.log.error(u'Connection refused - not authorised')
             else:
-                print(u'Error: Connection refused - unknown reason')
+                self.log.error(u'Connection refused - unknown reason')
 
     def onDisconnect(self, client, userdata, rc):
-        print('Disconnect: %d' % rc)
+        self.log.info('Disconnect: %d' % rc)
 
         self.disconnect()
 
@@ -169,6 +175,8 @@ class MqttAsyncClient():
         # was registered.
         if self._onDisconnectCallback:
             self._onDisconnectCallback(rc)
+        else:
+            self.log.warning('On disconnect callback not set')
 
     def onMessage(self, client, userdata, msg):
         # Delegate to container class
@@ -202,7 +210,7 @@ class MqttReconnectClient(MqttAsyncClient):
     """Same as MqttAsyncClient, but adds reconnect feature.
     """
 
-    log = logging.getLogger(__name__)
+    log = logging.getLogger('cloudio.mqttreconnectclient')
 
     def __init__(self, host, clientId='', clean_session=True, options=None):
         MqttAsyncClient.__init__(self, host, clientId, clean_session, options)
@@ -239,10 +247,12 @@ class MqttReconnectClient(MqttAsyncClient):
         self._startConnectionThread()
 
     def stop(self):
+        self.log.info('Stopping MqttReconnectClient thread')
         self._autoReconnect = False
         self.disconnect()
 
     def _startConnectionThread(self):
+        self.log.info('Starting MqttReconnectClient thread')
         if self.thread and self.thread.isAlive():
             self.log.warning('Mqtt client connection thread already/still running!')
 
@@ -291,7 +301,7 @@ class MqttReconnectClient(MqttAsyncClient):
                 self.connect(self._options)
             except Exception as exception:
                 traceback.print_exc()
-                print(u'Error during broker connect!')
+                self.log.warning(u'Error during broker connect!')
                 # Do not exit here. Continue to try to connect
 
             # Check if thread should leave
