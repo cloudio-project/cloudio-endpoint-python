@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4 - (2018-03-12)
+### Fixed bugs:
+- Forcing to close MQTT client connection in case there is a problem during connection time    
+
 ## 0.2.3 - (2018-02-26)
 ### Fixed bugs:
 - Now continuing to connect to cloud.iO even on error 
