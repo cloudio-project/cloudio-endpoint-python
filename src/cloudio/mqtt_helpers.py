@@ -302,6 +302,8 @@ class MqttReconnectClient(MqttAsyncClient):
             except Exception as exception:
                 traceback.print_exc()
                 self.log.warning(u'Error during broker connect!')
+                # Force disconnection of MQTT client
+                self.disconnect()
                 # Do not exit here. Continue to try to connect
 
             # Check if thread should leave
