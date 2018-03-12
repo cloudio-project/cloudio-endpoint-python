@@ -122,12 +122,9 @@ class MqttAsyncClient():
                                     tls_version=tlsVersion,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
                                     ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
                 self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
-            try:
-                self._client.connect(self._host, port=port)
-                self._client.loop_start()
-                #time.sleep(1)   # Wait a bit for the callback onConnect to be called
-            except Exception as e:
-                pass
+
+            self._client.connect(self._host, port=port)
+            self._client.loop_start()
         self._clientLock.release()
 
     def disconnect(self):
