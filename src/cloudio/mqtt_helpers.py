@@ -127,8 +127,14 @@ class MqttAsyncClient():
             self._client.loop_start()
         self._clientLock.release()
 
-    def disconnect(self):
+    def disconnect(self, force_client_disconnect=True):
         """Disconnects MQTT client
+
+        In case to let MQTT client die silently, call force_client_disconnect parameter with
+        'false' value. In this case no disconnect callback method is called.
+
+        ::param force_client_disconnect Set to true to call also MQTT clients disconnect method. Default: true
+        :type force_client_disconnect bool
         """
         self._isConnected = False
 
@@ -136,7 +142,8 @@ class MqttAsyncClient():
         # Stop MQTT client if still running
         if self._client:
             self._client.loop_stop()
-            self._client.disconnect()
+            if force_client_disconnect:
+                self._client.disconnect()
             self._client = None
         self._clientLock.release()
 
@@ -300,7 +307,7 @@ class MqttReconnectClient(MqttAsyncClient):
                 traceback.print_exc()
                 self.log.warning(u'Error during broker connect!')
                 # Force disconnection of MQTT client
-                self.disconnect()
+                self.disconnect(force_client_disconnect=False)
                 # Do not exit here. Continue to try to connect
 
             # Check if thread should leave
