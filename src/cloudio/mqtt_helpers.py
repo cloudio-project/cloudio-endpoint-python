@@ -24,6 +24,7 @@ class MqttAsyncClient():
 
     # Errors from mqtt module - mirrored into this class
     MQTT_ERR_SUCCESS = mqtt.MQTT_ERR_SUCCESS
+    MQTT_ERR_NO_CONN = mqtt.MQTT_ERR_NO_CONN
 
     log = logging.getLogger('cloudio.mqttasyncclient')
 
@@ -125,6 +126,7 @@ class MqttAsyncClient():
 
             self._client.connect(self._host, port=port)
             self._client.loop_start()
+            time.sleep(1)  # Wait a bit for the callback onConnect to be called
         self._clientLock.release()
 
     def disconnect(self, force_client_disconnect=True):
@@ -148,7 +150,7 @@ class MqttAsyncClient():
         self._clientLock.release()
 
     def isConnected(self):
-        return self._isConnected
+        return self._client and self._isConnected
 
     def onConnect(self, client, userdata, flags, rc):
         if rc == 0:
@@ -208,7 +210,11 @@ class MqttAsyncClient():
         return message_info.rc == self.MQTT_ERR_SUCCESS
 
     def subscribe(self, topic, qos=0):
-        return self._client.subscribe(topic, qos)
+        if self._client:
+            return self._client.subscribe(topic, qos)
+        else:
+            return (self.MQTT_ERR_NO_CONN, None)
+
 
 class MqttReconnectClient(MqttAsyncClient):
     """Same as MqttAsyncClient, but adds reconnect feature.
