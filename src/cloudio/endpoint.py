@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os
@@ -345,3 +346,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                     time.sleep(0)   # Give other threads time to do its job
                 else:
                     break
+
+
+if __name__ == '__main__':
+    pass
