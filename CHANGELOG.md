@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5 - (2018-03-20)
+### Fixed bugs:
+- Updated MqttAsyncClient's `disconnect()` method. Added `force_client_disconnect` parameter
+
 ## 0.2.4 - (2018-03-12)
 ### Fixed bugs:
 - Forcing to close MQTT client connection in case there is a problem during connection time    
