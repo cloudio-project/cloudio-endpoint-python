@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6 - (2018-10-02)
+### Implemented enhancements:
+- Logging now version info at startup
+
 ## 0.2.5 - (2018-03-20)
 ### Fixed bugs:
 - Updated MqttAsyncClient's `disconnect()` method. Added `force_client_disconnect` parameter
