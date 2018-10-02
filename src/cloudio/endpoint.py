@@ -36,7 +36,7 @@ with open(os.path.dirname(os.path.realpath(__file__)) + '/../__init__.py') as vf
 logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.DEBUG)
-logging.getLogger('gibscom'+__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ERROR, CRITICAL
+logging.getLogger(__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 logging.info('cloudio-endpoint-python version: %s' % version)
 
