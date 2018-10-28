@@ -5,6 +5,7 @@ import os
 import time
 import logging
 import traceback
+import six
 import utils.timestamp as TimeStampProvider
 import cloudio.mqtt_helpers as mqtt
 from .cloudio_node import CloudioNode
@@ -142,10 +143,16 @@ class CloudioEndpoint(CloudioNodeContainer):
     def _onMessageArrived(self, client, userdata, msg):
         #print(msg.topic + ': ' + str(msg.payload))
         try:
+            if six.PY3:
+                # Need to convert from bytes to string
+                payload = msg.payload.decode("utf-8")
+            else:
+                payload = msg.payload
+
             # First determine the message format (first byte identifies the message format).
-            messageFormat = MessageFormatFactory.messageFormat(msg.payload[0])
+            messageFormat = MessageFormatFactory.messageFormat(payload[0])
             if messageFormat == None:
-                self.log.error('Message-format ' + msg.payload[0] + " not supported!")
+                self.log.error('Message-format ' + payload[0] + " not supported!")
                 return
 
             topicLevels = msg.topic.split('/')
@@ -158,7 +165,7 @@ class CloudioEndpoint(CloudioNodeContainer):
             action = topicLevels[0]
             if action == '@set':
                 location.pop()
-                self._set(msg.topic, location, messageFormat, msg.payload)
+                self._set(msg.topic, location, messageFormat, payload)
             else:
                 self.log.error('Method \"' + action + '\" not supported!')
         except Exception as exception:
