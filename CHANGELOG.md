@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.7 - (2018-10-29)
+### Implemented enhancements:
+- Moved version string into _endpoint_ package
+### Fixed bugs:
+- In case client certificate is provided, username and password are no more needed
+- @set actions now also working in python 3
+
 ## 0.2.6 - (2018-10-02)
 ### Implemented enhancements:
 - Logging now version info at startup
