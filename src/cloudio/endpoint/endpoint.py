@@ -23,14 +23,16 @@ from cloudio.topicuuid import TopicUuid
 
 version = ''
 # Get endpoint python version info from init file
-with open(os.path.dirname(os.path.realpath(__file__)) + '/../__init__.py') as vf:
+with open(os.path.dirname(os.path.realpath(__file__)) + '/__init__.py') as vf:
     content = vf.readlines()
     for line in content:
         if '__version__' in line:
             values = line.split('=')
             version = values[1]
             version = version.strip('\n')
+            version = version.strip('\r')
             version = version.replace('\'', '')
+            version = version.strip(' ')
             break
 
 # Enable logging
@@ -39,7 +41,7 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s -
                     level=logging.DEBUG)
 logging.getLogger(__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-logging.info('cloudio-endpoint-python version: %s' % version)
+logging.getLogger(__name__).info('cloudio-endpoint-python version: %s' % version)
 
 class CloudioEndpoint(CloudioNodeContainer):
     """The cloud.iO endpoint.
