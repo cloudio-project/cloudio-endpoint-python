@@ -147,7 +147,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         try:
             if six.PY3:
                 # Need to convert from bytes to string
-                payload = msg.payload.decode("utf-8")
+                payload = msg.payload.decode('utf-8')
             else:
                 payload = msg.payload
 
