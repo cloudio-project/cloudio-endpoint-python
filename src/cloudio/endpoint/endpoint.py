@@ -276,7 +276,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         if not messageQueued and self.persistence:
             try:
                 self.persistence.put('PendingUpdate-' + attribute.getUuid().toString().replace('/', ';')
-                                        + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
+                                     + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
                                      PendingUpdate(data))
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
