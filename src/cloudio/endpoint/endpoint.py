@@ -343,7 +343,11 @@ class CloudioEndpoint(CloudioNodeContainer):
                         pendingUpdate = self.persistence.get(key)
 
                         if pendingUpdate is not None:
-                            print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8'))
+                            if six.PY3:
+                                # getHeaderBytes() already returns a string. No decode() call necessary
+                                print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes())
+                            else:
+                                print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8'))
 
                             # Get the uuid of the endpoint
                             uuid = pendingUpdate.getUuidFromPersistenceKey(key)
