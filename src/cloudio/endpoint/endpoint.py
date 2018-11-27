@@ -5,13 +5,14 @@ import os
 import time
 import logging
 import traceback
+import six
 import utils.timestamp as TimeStampProvider
 import cloudio.mqtt_helpers as mqtt
-from .cloudio_node import CloudioNode
-from .properties_endpoint_configuration import PropertiesEndpointConfiguration
-from .interface.node_container import CloudioNodeContainer
-from .interface.message_format import CloudioMessageFormat
-from .message_format.factory import MessageFormatFactory
+from cloudio.cloudio_node import CloudioNode
+from cloudio.properties_endpoint_configuration import PropertiesEndpointConfiguration
+from cloudio.interface.node_container import CloudioNodeContainer
+from cloudio.interface.message_format import CloudioMessageFormat
+from cloudio.message_format.factory import MessageFormatFactory
 from cloudio.exception.cloudio_modification_exception import CloudioModificationException
 from cloudio.exception.invalid_property_exception import InvalidPropertyException
 from utils.resource_loader import ResourceLoader
@@ -22,14 +23,16 @@ from cloudio.topicuuid import TopicUuid
 
 version = ''
 # Get endpoint python version info from init file
-with open(os.path.dirname(os.path.realpath(__file__)) + '/../__init__.py') as vf:
+with open(os.path.dirname(os.path.realpath(__file__)) + '/__init__.py') as vf:
     content = vf.readlines()
     for line in content:
         if '__version__' in line:
             values = line.split('=')
             version = values[1]
             version = version.strip('\n')
+            version = version.strip('\r')
             version = version.replace('\'', '')
+            version = version.strip(' ')
             break
 
 # Enable logging
@@ -38,7 +41,7 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s -
                     level=logging.DEBUG)
 logging.getLogger(__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-logging.info('cloudio-endpoint-python version: %s' % version)
+logging.getLogger(__name__).info('cloudio-endpoint-python version: %s' % version)
 
 class CloudioEndpoint(CloudioNodeContainer):
     """The cloud.iO endpoint.
@@ -142,10 +145,16 @@ class CloudioEndpoint(CloudioNodeContainer):
     def _onMessageArrived(self, client, userdata, msg):
         #print(msg.topic + ': ' + str(msg.payload))
         try:
+            if six.PY3:
+                # Need to convert from bytes to string
+                payload = msg.payload.decode('utf-8')
+            else:
+                payload = msg.payload
+
             # First determine the message format (first byte identifies the message format).
-            messageFormat = MessageFormatFactory.messageFormat(msg.payload[0])
+            messageFormat = MessageFormatFactory.messageFormat(payload[0])
             if messageFormat == None:
-                self.log.error('Message-format ' + msg.payload[0] + " not supported!")
+                self.log.error('Message-format ' + payload[0] + " not supported!")
                 return
 
             topicLevels = msg.topic.split('/')
@@ -158,7 +167,7 @@ class CloudioEndpoint(CloudioNodeContainer):
             action = topicLevels[0]
             if action == '@set':
                 location.pop()
-                self._set(msg.topic, location, messageFormat, msg.payload)
+                self._set(msg.topic, location, messageFormat, payload)
             else:
                 self.log.error('Method \"' + action + '\" not supported!')
         except Exception as exception:
@@ -267,7 +276,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         if not messageQueued and self.persistence:
             try:
                 self.persistence.put('PendingUpdate-' + attribute.getUuid().toString().replace('/', ';')
-                                        + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
+                                     + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
                                      PendingUpdate(data))
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
@@ -334,7 +343,11 @@ class CloudioEndpoint(CloudioNodeContainer):
                         pendingUpdate = self.persistence.get(key)
 
                         if pendingUpdate is not None:
-                            print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8'))
+                            if six.PY3:
+                                # getHeaderBytes() already returns a string. No decode() call necessary
+                                print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes())
+                            else:
+                                print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8'))
 
                             # Get the uuid of the endpoint
                             uuid = pendingUpdate.getUuidFromPersistenceKey(key)
