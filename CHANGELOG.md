@@ -1,11 +1,15 @@
 # Changelog
 
+## 0.2.8 - (2018-11-27)
+### Fixed bugs:
+- PersistenceDataStore now working in Python 3
+
 ## 0.2.7 - (2018-10-29)
 ### Implemented enhancements:
 - Moved version string into _endpoint_ package
 ### Fixed bugs:
 - In case client certificate is provided, username and password are no more needed
-- @set actions now also working in python 3
+- @set actions now also working in Python 3
 
 ## 0.2.6 - (2018-10-02)
 ### Implemented enhancements:
@@ -29,7 +33,7 @@
  
 ## 0.2.1 - (2018-02-19)
 ### Implemented enhancements:
-- Improved python 3 compatibility
+- Improved Python 3 compatibility
 ### Fixed bugs:
 - Fixed bug in client's `publish()` method when connection was not 
   already established
