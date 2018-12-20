@@ -177,7 +177,10 @@ class MqttAsyncClient():
     def onDisconnect(self, client, userdata, rc):
         self.log.info('Disconnect: %d' % rc)
 
-        self.disconnect()
+        # Caution:
+        # Do not call self.disconnect() here. It will kill the thread calling this
+        # method and any subsequent code will not be executed!
+        #self.disconnect()
 
         # Notify container class if disconnect callback
         # was registered.
