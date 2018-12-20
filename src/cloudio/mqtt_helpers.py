@@ -3,7 +3,7 @@
 from six import iterkeys
 import os
 import time
-from threading import Thread, RLock, Event
+from threading import Thread, RLock, Event, current_thread
 import logging
 import traceback
 from abc import ABCMeta, abstractmethod
@@ -117,8 +117,9 @@ class MqttAsyncClient():
                                     tls_version=tlsVersion,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
                                     ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
                 self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
-            else:
-                # In case no client certificate is provided, use username and password
+
+            # Check if username and password is provided
+            if options._username:
                 password = options._password
                 if not options._password:
                     # paho client v1.3 and higher do no more accept '' as empty string. Need None
@@ -176,7 +177,10 @@ class MqttAsyncClient():
     def onDisconnect(self, client, userdata, rc):
         self.log.info('Disconnect: %d' % rc)
 
-        self.disconnect()
+        # Caution:
+        # Do not call self.disconnect() here. It will kill the thread calling this
+        # method and any subsequent code will not be executed!
+        #self.disconnect()
 
         # Notify container class if disconnect callback
         # was registered.
@@ -266,6 +270,9 @@ class MqttReconnectClient(MqttAsyncClient):
         self.log.info('Starting MqttReconnectClient thread')
         if self.thread and self.thread.isAlive():
             self.log.warning('Mqtt client connection thread already/still running!')
+            if self.thread is current_thread():
+                # Do not restart myself!
+                return
 
         self._stopConnectionThread()
 
@@ -278,9 +285,13 @@ class MqttReconnectClient(MqttAsyncClient):
 
     def _stopConnectionThread(self):
         if self.thread:
-            self._connectionThreadLooping = False
-            self.thread.join()
-            self.thread = None
+            try:
+                self._connectionThreadLooping = False
+                self.thread.join()
+                self.thread = None
+            except RuntimeError:
+                self.log.error('Could not wait for connection thread')
+                traceback.print_exc()
 
     def _onConnect(self):
         self._connectTimeoutEvent.set() # Free the connection thread
@@ -304,6 +315,9 @@ class MqttReconnectClient(MqttAsyncClient):
         """Called by the internal thread"""
 
         self.log.info(u'Mqtt client reconnect thread running...')
+
+        # Close any previous connection
+        self.disconnect()
 
         while not self.isConnected() and self._connectionThreadLooping:
             try:

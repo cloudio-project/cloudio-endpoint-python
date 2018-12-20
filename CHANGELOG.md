@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.9 - (2018-12-20)
+### Fixed bugs:
+- Fixed issue [#16](https://github.com/cloudio-project/cloudio-endpoint-python/issues/16)
+### Other changes:
+- Allowing again to provide username (with/without password) even if 
+  client certificate is provided
+
 ## 0.2.8 - (2018-11-27)
 ### Fixed bugs:
 - PersistenceDataStore now working in Python 3
