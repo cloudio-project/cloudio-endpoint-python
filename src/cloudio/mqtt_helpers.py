@@ -3,7 +3,7 @@
 from six import iterkeys
 import os
 import time
-from threading import Thread, RLock, Event
+from threading import Thread, RLock, Event, current_thread
 import logging
 import traceback
 from abc import ABCMeta, abstractmethod
@@ -270,6 +270,9 @@ class MqttReconnectClient(MqttAsyncClient):
         self.log.info('Starting MqttReconnectClient thread')
         if self.thread and self.thread.isAlive():
             self.log.warning('Mqtt client connection thread already/still running!')
+            if self.thread is current_thread():
+                # Do not restart myself!
+                return
 
         self._stopConnectionThread()
 
