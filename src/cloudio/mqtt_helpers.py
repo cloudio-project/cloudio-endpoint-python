@@ -309,6 +309,9 @@ class MqttReconnectClient(MqttAsyncClient):
 
         self.log.info(u'Mqtt client reconnect thread running...')
 
+        # Close any previous connection
+        self.disconnect()
+
         while not self.isConnected() and self._connectionThreadLooping:
             try:
                 self._connectTimeoutEvent.clear() # Reset connect timeout event prior to connect
