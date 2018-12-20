@@ -282,9 +282,13 @@ class MqttReconnectClient(MqttAsyncClient):
 
     def _stopConnectionThread(self):
         if self.thread:
-            self._connectionThreadLooping = False
-            self.thread.join()
-            self.thread = None
+            try:
+                self._connectionThreadLooping = False
+                self.thread.join()
+                self.thread = None
+            except RuntimeError:
+                self.log.error('Could not wait for connection thread')
+                traceback.print_exc()
 
     def _onConnect(self):
         self._connectTimeoutEvent.set() # Free the connection thread
