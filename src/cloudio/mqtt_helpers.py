@@ -139,6 +139,8 @@ class MqttAsyncClient():
 
         ::param force_client_disconnect Set to true to call also MQTT clients disconnect method. Default: true
         :type force_client_disconnect bool
+        :return None
+        :rtype: None
         """
         self._isConnected = False
 
