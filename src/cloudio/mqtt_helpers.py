@@ -270,7 +270,6 @@ class MqttReconnectClient(MqttAsyncClient):
         self.disconnect()
 
     def _startConnectionThread(self):
-        self.log.info('Starting MqttReconnectClient thread')
         if self.thread and self.thread.isAlive():
             self.log.warning('Mqtt client connection thread already/still running!')
             if self.thread is current_thread():
@@ -279,6 +278,7 @@ class MqttReconnectClient(MqttAsyncClient):
 
         self._stopConnectionThread()
 
+        self.log.info('Starting MqttReconnectClient thread')
         self.thread = Thread(target=self._run, name='mqtt-reconnect-client-' + self._clientClientId)
         # Close thread as soon as main thread exits
         self.thread.setDaemon(True)
@@ -287,6 +287,7 @@ class MqttReconnectClient(MqttAsyncClient):
         self.thread.start()
 
     def _stopConnectionThread(self):
+        self.log.info('Stopping MqttReconnectClient thread')
         if self.thread:
             try:
                 self._connectionThreadLooping = False
@@ -349,6 +350,8 @@ class MqttReconnectClient(MqttAsyncClient):
                 # If we should not retry, give up
                 if self._retryInterval == 0:
                     break
+
+        self.log.info(u'Thread: Job done - leaving')
 
         if self.isConnected():
             self.log.info(u'Connected to cloud.iO broker')
