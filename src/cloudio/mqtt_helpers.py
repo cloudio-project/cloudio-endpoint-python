@@ -142,16 +142,17 @@ class MqttAsyncClient():
         :return None
         :rtype: None
         """
-        self._isConnected = False
-
         self._clientLock.acquire()
         # Stop MQTT client if still running
         if self._client:
-            self._client.loop_stop()
             if force_client_disconnect:
                 self._client.on_disconnect = None   # Want get a disconnect callback call
                 self._client.disconnect()
+            self._client.loop_stop()
             self._client = None
+
+        self._isConnected = False
+
         self._clientLock.release()
 
     def isConnected(self):
@@ -270,15 +271,17 @@ class MqttReconnectClient(MqttAsyncClient):
         self.disconnect()
 
     def _startConnectionThread(self):
-        self.log.info('Starting MqttReconnectClient thread')
+        if self.thread is current_thread():
+            # Do not restart myself!
+            self.log.warning('Mqtt client connection thread is me! Not restarting myself!')
+            return
         if self.thread and self.thread.isAlive():
             self.log.warning('Mqtt client connection thread already/still running!')
-            if self.thread is current_thread():
-                # Do not restart myself!
-                return
+            return
 
         self._stopConnectionThread()
 
+        self.log.info('Starting MqttReconnectClient thread')
         self.thread = Thread(target=self._run, name='mqtt-reconnect-client-' + self._clientClientId)
         # Close thread as soon as main thread exits
         self.thread.setDaemon(True)
@@ -287,6 +290,7 @@ class MqttReconnectClient(MqttAsyncClient):
         self.thread.start()
 
     def _stopConnectionThread(self):
+        self.log.info('Stopping MqttReconnectClient thread')
         if self.thread:
             try:
                 self._connectionThreadLooping = False
@@ -349,6 +353,8 @@ class MqttReconnectClient(MqttAsyncClient):
                 # If we should not retry, give up
                 if self._retryInterval == 0:
                     break
+
+        self.log.info(u'Thread: Job done - leaving')
 
         if self.isConnected():
             self.log.info(u'Connected to cloud.iO broker')

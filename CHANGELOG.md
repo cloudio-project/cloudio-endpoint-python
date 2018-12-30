@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.11 - (2018-12-30)
+### Fixed bugs:
+- Improved reconnection procedure. Related to issue [#16](https://github.com/cloudio-project/cloudio-endpoint-python/issues/16)
+
 ## 0.2.10 - (2018-12-22)
 ### Fixed bugs:
 - Better fix for issue [#16](https://github.com/cloudio-project/cloudio-endpoint-python/issues/16)
