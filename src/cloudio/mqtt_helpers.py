@@ -117,6 +117,8 @@ class MqttAsyncClient():
                                      tls_version=tlsVersion,    # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
                                      ciphers=None)              # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
                 self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
+            else:
+                self.log.error('No CA file provided. Connection attempt likely to fail!')
 
             # Check if username and password is provided
             if options._username:
