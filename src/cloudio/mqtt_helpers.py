@@ -109,7 +109,7 @@ class MqttAsyncClient():
                                   options.will['qos'],
                                   options.will['retained'])
         if self._client:
-            if clientCertFile:
+            if options._caFile:
                 port = 8883 # Port with ssl
                 self._client.tls_set(options._caFile,  # CA certificate
                                     certfile=clientCertFile,  # Client certificate
