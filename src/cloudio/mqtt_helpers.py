@@ -112,10 +112,10 @@ class MqttAsyncClient():
             if options._caFile:
                 port = 8883 # Port with ssl
                 self._client.tls_set(options._caFile,  # CA certificate
-                                    certfile=clientCertFile,  # Client certificate
-                                    keyfile=clientKeyFile,  # Client private key
-                                    tls_version=tlsVersion,  # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
-                                    ciphers=None)      # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
+                                     certfile=clientCertFile,   # Client certificate
+                                     keyfile=clientKeyFile,     # Client private key
+                                     tls_version=tlsVersion,    # ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1_2
+                                     ciphers=None)              # None, 'ALL', 'TLSv1.2', 'TLSv1.0'
                 self._client.tls_insecure_set(True)  # True: No verification of the server hostname in the server certificate
 
             # Check if username and password is provided
