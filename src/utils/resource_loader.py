@@ -30,7 +30,7 @@ class ResourceLoader():
                     properties = ConfigObj(filePath)
                     return properties
             elif url.scheme == 'file':
-                    filePath = url.path + filename
+                    filePath = os.path.join(url.path, filename)
                     if os.path.isfile(filePath):
                         properties = ConfigObj(filePath)
                         return properties
