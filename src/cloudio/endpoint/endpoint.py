@@ -313,9 +313,9 @@ class CloudioEndpoint(CloudioNodeContainer):
         # It may not be a good idea to send this data to cloud.iO using
         # the connection thread!
 
-        time.sleep(4)  # Give the clients time to connect to cloud.iO and to setup the mqtt queue
-
         self._endPointIsReady = True
+
+        time.sleep(4)  # Give the clients time to connect to cloud.iO and to setup the mqtt queue
 
     def _onConnectionThreadFinished(self):
         self.log.info('Connection thread finished')

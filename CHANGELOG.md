@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.12 - (2018-02-06)
+### Implemented enhancements:
+- Changed behaviour when Endpoint is ready. Speeds up connection
+### Fixed bugs:
+- Bugfix in utils.ResourceLoader
+
 ## 0.2.11 - (2018-12-30)
 ### Fixed bugs:
 - Improved reconnection procedure. Related to issue [#16](https://github.com/cloudio-project/cloudio-endpoint-python/issues/16)
