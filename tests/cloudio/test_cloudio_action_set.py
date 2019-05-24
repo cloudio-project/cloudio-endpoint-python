@@ -27,7 +27,7 @@ class TestCloudioSetAction(unittest.TestCase):
         self.log.info('Creating cloud.iO model...')
         self.connector.createModel('../config/vacuum-cleaner-model.xml')
 
-        # Get the cloud.iO representation of the vaccum cleaner
+        # Get the cloud.iO representation of the vacuum cleaner
         cloudioVacuumCleaner = self.connector.endpoint.getNode(u'VacuumCleaner')
 
         # Create vacuum cleaner object and associate cloud.iO reference to it
