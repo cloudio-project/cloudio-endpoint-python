@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.13 - (2018-05-24)
+- Small improvements and bug fixes
+
 ## 0.2.12 - (2018-02-06)
 ### Implemented enhancements:
 - Changed behaviour when Endpoint is ready. Speeds up connection
