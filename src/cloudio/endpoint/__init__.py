@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Thomas Sterren'
-__version__ = '0.2.12'
+__version__ = '0.2.13'
 
 import six
 
