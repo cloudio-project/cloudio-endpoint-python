@@ -3,7 +3,12 @@
 
 class PendingUpdate:
     def __init__(self, data):
-        self.data = data
+        if isinstance(data, (bytes, bytearray)):
+            # Convert bytes to string
+            self.data = data.decode('utf-8')
+        else:
+            assert isinstance(data, str), 'Must be a string'
+            self.data = data
 
     def getHeaderBytes(self):
         """Returns the contained data."""
