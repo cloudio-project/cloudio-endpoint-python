@@ -45,5 +45,5 @@ class TestCloudioPendingUpdate(unittest.TestCase):
         """
         compUuid = 'test-vacuum-cleaner/nodes/VacuumCleaner/objects/Parameters/attributes/setThroughput'
         for key in self.keys:
-            uuid = PendingUpdate.getUuidFromPersistenceKey(key)
+            uuid = PendingUpdate.get_uuid_from_persistence_key(key)
             self.assertEqual(uuid, compUuid)

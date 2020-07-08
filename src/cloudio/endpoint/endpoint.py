@@ -343,17 +343,13 @@ class CloudioEndpoint(CloudioNodeContainer):
                         pendingUpdate = self.persistence.get(key)
 
                         if pendingUpdate is not None:
-                            if six.PY3:
-                                # getHeaderBytes() already returns a string. No decode() call necessary
-                                print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes())
-                            else:
-                                print('Copy pers: ' + key + ': ' + pendingUpdate.getHeaderBytes().decode('utf-8'))
+                            print('Copy pers: ' + key + ': ' + pendingUpdate.get_header_bytes())
 
                             # Get the uuid of the endpoint
-                            uuid = pendingUpdate.getUuidFromPersistenceKey(key)
+                            uuid = pendingUpdate.get_uuid_from_persistence_key(key)
 
                             # Try to send the update to the broker and remove it from the storage
-                            if self._client.publish(u'@update/' + uuid, pendingUpdate.getHeaderBytes(), 1, False):
+                            if self._client.publish(u'@update/' + uuid, pendingUpdate.get_header_bytes(), 1, False):
                                 # Remove key from store
                                 self.persistence.remove(key)
                     time.sleep(0)   # Give other threads time to do its job

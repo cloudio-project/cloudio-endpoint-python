@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.14 - (2020-07-08)
+- Bugfix in attributeHasChangedByEndpoint() with PendingUpdate
+- Python3 compatibility
+
 ## 0.2.13 - (2018-05-24)
 - Small improvements and bug fixes
 
