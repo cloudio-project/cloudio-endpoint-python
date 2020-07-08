@@ -571,7 +571,7 @@ class MqttDefaultFilePersistence(MqttClientPersistence):
             persistable = PendingUpdate(persistable)
 
         with open(self._keyFileName(key), mode='wb') as file:
-            file.write(persistable.getHeaderBytes())
+            file.write(persistable.get_header_bytes())
 
     def get(self, key):
         if os.path.exists(self._keyFileName(key)):

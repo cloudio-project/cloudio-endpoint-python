@@ -169,19 +169,19 @@ class TestCloudioPersistanceFile(unittest.TestCase):
 
         # Get data key[0]
         data = self.persistenceFile.get(self.keys[0])
-        self.assertEqual(data.getHeaderBytes(), self.keys[0])
+        self.assertEqual(data.get_header_bytes(), self.keys[0])
 
         # Get data key[9]
         data = self.persistenceFile.get(self.keys[9])
-        self.assertEqual(data.getHeaderBytes(), self.keys[9])
+        self.assertEqual(data.get_header_bytes(), self.keys[9])
 
         # Get data key[3]
         data = self.persistenceFile.get(self.keys[3])
-        self.assertEqual(data.getHeaderBytes(), self.keys[3])
+        self.assertEqual(data.get_header_bytes(), self.keys[3])
 
         # Get data key[8]
         data = self.persistenceFile.get(self.keys[8])
-        self.assertEqual(data.getHeaderBytes(), self.keys[8])
+        self.assertEqual(data.get_header_bytes(), self.keys[8])
 
         # Get none existing data
         data = self.persistenceFile.get(self.keys[keyNbrs + 1])
@@ -300,4 +300,4 @@ class TestCloudioPersistanceFile(unittest.TestCase):
 
         self.persistenceFile.put(self.keys[8], PendingUpdate(self.keys[8]))
 
-        self.assertEqual(self.persistenceFile.get(self.keys[8]).getHeaderBytes(), self.keys[8])
+        self.assertEqual(self.persistenceFile.get(self.keys[8]).get_header_bytes(), self.keys[8])

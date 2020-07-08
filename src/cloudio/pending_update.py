@@ -10,12 +10,12 @@ class PendingUpdate:
             assert isinstance(data, str), 'Must be a string'
             self.data = data
 
-    def getHeaderBytes(self):
+    def get_header_bytes(self):
         """Returns the contained data."""
         return self.data
 
     @classmethod
-    def getUuidFromPersistenceKey(cls, key):
+    def get_uuid_from_persistence_key(cls, key):
         """Extracts the endpoint's uuid from the key used to locally store a cloud.iO message.
         """
         return key[14:key.rfind('-')].replace(';', '/')
