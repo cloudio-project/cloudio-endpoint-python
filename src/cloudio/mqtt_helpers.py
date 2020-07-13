@@ -571,12 +571,14 @@ class MqttDefaultFilePersistence(MqttClientPersistence):
             persistable = PendingUpdate(persistable)
 
         with open(self._keyFileName(key), mode='wb') as file:
-            file.write(persistable.get_header_bytes())
+            # File is opened in binary mode. So bytes need to be stored
+            # Convert str -> bytes
+            file.write(persistable.get_header_bytes().encode('utf-8'))
 
     def get(self, key):
         if os.path.exists(self._keyFileName(key)):
-            with open(self._keyFileName(key), mode='rb') as file:
-                return PendingUpdate(file.read())
+            with open(self._keyFileName(key), mode='rb') as storage_file:
+                return PendingUpdate(storage_file.read())
         return None
 
     def containsKey(self, key):
