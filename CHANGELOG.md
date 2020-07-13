@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.15 - (2020-07-13)
+- Bugfix in MqttDefaultFilePersistence
+
 ## 0.2.14 - (2020-07-08)
 - Bugfix in attributeHasChangedByEndpoint() with PendingUpdate
 - Python3 compatibility
