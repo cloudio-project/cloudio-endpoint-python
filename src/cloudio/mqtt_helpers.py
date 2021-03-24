@@ -277,7 +277,7 @@ class MqttReconnectClient(MqttAsyncClient):
             # Do not restart myself!
             self.log.warning('Mqtt client connection thread is me! Not restarting myself!')
             return
-        if self.thread and self.thread.isAlive():
+        if self.thread and self.thread.is_alive():
             self.log.warning('Mqtt client connection thread already/still running!')
             return
 

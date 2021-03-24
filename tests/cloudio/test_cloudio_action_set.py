@@ -103,7 +103,7 @@ class TestCloudioSetAction(unittest.TestCase):
         # Check if vacuum cleaner model gets notified upon the change
         self.assertEqual(self.vacuumCleaner._identification, newIdent)     # Value not changed in local model
 
-        # Try with an other value
+        # Try with another value
         newIdent = 'My second VC'
         self.vacuumCleanerClient.setIdentification(newIdent)
         # Wait a short time to let to new value propagate
