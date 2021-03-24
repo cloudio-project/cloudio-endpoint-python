@@ -131,7 +131,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                                                 clientId=self.uuid + '-endpoint-',
                                                 clean_session=self.cleanSession,
                                                 options=self.options)
-        #  Register callback method for connection established
+        # Register callback method for connection established
         self._client.setOnConnectedCallback(self._onConnected)
         # Register callback method to be called when receiving a message over MQTT
         self._client.setOnMessageCallback(self._onMessageArrived)
