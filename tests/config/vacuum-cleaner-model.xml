@@ -1,6 +1,6 @@
 <configs>
     <config deviceId="TheVacuumCleaner">
-	<deviceType typeId="VacuumCleaner">
+	<deviceType typeId="VacuumCleanerEndpoint">
 		<object id="Parameters">
 			<attribute id="setIdentification" template="String" constraint="Parameter">
 			</attribute>

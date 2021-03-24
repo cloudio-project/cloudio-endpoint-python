@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os, sys, time
+import os
+import sys
+import time
 import logging
 import json
 import paho.mqtt.client as mqtt
@@ -11,7 +13,8 @@ from cloudio.mqtt_helpers import MqttConnectOptions, MqttReconnectClient
 
 logging.getLogger(__name__).setLevel(logging.INFO)
 
-class VacuumCleanerClient():
+
+class VacuumCleanerClient(object):
     """A cloud.iO client connecting to a vacuum cleaner represented in the cloud.
     """
 
@@ -19,10 +22,10 @@ class VacuumCleanerClient():
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, configFile):
+    def __init__(self, config_file):
         self._isConnected = False
         self._useReconnectClient = True             # Chooses the MQTT client
-        config = self.parseConfigFile(configFile)
+        config = self.parseConfigFile(config_file)
 
         self._qos = int(config['cloudio']['qos'])
 
@@ -44,6 +47,7 @@ class VacuumCleanerClient():
         else:
             self.connectOptions = MqttConnectOptions()
 
+            self.connectOptions._caFile = path_helpers.prettify(config['cloudio']['cert'])
             self.connectOptions._username = config['cloudio']['username']
             self.connectOptions._password = config['cloudio']['password']
 
@@ -52,7 +56,7 @@ class VacuumCleanerClient():
                                                clean_session=False,
                                                options=self.connectOptions)
 
-            # Register callback method for connection established
+            # Register callback method for connection established
             self._client.setOnConnectedCallback(self.onConnected)
             # Register callback method to be called when receiving a message over MQTT
             self._client.setOnMessageCallback(self.onMessage)
@@ -65,17 +69,16 @@ class VacuumCleanerClient():
         else:
             self._client.stop()
 
-    def parseConfigFile(self, configFile):
-        global config
+    def parseConfigFile(self, config_file):
 
         from configobj import ConfigObj
 
         config = None
 
-        pathConfigFile = path_helpers.prettify(configFile)
+        path_config_file = path_helpers.prettify(config_file)
 
-        if pathConfigFile and os.path.isfile(pathConfigFile):
-            config = ConfigObj(pathConfigFile)
+        if path_config_file and os.path.isfile(path_config_file):
+            config = ConfigObj(path_config_file)
 
         if config:
             # Check if most important configuration parameters are present
@@ -85,6 +88,7 @@ class VacuumCleanerClient():
 
             assert 'host' in config['cloudio'], 'Missing \'host\' parameter in cloudio group!'
             assert 'port' in config['cloudio'], 'Missing \'port\' parameter in cloudio group!'
+            assert 'cert' in config['cloudio'], 'Missing \'cert\' parameter in cloudio group!'
             assert 'username' in config['cloudio'], 'Missing \'username\' parameter in cloudio group!'
             assert 'password' in config['cloudio'], 'Missing \'password\' parameter in cloudio group!'
             assert 'subscribe_topics' in config['cloudio'], 'Missing \'subscribe_topics\' parameter in cloudio group!'

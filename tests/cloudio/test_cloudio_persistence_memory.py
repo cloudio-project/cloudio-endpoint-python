@@ -12,8 +12,8 @@ from client.vacuumcleaner_client import VacuumCleanerClient
 class VacuumCleanerTestClient(VacuumCleanerClient):
     """Fake client that hooks into the reception flow to count received messages.
     """
-    def __init__(self, configFile, msgsToReceive):
-        VacuumCleanerClient.__init__(self, configFile)
+    def __init__(self, config_file, msgsToReceive):
+        VacuumCleanerClient.__init__(self, config_file)
 
         self.msgsToReceive = msgsToReceive  # Amount of message the client should receive
         self.receivedMsgCounter = 0         # Received messages counter
