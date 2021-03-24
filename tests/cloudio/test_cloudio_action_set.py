@@ -8,6 +8,8 @@ from connector.vacuumcleaner_connector import VacuumCleanerConnector
 from model.vacuum_cleaner import VacuumCleaner
 from client.vacuumcleaner_client import VacuumCleanerClient
 
+VACUUM_CLEANER_NAME = 'VacuumCleanerEndpoint'
+
 class TestCloudioSetAction(unittest.TestCase):
     """Tests @set action with various attributes.
     """
@@ -28,7 +30,7 @@ class TestCloudioSetAction(unittest.TestCase):
         self.connector.createModel('../config/vacuum-cleaner-model.xml')
 
         # Get the cloud.iO representation of the vacuum cleaner
-        cloudioVacuumCleaner = self.connector.endpoint.getNode(u'VacuumCleaner')
+        cloudioVacuumCleaner = self.connector.endpoint.getNode(VACUUM_CLEANER_NAME)
 
         # Create vacuum cleaner object and associate cloud.iO reference to it
         self.vacuumCleaner = VacuumCleaner()
@@ -87,7 +89,7 @@ class TestCloudioSetAction(unittest.TestCase):
     def test_setActionWithStringParameter(self):
         # Create location stack and get the according cloud.iO attribute
         attrLocation = ['setIdentification', 'attributes', 'Parameters', 'objects']
-        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+        cloudioAttribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attrLocation)
 
         # Change the vacuum cleaner's identification string
         # @set/test-vacuum-cleaner/nodes/VacuumCleaner/objects/Parameters/attributes/setIdentification
@@ -134,7 +136,7 @@ class TestCloudioSetAction(unittest.TestCase):
     def test_setActionWithBooleanParameter(self):
         # Create location stack and get the according cloud.iO attribute
         attrLocation = ['setPowerOn', 'attributes', 'Parameters', 'objects']
-        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+        cloudioAttribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attrLocation)
 
         # Change the vacuum cleaner's power state to 'false'
         newPowerStateValue = False
@@ -231,7 +233,7 @@ class TestCloudioSetAction(unittest.TestCase):
     def test_setActionWithNumberParameter(self):
         # Create location stack and get the according cloud.iO attribute
         attrLocation = ['setThroughput', 'attributes', 'Parameters', 'objects']
-        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+        cloudioAttribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attrLocation)
 
         # Values to test
         throughputs = [100.0, 981.7, 0.0, 200.0, -500.0, 1.0, 1.54, 1800]
@@ -253,7 +255,7 @@ class TestCloudioSetAction(unittest.TestCase):
     def test_setActionWithIntegerParameter(self):
         # Create location stack and get the according cloud.iO attribute
         attrLocation = ['setOperatingMode', 'attributes', 'Parameters', 'objects']
-        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+        cloudioAttribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attrLocation)
 
         # Values to test
         operationModes = [3, 5, 2, -1, 0, 10, 8, 2, -2, 1.0, 1800.1]
