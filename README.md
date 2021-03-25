@@ -3,8 +3,9 @@
 
 Python endpoint (IoT device) library for [cloud.iO](https://cloudio.hevs.ch).
 
-The endpoint has been tested with python version 2.7.x. The code is developed to 
-support also python version 3.x, but has not been tested. 
+The endpoint has been tested with python version 3.x. Support for python version 2.7.x 
+has been removed since v1.0.0. If you still run python v2.x, please use version v0.2.15 
+of this library.
 
 ## Introduction
 
