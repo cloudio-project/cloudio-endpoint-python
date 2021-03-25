@@ -51,7 +51,7 @@ class CloudioRuntimeObject(CloudioObject):
 
         attribute.setParent(self)
         attribute.setName(name)
-        attribute.setType(type)
+        attribute.set_type(type)
 
         # Set attribute constraint
         if constraint:

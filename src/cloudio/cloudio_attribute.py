@@ -163,41 +163,41 @@ class CloudioAttribute(UniqueIdentifiable):
         assert name and name != '', 'Name not valid!'
         self._name = name
 
-    def getValue(self):
+    def get_value(self):
         """Returns the current value of the attribute.
         :return: Attributes current value.
         """
         return self._value
 
-    def setType(self, theType):
+    def set_type(self, the_type):
         """Sets the type of the attribute.
 
         Note that the type of an attribute is not allowed to change over time, so if
         the attribute already has a type, the method fails with an runtime exception.
 
-        :param theType Python type like bool, int, float and str
+        :param the_type Python type like bool, int, float and str
         :type [bool, int, float, str]
         """
         if self._value:
             raise CloudioModificationException(u'The Attribute has already a type (Changing the type is not allowed)!')
 
-        if theType in (types.BooleanType, types.IntType, types.LongType, types.FloatType,
-                       types.StringType, types.UnicodeType):
-            self._value = theType()
+        if the_type in (types.BooleanType, types.IntType, types.LongType, types.FloatType,
+                        types.StringType, types.UnicodeType):
+            self._value = the_type()
 
             # Set cloudio attribute type accordingly
-            if theType == types.BooleanType:
+            if the_type in (types.BooleanType, ):
                 self._type = AttributeType(AttributeType.Boolean)
-            elif theType in (types.IntType, types.LongType):
+            elif the_type in (types.IntType, types.LongType):
                 self._type = AttributeType(AttributeType.Integer)
-            elif theType == types.FloatType:
+            elif the_type in (types.FloatType, ):
                 self._type = AttributeType(AttributeType.Number)
-            elif theType in (types.StringType, types.UnicodeType):
+            elif the_type in (types.StringType, types.UnicodeType):
                 self._type = AttributeType(AttributeType.String)
             else:
                 self._type = AttributeType(AttributeType.Invalid)
         else:
-            raise InvalidCloudioAttributeException(theType)
+            raise InvalidCloudioAttributeException(the_type)
 
     ######################################################################
     # Public API
@@ -244,6 +244,11 @@ class CloudioAttribute(UniqueIdentifiable):
         :type constraint: CloudioAttributeConstraint
         :return:
         """
+
+        # Convert to AttributeConstraint if 'constraint' parameter is a string
+        if isinstance(constraint, str):
+            constraint = AttributeConstraint(constraint)
+
         assert isinstance(constraint, AttributeConstraint), u'Wrong type'
 
         if self._constraint:

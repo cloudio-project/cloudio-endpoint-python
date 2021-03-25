@@ -107,34 +107,34 @@ class CloudioEndpoint(CloudioNodeContainer):
                                            '\'' + persistenceType + '\'')
         # Open peristence storage
         if self.persistence:
-            self.persistence.open(clientId=self.uuid, serverUri=host)
+            self.persistence.open(client_id=self.uuid, server_uri=host)
 
         self.options = mqtt.MqttConnectOptions()
 
         # Last will is a message with the UUID of the endpoint and no payload.
         willMessage = 'DEAD'
-        self.options.setWill(u'@offline/' + uuid, willMessage, 1, False)
+        self.options.set_will(u'@offline/' + uuid, willMessage, 1, False)
 
-        self.options._caFile = configuration.getProperty(self.CERT_AUTHORITY_FILE_PROPERTY, None)
-        self.options._clientCertFile = configuration.getProperty(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
-        self.options._clientKeyFile = configuration.getProperty(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
-        self.options._username = configuration.getProperty('username')
-        self.options._password = configuration.getProperty('password')
-        self.options._tlsVersion = configuration.getProperty(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
+        self.options.caFile = configuration.getProperty(self.CERT_AUTHORITY_FILE_PROPERTY, None)
+        self.options.clientCertFile = configuration.getProperty(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
+        self.options.clientKeyFile = configuration.getProperty(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
+        self.options.username = configuration.getProperty('username')
+        self.options.password = configuration.getProperty('password')
+        self.options.tlsVersion = configuration.getProperty(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
 
         # Make path usable
-        self.options._caFile = path_helpers.prettify(self.options._caFile)
-        self.options._clientCertFile = path_helpers.prettify(self.options._clientCertFile)
-        self.options._clientKeyFile = path_helpers.prettify(self.options._clientKeyFile)
+        self.options.caFile = path_helpers.prettify(self.options.caFile)
+        self.options.clientCertFile = path_helpers.prettify(self.options.clientCertFile)
+        self.options.clientKeyFile = path_helpers.prettify(self.options.clientKeyFile)
 
         self._client = mqtt.MqttReconnectClient(host,
-                                                clientId=self.uuid + '-endpoint-',
+                                                client_id=self.uuid + '-endpoint-',
                                                 clean_session=self.cleanSession,
                                                 options=self.options)
         # Register callback method for connection established
-        self._client.setOnConnectedCallback(self._onConnected)
+        self._client.set_on_connected_callback(self._onConnected)
         # Register callback method to be called when receiving a message over MQTT
-        self._client.setOnMessageCallback(self._onMessageArrived)
+        self._client.set_on_message_callback(self._onMessageArrived)
         # Start the client
         self._client.start()
 
@@ -175,7 +175,7 @@ class CloudioEndpoint(CloudioNodeContainer):
             traceback.print_exc()
 
     def subscribeToSetCommands(self):
-        (result, mid) = self._client.subscribe(u'@set/' + self.getUuid().toString() + '/#', 1)
+        (result, mid) = self._client.subscribe(u'@set/' + self.getUuid().to_string() + '/#', 1)
         return True if result == self._client.MQTT_ERR_SUCCESS else False
 
     def addNode(self, nodeName, clsOrObject):
@@ -202,7 +202,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                 # If the endpoint is online, send node add message
                 if self.isOnline():
                     data = self.messageFormat.serializeNode(node)
-                    self._client.publish(u'@nodeAdded/' + node.getUuid().toString(), data, 1, False)
+                    self._client.publish(u'@nodeAdded/' + node.getUuid().to_string(), data, 1, False)
                 else:
                     self.log.info(u'Not sending \'@nodeAdded\' message. No connection to broker!')
 
@@ -267,7 +267,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         messageQueued = False
         if self.isOnline():
             try:
-                messageQueued = self._client.publish(u'@update/' + attribute.getUuid().toString(), data, 1, False)
+                messageQueued = self._client.publish(u'@update/' + attribute.getUuid().to_string(), data, 1, False)
             except Exception as exception:
                 self.log.error(u'Exception :' + exception.message)
 
@@ -275,7 +275,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         # updates persistence if available.
         if not messageQueued and self.persistence:
             try:
-                self.persistence.put('PendingUpdate-' + attribute.getUuid().toString().replace('/', ';')
+                self.persistence.put('PendingUpdate-' + attribute.getUuid().to_string().replace('/', ';')
                                      + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
                                      PendingUpdate(data))
             except Exception as exception:
@@ -322,7 +322,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.thread = None
 
     def isOnline(self):
-        return self._client.isConnected() and self._endPointIsReady
+        return self._client.is_connected() and self._endPointIsReady
 
     def announce(self):
         # Send birth message
@@ -343,13 +343,13 @@ class CloudioEndpoint(CloudioNodeContainer):
                         pendingUpdate = self.persistence.get(key)
 
                         if pendingUpdate is not None:
-                            print('Copy pers: ' + key + ': ' + pendingUpdate.get_header_bytes())
+                            print('Copy pers: ' + key + ': ' + pendingUpdate.get_data())
 
                             # Get the uuid of the endpoint
                             uuid = pendingUpdate.get_uuid_from_persistence_key(key)
 
                             # Try to send the update to the broker and remove it from the storage
-                            if self._client.publish(u'@update/' + uuid, pendingUpdate.get_header_bytes(), 1, False):
+                            if self._client.publish(u'@update/' + uuid, pendingUpdate.get_data(), 1, False):
                                 # Remove key from store
                                 self.persistence.remove(key)
                     time.sleep(0)   # Give other threads time to do its job

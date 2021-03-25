@@ -9,7 +9,7 @@ class Uuid(object):
     the Uuid interface as return value of the method getUuid().
 
     The only mandatory operation such an Uuid has to offer is to allow it to be compared it with other UUIDs for
-    equality. However it is recommended that the standard Object's toString() method return a unique string as well, in
+    equality. However it is recommended that the standard Object's to_string() method return a unique string as well, in
     order to simplify development and trouble-shooting, but this is not actually required.
 
     see UniqueIdentifiable
@@ -29,7 +29,7 @@ class Uuid(object):
         pass
 
     @abstractmethod
-    def toString(self):
+    def to_string(self):
         """Should return a serialisation of the UUID. Note that the serialisation should be unique too!
 
         :return: Serialized UUID.
@@ -38,7 +38,7 @@ class Uuid(object):
         pass
 
     @abstractmethod
-    def isValid(self):
+    def is_valid(self):
         """Returns true if the UUID holds a valid UUID or false if the UUID should be considered invalid.
 
             :return: True if the UUID is valid, false otherwise.

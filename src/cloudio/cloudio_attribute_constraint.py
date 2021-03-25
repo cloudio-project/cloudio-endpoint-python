@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-class CloudioAttributeConstraint():
+class CloudioAttributeConstraint(object):
     """Defines the different possible attribute constraints.
     """
 
@@ -28,7 +28,7 @@ class CloudioAttributeConstraint():
 
     def __init__(self, value):
 
-        if isinstance(value, str) or isinstance(value, unicode):
+        if isinstance(value, str):
             if value.lower() == 'static':
                 self._value = self.Static
             elif value.lower() == 'parameter':
@@ -46,10 +46,10 @@ class CloudioAttributeConstraint():
         else:
             self._value = self.Invalid
 
-    def getValue(self):
+    def get_value(self):
         return self._value
 
-    def toString(self):
+    def to_string(self):
         if self._value == self.Static:
             return 'Static'
         elif self._value == self.Parameter:
@@ -66,4 +66,4 @@ class CloudioAttributeConstraint():
     def to_json(self, encoder):
         """Pick out the attributes we want to store / publish.
         """
-        return self.toString()
+        return self.to_string()

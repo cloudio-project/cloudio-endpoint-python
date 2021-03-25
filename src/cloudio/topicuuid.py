@@ -3,6 +3,7 @@
 import traceback
 from .interface import uuid
 
+
 class TopicUuid(uuid.Uuid):
     """Topic based Uuid (Universally Unique Identifier)
 
@@ -11,7 +12,7 @@ class TopicUuid(uuid.Uuid):
 
     def __init__(self, cloudIoElement=None):
         # The topic is the UUID for every object
-        self._topic = None  # type: str
+        self._topic = None  # type: str or None
 
         if cloudIoElement:
             from .cloudio_attribute import CloudioAttribute
@@ -39,16 +40,14 @@ class TopicUuid(uuid.Uuid):
         :type other: TopicUuid
         :return:
         """
-        if not self.isValid() or not isinstance(other, TopicUuid) or not other.isValid():
+        if not self.is_valid() or not isinstance(other, TopicUuid) or not other.is_valid():
             return False
         return True if self.topic == other.topic else False
 
+    def is_valid(self):
+        return True if self.topic is not None and self.topic != '' else False
 
-    def isValid(self):
-        return True if self.topic != None and self.topic != '' else False
-
-
-    def toString(self):
+    def to_string(self):
         """
         :return: Serialized TopicUuid.
         :rtype: str

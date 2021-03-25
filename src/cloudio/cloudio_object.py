@@ -57,8 +57,8 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
 
     def __init__(self, externalObject):
         self._externalObject = externalObject
-        self.parent = None      # type: CloudioObjectContainer
-        self.name = None        # type: str
+        self.parent = None      # type: CloudioObjectContainer or None
+        self.name = None        # type: str or None
         self.conforms = None
         self.objects = {}
         self._attributes = {}
@@ -101,10 +101,6 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
     def attributeHasChangedByEndpoint(self, attribute):
         if self.parent:
             self.parent.attributeHasChangedByEndpoint(attribute)
-
-    def attributeHasChangedByCloud(self, attribute):
-        if self.parent:
-            self.parent.attributeHasChangedByCloud(attribute)
 
     def attributeHasChangedByCloud(self, attribute):
         if self.parent:
@@ -212,7 +208,7 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                             attribute.setParent(self)
                             attribute.setStaticValue(attr)
 
-                            topicUuid = attribute.getUuid().toString()
+                            topicUuid = attribute.getUuid().to_string()
                             if topicUuid and not topicUuid in self._attributes:
                                 self._attributes[topicUuid] = attribute
                             else:
