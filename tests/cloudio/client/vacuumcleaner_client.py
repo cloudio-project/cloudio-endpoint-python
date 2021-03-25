@@ -25,7 +25,7 @@ class VacuumCleanerClient(object):
     def __init__(self, config_file):
         self._isConnected = False
         self._useReconnectClient = True             # Chooses the MQTT client
-        config = self.parseConfigFile(config_file)
+        config = self.parse_config_file(config_file)
 
         self._qos = int(config['cloudio']['qos'])
 
@@ -37,9 +37,9 @@ class VacuumCleanerClient(object):
         if not self._useReconnectClient:
             self._client = mqtt.Client()
 
-            self._client.on_connect = self.onConnect
-            self._client.on_disconnect = self.onDisconnect
-            self._client.on_message = self.onMessage
+            self._client.on_connect = self.on_connect
+            self._client.on_disconnect = self.on_disconnect
+            self._client.on_message = self.on_message
 
             self._client.username_pw_set(config['cloudio']['username'], config['cloudio']['password'])
             self._client.connect(config['cloudio']['host'], port=int(config['cloudio']['port']), keepalive=60)
@@ -47,19 +47,19 @@ class VacuumCleanerClient(object):
         else:
             self.connectOptions = MqttConnectOptions()
 
-            self.connectOptions._caFile = path_helpers.prettify(config['cloudio']['cert'])
-            self.connectOptions._username = config['cloudio']['username']
-            self.connectOptions._password = config['cloudio']['password']
+            self.connectOptions.caFile = path_helpers.prettify(config['cloudio']['cert'])
+            self.connectOptions.username = config['cloudio']['username']
+            self.connectOptions.password = config['cloudio']['password']
 
             self._client = MqttReconnectClient(config['cloudio']['host'],
-                                               clientId=self._endPointName + '-client-',
+                                               client_id=self._endPointName + '-client-',
                                                clean_session=False,
                                                options=self.connectOptions)
 
             # Register callback method for connection established
-            self._client.setOnConnectedCallback(self.onConnected)
+            self._client.set_on_connected_callback(self.on_connected)
             # Register callback method to be called when receiving a message over MQTT
-            self._client.setOnMessageCallback(self.onMessage)
+            self._client.set_on_message_callback(self.on_message)
 
             self._client.start()
 
@@ -69,7 +69,8 @@ class VacuumCleanerClient(object):
         else:
             self._client.stop()
 
-    def parseConfigFile(self, config_file):
+    @staticmethod
+    def parse_config_file(config_file):
 
         from configobj import ConfigObj
 
@@ -102,60 +103,68 @@ class VacuumCleanerClient(object):
 
         return config
 
-    def waitUntilConnected(self):
-        while not self.isConnected():
+    def wait_until_connected(self):
+        while not self.is_connected():
             time.sleep(0.2)
 
-    def isConnected(self):
+    def is_connected(self):
         return self._isConnected
 
-    def onConnect(self, client, userdata, flags, rc):
+    def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             self._isConnected = True
-            self._subscribeToUpdatedCommands()
+            self._subscribe_to_updated_commands()
 
-    def onConnected(self):
+    def on_connected(self):
         self._isConnected = True
-        self._subscribeToUpdatedCommands()
+        self._subscribe_to_updated_commands()
 
-    def onDisconnect(self, client, userdata, rc):
+    def on_disconnect(self, client, userdata, rc):
         self.log.info('Disconnect: ' + str(rc))
 
-    def onMessage(self, client, userdata, msg):
+    def on_message(self, client, userdata, msg):
         print('VacuumCleanerClient rxed: ' + msg.topic)
 
-    def _subscribeToUpdatedCommands(self):
+    def _subscribe_to_updated_commands(self):
         (result, mid) = self._client.subscribe(u'@update/' + self._endPointName + '/#', 1)
         return True if result == self.MQTT_ERR_SUCCESS else False
 
-    def setIdentification(self, newIdentification):
-        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + '/objects/Parameters/attributes/setIdentification'
+    def set_identification(self, new_identification):
+        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + \
+                '/objects/Parameters/attributes/set_identification'
 
-        payload = {}
-        payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
-        payload['value'] = newIdentification
+        payload = {
+            'timestamp': datetime_helpers.getCurrentTimestamp(),
+            'value': new_identification
+        }
         self._client.publish(topic, json.dumps(payload), qos=self._qos)
 
-    def setPowerOn(self, powerState=True):
-        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + '/objects/Parameters/attributes/setPowerOn'
+    def set_power_on(self, power_state=True):
+        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + \
+                '/objects/Parameters/attributes/set_power_on'
 
-        payload = {}
-        payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
-        payload['value'] = powerState
+        payload = {
+            'timestamp': datetime_helpers.getCurrentTimestamp(),
+            'value': power_state
+        }
         self._client.publish(topic, json.dumps(payload), qos=self._qos)
 
-    def setThroughput(self, newThroughputValue):
-        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + '/objects/Parameters/attributes/setThroughput'
+    def set_throughput(self, new_throughput_value):
+        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + \
+                '/objects/Parameters/attributes/set_throughput'
 
-        payload = {}
-        payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
-        payload['value'] = newThroughputValue
+        payload = {
+            'timestamp': datetime_helpers.getCurrentTimestamp(),
+            'value': new_throughput_value
+        }
         self._client.publish(topic, json.dumps(payload), qos=self._qos)
 
-    def setOperatingMode(self, newOperatingMode):
-        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + '/objects/Parameters/attributes/setOperatingMode'
+    def set_operating_mode(self, new_operating_mode):
+        topic = '@set/' + self._endPointName + '/nodes/' + self._nodeName + \
+                '/objects/Parameters/attributes/set_operating_mode'
 
-        payload = {}
-        payload['timestamp'] = datetime_helpers.getCurrentTimestamp()
-        payload['value'] = newOperatingMode
+        payload = {
+            'timestamp': datetime_helpers.getCurrentTimestamp(),
+            'value': new_operating_mode
+        }
         self._client.publish(topic, json.dumps(payload), qos=self._qos)

@@ -21,11 +21,11 @@ class TestTopicUuid(unittest.TestCase):
 
     def test_isValidMethod(self):
         t1 = TopicUuid()
-        self.assertFalse(t1.isValid())
+        self.assertFalse(t1.is_valid())
         t1.topic = ''
-        self.assertFalse(t1.isValid())
+        self.assertFalse(t1.is_valid())
         t1.topic = 'Some text'
-        self.assertTrue(t1.isValid())
+        self.assertTrue(t1.is_valid())
 
     def test_equalsMethod(self):
         t1 = TopicUuid()

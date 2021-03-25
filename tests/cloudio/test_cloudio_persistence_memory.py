@@ -9,35 +9,38 @@ from connector.vacuumcleaner_connector import VacuumCleanerConnector
 from model.vacuum_cleaner import VacuumCleaner
 from client.vacuumcleaner_client import VacuumCleanerClient
 
+VACUUM_CLEANER_NAME = 'VacuumCleanerEndpoint'
+
+
 class VacuumCleanerTestClient(VacuumCleanerClient):
     """Fake client that hooks into the reception flow to count received messages.
     """
-    def __init__(self, config_file, msgsToReceive):
+    def __init__(self, config_file, msgs_to_receive):
         VacuumCleanerClient.__init__(self, config_file)
 
-        self.msgsToReceive = msgsToReceive  # Amount of message the client should receive
-        self.receivedMsgCounter = 0         # Received messages counter
+        self.msgsToReceive = msgs_to_receive    # Amount of message the client should receive
+        self.receivedMsgCounter = 0             # Received messages counter
         self.rxedMessages = {}
 
-    def _subscribeToUpdatedCommands(self):
+    def _subscribe_to_updated_commands(self):
         topic = u'@update/' + self._endPointName + '/#'
         print('Subscribing to: ' + topic + ' messages')
         (result, mid) = self._client.subscribe(topic, 1)
         return True if result == self.MQTT_ERR_SUCCESS else False
 
-    def onMessage(self, client, userdata, msg):
-        # The value of the received messages should go from 0 to msgsToReceive
+    def on_message(self, client, userdata, msg):
+        # The value of the received messages should go from 0 to msgs_to_receive
         # Values received are stored in rxedMessages
-        if '@update' in msg.topic and 'setThroughput' in msg.topic:
+        if '@update' in msg.topic and 'set_throughput' in msg.topic:
             self.receivedMsgCounter += 1
             value = json.loads(msg.payload)['value']
             self.rxedMessages[value] = value
             # TODO What about multiples?
 
-    def showMessagesSummary(self):
+    def show_messages_summary(self):
         if self.receivedMsgCounter < self.msgsToReceive:
             for index in range(0, self.msgsToReceive):
-                if not index in self.rxedMessages:
+                if index not in self.rxedMessages:
                     print('Error: Missing message %d' % index)
         elif self.receivedMsgCounter == self.msgsToReceive:
             print('The right amount of messages was received')
@@ -45,14 +48,14 @@ class VacuumCleanerTestClient(VacuumCleanerClient):
             print('Error: More messages then expected received!')
 
 
-class TestCloudioPersistanceMemory(unittest.TestCase):
+class TestCloudioPersistenceMemory(unittest.TestCase):
     """Tests persistence memory feature.
     """
 
     log = logging.getLogger(__name__)
 
     def setUp(self):
-        self.connector = VacuumCleanerConnector('test-vacuum-cleaner')  # Searches for file 'test-vacuum-cleaner.properties'
+        self.connector = VacuumCleanerConnector(VACUUM_CLEANER_NAME)  # Searches file '<VACUUM_CLEANER_NAME>.properties'
         self.cloudioEndPoint = self.connector.endpoint
         self.msgToSend = 70     # How many messages to send
 
@@ -66,17 +69,17 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
         self.connector.createModel('../config/vacuum-cleaner-model.xml')
 
         # Get the cloud.iO representation of the vacuum cleaner
-        cloudioVacuumCleaner = self.connector.endpoint.getNode(u'VacuumCleaner')
+        cloudio_vacuum_cleaner = self.connector.endpoint.getNode(VACUUM_CLEANER_NAME)
 
         # Create vacuum cleaner object and associate cloud.iO reference to it
         self.vacuumCleaner = VacuumCleaner()
-        self.vacuumCleaner.set_cloudio_buddy(cloudioVacuumCleaner)
+        self.vacuumCleaner.set_cloudio_buddy(cloudio_vacuum_cleaner)
 
         # Create CloudioClient that sends the @set commands
         self.vacuumCleanerClient = VacuumCleanerTestClient('~/.config/cloud.io/client/vacuum-cleaner-client.config',
                                                            self.msgToSend)
         self.log.info('Waiting to connect client to cloud.iO...')
-        self.vacuumCleanerClient.waitUntilConnected()
+        self.vacuumCleanerClient.wait_until_connected()
 
         self.log.info('Setup finished')
 
@@ -84,21 +87,22 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
         self.vacuumCleanerClient.close()
         self.connector.close()
 
-    def test_persistanceMemory(self):
+    def test_persistenceMemory(self):
         # Create location stack and get the according cloud.iO attribute
-        attrLocation = ['setThroughput', 'attributes', 'Parameters', 'objects']
-        cloudioAttribute = self.cloudioEndPoint.getNode(u'VacuumCleaner').findAttribute(attrLocation)
+        attr_location = ['set_throughput', 'attributes', 'Parameters', 'objects']
+        cloudio_attribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attr_location)
 
         for i in range(0, self.msgToSend):
-            print('Sending update ' + str(i))
-            cloudioAttribute.setValue(i)
+            print('Sending update ' + str(i + 1))
+            cloudio_attribute.setValue(i)
             time.sleep(.5)
 
         time.sleep(1)
-        # Show summary about received mesages
-        self.vacuumCleanerClient.showMessagesSummary()
+        # Show summary about received messages
+        self.vacuumCleanerClient.show_messages_summary()
         # Check if the update messages send are equal to the messages received by the client
         self.assertEqual(self.msgToSend, self.vacuumCleanerClient.receivedMsgCounter)
+
 
 if __name__ == '__main__':
 

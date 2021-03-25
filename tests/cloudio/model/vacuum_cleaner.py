@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
+
+from cloudio.glue.glue import cloudio_attribute
 from cloudio.interface.attribute_listener import AttributeListener
 
 logging.getLogger(__name__).setLevel(logging.INFO)
@@ -42,13 +44,20 @@ class VacuumCleaner(AttributeListener):
         """
         internal_attribute_name = self._convert_to_internal_attribute_name(attribute_name)
 
-        setattr(self, internal_attribute_name, cloudio_attribute.getValue())
+        setattr(self, internal_attribute_name, cloudio_attribute.get_value())
 
     @staticmethod
     def _convert_to_internal_attribute_name(cloudio_attribute_name):
         internal_attribute_name = cloudio_attribute_name
         if cloudio_attribute_name.startswith('set'):
-            internal_attribute_name = '_' + cloudio_attribute_name[3:3 + 1].lower() + cloudio_attribute_name[4:]
+        #    internal_attribute_name = '_' + cloudio_attribute_name[4:4 + 1].lower() + cloudio_attribute_name[5:]
+            internal_attribute_name = cloudio_attribute_name[3:]     # Remove 'set'
+            words = list(filter(None, internal_attribute_name.split('_')))
+            internal_attribute_name = ''.join((map(lambda x: x.capitalize(), words)))
+
+            internal_attribute_name = internal_attribute_name[0].lower() + internal_attribute_name[1:]
+            internal_attribute_name = '_' + internal_attribute_name
+
         return internal_attribute_name
 
     def attribute_has_changed(self, attribute):
@@ -62,10 +71,10 @@ class VacuumCleaner(AttributeListener):
         :param attribute Attribute that has changed.
         """
         internal_attribute_name = self._convert_to_internal_attribute_name(attribute.getName())
-        print('VacuumCleaner attr changed: ' + str(attribute.getValue()))
+        print('VacuumCleaner attr changed: ' + str(attribute.get_value()))
 
         # Check if we have an attribute with the same name
         if hasattr(self, internal_attribute_name):
-            setattr(self, internal_attribute_name, attribute.getValue())
+            setattr(self, internal_attribute_name, attribute.get_value())
         else:
             self.log.warning('Attribute \'' + internal_attribute_name + '\' not found in ' + self.__class__.__name__)

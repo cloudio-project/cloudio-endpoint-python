@@ -40,7 +40,7 @@ class TestCloudioSetAction(unittest.TestCase):
         # Create CloudioClient that sends the @set commands
         self.vacuumCleanerClient = VacuumCleanerClient('~/.config/cloud.io/client/vacuum-cleaner-client.config')
         self.log.info('Waiting to connect client to cloud.iO...')
-        self.vacuumCleanerClient.waitUntilConnected()
+        self.vacuumCleanerClient.wait_until_connected()
 
         self.log.info('Setup finished')
 
@@ -60,7 +60,7 @@ class TestCloudioSetAction(unittest.TestCase):
         while wait_time > 0:
             time.sleep(decr_value)
             wait_time -= decr_value
-            if cloudio_attribute.getValue() == new_value:
+            if cloudio_attribute.get_value() == new_value:
                 result = True
                 break
 
@@ -91,18 +91,18 @@ class TestCloudioSetAction(unittest.TestCase):
     # @unittest.skip('because adding a new test')
     def test_setActionWithStringParameter(self):
         # Create location stack and get the according cloud.iO attribute
-        attr_location = ['setIdentification', 'attributes', 'Parameters', 'objects']
+        attr_location = ['set_identification', 'attributes', 'Parameters', 'objects']
         cloudio_attribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attr_location)
 
         # Change the vacuum cleaner's identification string
-        # @set/test-vacuum-cleaner/nodes/VacuumCleaner/objects/Parameters/attributes/setIdentification
+        # @set/test-vacuum-cleaner/nodes/VacuumCleaner/objects/Parameters/attributes/set_identification
         new_ident = 'My first VC'
-        self.vacuumCleanerClient.setIdentification(new_ident)
+        self.vacuumCleanerClient.set_identification(new_ident)
 
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_ident)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == new_ident)            # Value not changed in the cloud
+        self.assertTrue(cloudio_attribute.get_value() == new_ident)            # Value not changed in the cloud
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._identification, new_ident)
         # Check if vacuum cleaner model gets notified upon the change
@@ -110,11 +110,11 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # Try with another value
         new_ident = 'My second VC'
-        self.vacuumCleanerClient.setIdentification(new_ident)
+        self.vacuumCleanerClient.set_identification(new_ident)
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_ident)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == new_ident)
+        self.assertTrue(cloudio_attribute.get_value() == new_ident)
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._identification, new_ident)
         # Check if vacuum cleaner model gets notified upon the change
@@ -122,11 +122,11 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # ... and one more
         new_ident = 'My only VC'
-        self.vacuumCleanerClient.setIdentification(new_ident)
+        self.vacuumCleanerClient.set_identification(new_ident)
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_ident)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == new_ident)
+        self.assertTrue(cloudio_attribute.get_value() == new_ident)
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._identification, new_ident)
         # Check if vacuum cleaner model gets notified upon the change
@@ -138,17 +138,17 @@ class TestCloudioSetAction(unittest.TestCase):
     # @unittest.skip('because adding a new test')
     def test_setActionWithBooleanParameter(self):
         # Create location stack and get the according cloud.iO attribute
-        attr_location = ['setPowerOn', 'attributes', 'Parameters', 'objects']
+        attr_location = ['set_power_on', 'attributes', 'Parameters', 'objects']
         cloudio_attribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attr_location)
 
         # Change the vacuum cleaner's power state to 'false'
         new_power_state_value = False
-        self.vacuumCleanerClient.setPowerOn(new_power_state_value)
+        self.vacuumCleanerClient.set_power_on(new_power_state_value)
 
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_power_state_value)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == new_power_state_value)  # Value not changed in the cloud
+        self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)  # Value not changed in the cloud
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
@@ -156,12 +156,12 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # Change the vacuum cleaner's power state to 'true'
         new_power_state_value = True
-        self.vacuumCleanerClient.setPowerOn(new_power_state_value)
+        self.vacuumCleanerClient.set_power_on(new_power_state_value)
 
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_power_state_value)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == new_power_state_value)
+        self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
@@ -169,12 +169,12 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # ... and again to 'false'
         new_power_state_value = False
-        self.vacuumCleanerClient.setPowerOn(new_power_state_value)
+        self.vacuumCleanerClient.set_power_on(new_power_state_value)
 
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_power_state_value)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == new_power_state_value)
+        self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
@@ -182,12 +182,12 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # ... and what's with 1
         new_power_state_value = 1
-        self.vacuumCleanerClient.setPowerOn(new_power_state_value)
+        self.vacuumCleanerClient.set_power_on(new_power_state_value)
 
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_power_state_value)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == new_power_state_value)
+        self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
@@ -195,12 +195,12 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # ... and with 0
         new_power_state_value = 0
-        self.vacuumCleanerClient.setPowerOn(new_power_state_value)
+        self.vacuumCleanerClient.set_power_on(new_power_state_value)
 
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_power_state_value)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == new_power_state_value)
+        self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
@@ -208,12 +208,12 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # ... and what's with '1'
         new_power_state_value = '1'
-        self.vacuumCleanerClient.setPowerOn(new_power_state_value)
+        self.vacuumCleanerClient.set_power_on(new_power_state_value)
 
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_power_state_value)
         # Check if changes are updated in the cloud
-        self.assertTrue(cloudio_attribute.getValue() == bool(new_power_state_value))
+        self.assertTrue(cloudio_attribute.get_value() == bool(new_power_state_value))
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
@@ -221,13 +221,13 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # ... and with '0'
         new_power_state_value = '0'
-        self.vacuumCleanerClient.setPowerOn(new_power_state_value)
+        self.vacuumCleanerClient.set_power_on(new_power_state_value)
 
         # Wait a short time to let to new value propagate
         self._waitCloudioAttributeToChange(cloudio_attribute, new_power_state_value)
         # Check if changes are updated in the cloud
         comp_val = False if (new_power_state_value == '0') else True
-        self.assertTrue(cloudio_attribute.getValue() == comp_val)
+        self.assertTrue(cloudio_attribute.get_value() == comp_val)
         # Wait for the model attribute to change
         self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
@@ -236,7 +236,7 @@ class TestCloudioSetAction(unittest.TestCase):
     # @unittest.skip('because adding a new test')
     def test_setActionWithNumberParameter(self):
         # Create location stack and get the according cloud.iO attribute
-        attr_location = ['setThroughput', 'attributes', 'Parameters', 'objects']
+        attr_location = ['set_throughput', 'attributes', 'Parameters', 'objects']
         cloudio_attribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attr_location)
 
         # Values to test
@@ -244,12 +244,12 @@ class TestCloudioSetAction(unittest.TestCase):
 
         for newThroughput in throughputs:
             # Change the vacuum cleaner's throughput
-            self.vacuumCleanerClient.setThroughput(newThroughput)
+            self.vacuumCleanerClient.set_throughput(newThroughput)
 
             # Wait a short time to let to new value propagate
             self._waitCloudioAttributeToChange(cloudio_attribute, newThroughput)
             # Check if changes are updated in the cloud
-            self.assertEqual(cloudio_attribute.getValue(), newThroughput)       # Value not changed in the cloud
+            self.assertEqual(cloudio_attribute.get_value(), newThroughput)       # Value not changed in the cloud
             # Wait for the model attribute to change
             self._waitModelAttributeToChange(self.vacuumCleaner._throughput, newThroughput)
             # Check if vacuum cleaner model gets notified upon the change
@@ -258,7 +258,7 @@ class TestCloudioSetAction(unittest.TestCase):
     # @unittest.skip('because adding a new test')
     def test_setActionWithIntegerParameter(self):
         # Create location stack and get the according cloud.iO attribute
-        attr_location = ['setOperatingMode', 'attributes', 'Parameters', 'objects']
+        attr_location = ['set_operating_mode', 'attributes', 'Parameters', 'objects']
         cloudio_attribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attr_location)
 
         # Values to test
@@ -266,12 +266,12 @@ class TestCloudioSetAction(unittest.TestCase):
 
         for newOperationMode in operation_modes:
             # Change the vacuum cleaner's operation mode
-            self.vacuumCleanerClient.setOperatingMode(newOperationMode)
+            self.vacuumCleanerClient.set_operating_mode(newOperationMode)
 
             # Wait a short time to let to new value propagate
             self._waitCloudioAttributeToChange(cloudio_attribute, newOperationMode)
             # Check if changes are updated in the cloud
-            self.assertEqual(cloudio_attribute.getValue(), int(newOperationMode))
+            self.assertEqual(cloudio_attribute.get_value(), int(newOperationMode))
             # Wait for the model attribute to change
             self._waitModelAttributeToChange(self.vacuumCleaner._operatingMode, int(newOperationMode))
             # Check if vacuum cleaner model gets notified upon the change
