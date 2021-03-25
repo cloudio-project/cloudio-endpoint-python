@@ -13,7 +13,7 @@ class AttributeListener(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def attributeHasChanged(self, attribute):
+    def attribute_has_changed(self, attribute):
         """This method is called upon an attribute has been changed.
 
         :param attribute Attribute that has changed.

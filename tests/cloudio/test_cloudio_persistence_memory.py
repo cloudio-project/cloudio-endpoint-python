@@ -70,7 +70,7 @@ class TestCloudioPersistanceMemory(unittest.TestCase):
 
         # Create vacuum cleaner object and associate cloud.iO reference to it
         self.vacuumCleaner = VacuumCleaner()
-        self.vacuumCleaner.setCloudioBuddy(cloudioVacuumCleaner)
+        self.vacuumCleaner.set_cloudio_buddy(cloudioVacuumCleaner)
 
         # Create CloudioClient that sends the @set commands
         self.vacuumCleanerClient = VacuumCleanerTestClient('~/.config/cloud.io/client/vacuum-cleaner-client.config',

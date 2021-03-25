@@ -35,7 +35,7 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # Create vacuum cleaner object and associate cloud.iO reference to it
         self.vacuumCleaner = VacuumCleaner()
-        self.vacuumCleaner.setCloudioBuddy(cloudio_vacuum_cleaner)
+        self.vacuumCleaner.set_cloudio_buddy(cloudio_vacuum_cleaner)
 
         # Create CloudioClient that sends the @set commands
         self.vacuumCleanerClient = VacuumCleanerClient('~/.config/cloud.io/client/vacuum-cleaner-client.config')
@@ -84,7 +84,7 @@ class TestCloudioSetAction(unittest.TestCase):
 
         return result
 
-    @unittest.skip('because adding a new test')
+    # @unittest.skip('because adding a new test')
     def test_objectAttributes(self):
         self.assertTrue(hasattr(self.vacuumCleaner, '_identification'))
 
@@ -255,7 +255,7 @@ class TestCloudioSetAction(unittest.TestCase):
             # Check if vacuum cleaner model gets notified upon the change
             self.assertEqual(self.vacuumCleaner._throughput, newThroughput)    # Value not changed in local model
 
-    @unittest.skip('because adding a new test')
+    # @unittest.skip('because adding a new test')
     def test_setActionWithIntegerParameter(self):
         # Create location stack and get the according cloud.iO attribute
         attr_location = ['setOperatingMode', 'attributes', 'Parameters', 'objects']

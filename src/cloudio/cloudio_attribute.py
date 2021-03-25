@@ -107,7 +107,7 @@ class CloudioAttribute(UniqueIdentifiable):
         if self._listeners is not None:
             for listener in self._listeners:
                 # noinspection unchecked
-                listener.attributeHasChanged(self)
+                listener.attribute_has_changed(self)
         else:
             self.log.warning('No listeners connected to attribute \"' + self.getName() + '\"!')
 
