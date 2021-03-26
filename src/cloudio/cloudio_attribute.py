@@ -3,7 +3,6 @@
 import logging
 from .topicuuid import TopicUuid
 from cloudio.interface.unique_identifiable import UniqueIdentifiable
-from cloudio.interface.attribute_container import CloudioAttributeContainer
 from cloudio.interface.attribute_listener import AttributeListener
 from cloudio.exception.cloudio_modification_exception import CloudioModificationException
 from cloudio.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
@@ -12,6 +11,7 @@ from cloudio.cloudio_attribute_constraint import CloudioAttributeConstraint as A
 import utils.py_version_compatibility as types
 import utils.timestamp as TimeStampProvider
 
+
 class CloudioAttribute(UniqueIdentifiable):
     """The leaf information in the cloud.io data model
     """
@@ -19,16 +19,16 @@ class CloudioAttribute(UniqueIdentifiable):
     log = logging.getLogger(__name__)
 
     def __init__(self):
-        self._name = None           # type: str
+        self._name = None           # type: str or None
         self._parent = None
-        self._topicUuid = None      # type: TopicUuid
+        self._topicUuid = None      # type: TopicUuid or None
         self._constraint = None
-        self._type = None           # type: AttributeType
+        self._type = None           # type: AttributeType or None
         self._timestamp = None
-        self._value = None          # type: dynamic
-        self._listeners = None      # type: list[AttributeListener]
+        self._value = None          # type: bool or int or float or str or None
+        self._listeners = None      # type: list[AttributeListener] or None
 
-    def addListener(self, listener):
+    def add_listener(self, listener):
         """Adds the given listener to the list of listeners that will get informed about a change of the attribute.
 
         :param listener: Reference to the object implementing the AttributeListener interface to add.
@@ -42,7 +42,7 @@ class CloudioAttribute(UniqueIdentifiable):
             # Finally add the listener
             self._listeners.append(listener)
 
-    def removeListener(self, listener):
+    def remove_listener(self, listener):
         """Removes the given listener from the list of listeners.
 
         :param listener: Reference to the object implementing the AttributeListener interface to remove.
@@ -54,13 +54,13 @@ class CloudioAttribute(UniqueIdentifiable):
     ######################################################################
     # UniqueIdentifiable implementation
     #
-    def getUuid(self):
+    def get_uuid(self):
         if not self._topicUuid:
             self._topicUuid = TopicUuid(self)
 
         return self._topicUuid
 
-    def setValue(self, value, timestamp=None):
+    def set_value(self, value, timestamp=None):
         if not timestamp:
             timestamp = TimeStampProvider.getTimeInMilliseconds()
 
@@ -68,15 +68,15 @@ class CloudioAttribute(UniqueIdentifiable):
 
         # Update value
         self._timestamp = timestamp
-        self._setValueWithTypeCheck(value)
+        self._set_value_with_type_check(value)
 
         # Send change to cloud.
-        if self.getParent():
-            self.getParent().attributeHasChangedByEndpoint(self)
+        if self.get_parent():
+            self.get_parent().attribute_has_changed_by_endpoint(self)
 
         # TODO Inform all registered listeners.
 
-    def setValueFromCloud(self, value, timestamp):
+    def set_value_from_cloud(self, value, timestamp):
         """Updates the value from the cloud.
 
          Note that this method should not be used by endpoints, as it guarantees
@@ -97,11 +97,11 @@ class CloudioAttribute(UniqueIdentifiable):
 
         # Update the value
         self._timestamp = timestamp
-        self._setValueWithTypeCheck(value)
+        self._set_value_with_type_check(value)
 
         # Notify the cloud.
         if self._parent is not None:
-            self._parent.attributeHasChangedByCloud(self)
+            self._parent.attribute_has_changed_by_cloud(self)
 
         # Notify all listeners.
         if self._listeners is not None:
@@ -109,11 +109,11 @@ class CloudioAttribute(UniqueIdentifiable):
                 # noinspection unchecked
                 listener.attribute_has_changed(self)
         else:
-            self.log.warning('No listeners connected to attribute \"' + self.getName() + '\"!')
+            self.log.warning('No listeners connected to attribute \"' + self.get_name() + '\"!')
 
         return True
 
-    def _setValueWithTypeCheck(self, value):
+    def _set_value_with_type_check(self, value):
         """Assigns a new value and checks the rvalue type.
         """
         if self._type == AttributeType.Boolean:
@@ -127,37 +127,37 @@ class CloudioAttribute(UniqueIdentifiable):
             self._value = value
         else:
             self.log.warning('Need to assign value which has unsupported type!')
+            self.set_type(type(value))  # Try to set the type
             self._value = value
 
-    def getType(self):
+    def get_type(self):
         """Returns the actual type of the attribute."""
         if self._type is not None:
             return self._type.type
         else:
-            self.log.warning('Deprecated call to getType()!')
-            return AttributeType.fromRawType(type(self._value))
+            self.log.warning('Deprecated call to get_type()!')
+            return AttributeType.from_raw_type(type(self._value))
 
-
-    def getTypeAsString(self):
+    def get_type_as_string(self):
         """Returns the actual type of the attribute as a string."""
         if self._type is not None:
-            return self._type.toString()
+            return self._type.to_string()
         else:
-            self.log.warning('Deprecated call to getTypeAsString()!')
-            AttributeType.fromRawTypeToString(type(self._value))
+            self.log.warning('Deprecated call to get_type_as_string()!')
+            AttributeType.from_raw_type_to_string(type(self._value))
 
     ######################################################################
     # Named item implementation
     #
-    def getName(self):
+    def get_name(self):
         return self._name
 
-    def setName(self, name):
+    def set_name(self, name):
         """
         :type name: str
         """
         # If the attribute already has a name (we are renaming the attribute) then fail with a runtime exception.
-        if self._name != None:
+        if self._name is not None:
             raise CloudioModificationException('The Attribute has already a name (Renaming attributes is forbidden)!')
 
         assert name and name != '', 'Name not valid!'
@@ -169,7 +169,7 @@ class CloudioAttribute(UniqueIdentifiable):
         """
         return self._value
 
-    def set_type(self, the_type):
+    def set_type(self, the_type: [bool, int, float, str]):
         """Sets the type of the attribute.
 
         Note that the type of an attribute is not allowed to change over time, so if
@@ -179,7 +179,7 @@ class CloudioAttribute(UniqueIdentifiable):
         :type [bool, int, float, str]
         """
         if self._value:
-            raise CloudioModificationException(u'The Attribute has already a type (Changing the type is not allowed)!')
+            raise CloudioModificationException('The Attribute has already a type (Changing the type is not allowed)!')
 
         if the_type in (types.BooleanType, types.IntType, types.LongType, types.FloatType,
                         types.StringType, types.UnicodeType):
@@ -202,10 +202,10 @@ class CloudioAttribute(UniqueIdentifiable):
     ######################################################################
     # Public API
     #
-    def getTimestamp(self):
+    def get_timestamp(self):
         return self._timestamp
 
-    def setStaticValue(self, value):
+    def set_static_value(self, value):
         """Initializes the static value
 
         This can be only done using static attributes (@StaticAttribute or @Static).
@@ -216,14 +216,14 @@ class CloudioAttribute(UniqueIdentifiable):
         :return:
         """
         # TODO Check constraint
-        #self._constraint.endpointWillChangeStatic()
+        # self._constraint.endpointWillChangeStatic()
 
-        self._setValueWithTypeCheck(value)
+        self._set_value_with_type_check(value)
 
-    def getParent(self):
+    def get_parent(self):
         return self._parent
 
-    def setParent(self, parent):
+    def set_parent(self, parent):
         """Sets the parent of the attribute. Note that attributes can not be moved, so this method throws a runtime
            exception if someone tries to move the attribute to a new parent.
         """
@@ -231,13 +231,13 @@ class CloudioAttribute(UniqueIdentifiable):
         if self._parent:
             raise CloudioModificationException('The parent of an Attribute can never be changed ' +
                                                '(Attributes can not be moved)!')
-        #assert isinstance(parent, CloudioAttributeContainer), u'Wrong type for parent attribute!'
+        # assert isinstance(parent, CloudioAttributeContainer), 'Wrong type for parent attribute!'
         self._parent = parent
 
-    def getConstraint(self):
+    def get_constraint(self):
         return self._constraint
 
-    def setConstraint(self, constraint):
+    def set_constraint(self, constraint):
         """
 
         :param constraint:
@@ -249,7 +249,7 @@ class CloudioAttribute(UniqueIdentifiable):
         if isinstance(constraint, str):
             constraint = AttributeConstraint(constraint)
 
-        assert isinstance(constraint, AttributeConstraint), u'Wrong type'
+        assert isinstance(constraint, AttributeConstraint), 'Wrong type'
 
         if self._constraint:
             raise CloudioModificationException('The Attribute has already a constraint ' +
@@ -260,18 +260,16 @@ class CloudioAttribute(UniqueIdentifiable):
     def to_json(self, encoder):
         """Pick out the attributes we want to store / publish.
         """
-        attrDict = {}
+        attr_dict = {
+            'type': AttributeType.from_raw_type_to_string(self._value),
+            'value': self._value,
+            'constraint': self._constraint
+        }
 
         # Name should not be added for @online message
-        #attrDict['name'] = self._name
+        # attr_dict['name'] = self._name
 
         # Get the type of the value and convert it to cloud.io attribute type
-        attrDict['type'] = AttributeType.fromRawTypeToString(self._value)
-        attrDict['value'] = self._value
-        #attrDict['timestamp'] = self._timestamp
-        attrDict['constraint'] = self._constraint
+        # attr_dict['timestamp'] = self._timestamp
 
-        return encoder.default(attrDict)
-
-
-
+        return encoder.default(attr_dict)

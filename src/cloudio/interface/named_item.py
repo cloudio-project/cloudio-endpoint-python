@@ -2,13 +2,14 @@
 
 from abc import ABCMeta, abstractmethod
 
+
 class NamedItem(object):
     """An object owning a name.
     """
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def getName(self):
+    def get_name(self):
         """Returns the name of the item.
 
         :return: Name of item
@@ -17,7 +18,7 @@ class NamedItem(object):
         pass
 
     @abstractmethod
-    def setName(self, name):
+    def set_name(self, name):
         """
         Sets the local name of the item. Note that items can not be renamed, so this method should throw a runtime
         exception if someone tries to rename the item.

@@ -70,13 +70,13 @@ class MqttAsyncClient(object):
         if options.caFile:
             # Check if file exists
             if not os.path.isfile(options.caFile):
-                raise RuntimeError(u'CA file \'%s\' does not exist!' % options.caFile)
+                raise RuntimeError('CA file \'%s\' does not exist!' % options.caFile)
 
         client_cert_file = None
         if options.clientCertFile:
             # Check if file exists
             if not os.path.isfile(options.clientCertFile):
-                raise RuntimeError(u'Client certificate file \'%s\' does not exist!' % options.clientCertFile)
+                raise RuntimeError('Client certificate file \'%s\' does not exist!' % options.clientCertFile)
             else:
                 client_cert_file = options.clientCertFile
 
@@ -84,7 +84,7 @@ class MqttAsyncClient(object):
         if options.clientKeyFile:
             # Check if file exists
             if not os.path.isfile(options.clientKeyFile):
-                raise RuntimeError(u'Client private key file \'%s\' does not exist!' % options.clientKeyFile)
+                raise RuntimeError('Client private key file \'%s\' does not exist!' % options.clientKeyFile)
             else:
                 client_key_file = options.clientKeyFile
 
@@ -163,22 +163,22 @@ class MqttAsyncClient(object):
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             self._isConnected = True
-            self.log.info(u'Connection to cloud.iO broker established')
+            self.log.info('Connection to cloud.iO broker established')
             if self._onConnectCallback:
                 self._onConnectCallback()
         else:
             if rc == 1:
-                self.log.error(u'Connection refused - incorrect protocol version')
+                self.log.error('Connection refused - incorrect protocol version')
             elif rc == 2:
-                self.log.error(u'Connection refused - invalid client identifier')
+                self.log.error('Connection refused - invalid client identifier')
             elif rc == 3:
-                self.log.error(u'Connection refused - server unavailable')
+                self.log.error('Connection refused - server unavailable')
             elif rc == 4:
-                self.log.error(u'Connection refused - bad username or password')
+                self.log.error('Connection refused - bad username or password')
             elif rc == 5:
-                self.log.error(u'Connection refused - not authorised')
+                self.log.error('Connection refused - not authorised')
             else:
-                self.log.error(u'Connection refused - unknown reason')
+                self.log.error('Connection refused - unknown reason')
 
     def on_disconnect(self, client, userdata, rc):
         self.log.info('Disconnect: %d' % rc)
@@ -253,10 +253,10 @@ class MqttReconnectClient(MqttAsyncClient):
         MqttAsyncClient.set_on_disconnect_callback(self, self._on_disconnect)
 
     def set_on_connect_callback(self, on_connect):
-        assert False, u'Not allowed in this class!'
+        assert False, 'Not allowed in this class!'
 
     def set_on_disconnect_callback(self, on_disconnect):
-        assert False, u'Not allowed in this class!'
+        assert False, 'Not allowed in this class!'
 
     def set_on_connected_callback(self, on_connected_callback):
         self._onConnectedCallback = on_connected_callback
@@ -323,7 +323,7 @@ class MqttReconnectClient(MqttAsyncClient):
     def _run(self):
         """Called by the internal thread"""
 
-        self.log.info(u'Mqtt client reconnect thread running...')
+        self.log.info('Mqtt client reconnect thread running...')
 
         # Close any previous connection
         self.disconnect()
@@ -331,11 +331,11 @@ class MqttReconnectClient(MqttAsyncClient):
         while not self.is_connected() and self._connectionThreadLooping:
             try:
                 self._connectTimeoutEvent.clear()  # Reset connect timeout event prior to connect
-                self.log.info(u'Trying to connect to cloud.iO...')
+                self.log.info('Trying to connect to cloud.iO...')
                 self.connect(self._options)
             except Exception:
                 traceback.print_exc()
-                self.log.warning(u'Error during broker connect!')
+                self.log.warning('Error during broker connect!')
                 # Force disconnection of MQTT client
                 self.disconnect(force_client_disconnect=False)
                 # Do not exit here. Continue to try to connect
@@ -356,10 +356,10 @@ class MqttReconnectClient(MqttAsyncClient):
                 if self._retryInterval == 0:
                     break
 
-        self.log.info(u'Thread: Job done - leaving')
+        self.log.info('Thread: Job done - leaving')
 
         if self.is_connected():
-            self.log.info(u'Connected to cloud.iO broker')
+            self.log.info('Connected to cloud.iO broker')
 
             # Tell subscriber we are connected
             self._on_connected()

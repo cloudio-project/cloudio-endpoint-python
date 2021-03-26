@@ -5,68 +5,68 @@ from .cloudio_object import CloudioObject
 from .cloudio_attribute import CloudioAttribute
 from .cloudio_attribute_constraint import CloudioAttributeConstraint
 
+
 class CloudioRuntimeObject(CloudioObject):
     def __init__(self):
-        CloudioObject.__init__(self)
-        pass
+        super(CloudioRuntimeObject, self).__init__()
 
-    def getObject(self, name):
+    def get_object(self, name):
         """Returns the object with the given name or null if no object with the given name is part of the object.
         """
         return self._internal.objects[name]
 
-    def addObject(self, name, clsOrObject):
+    def add_object(self, name, cls_or_object):
         """Adds an object (or an object of the given class) with the given name to the runtime object."""
-        if self._internal.isNodeRegisteredWithinEndpoint():
-            raise CloudioModificationException(u'A CloudioRuntimeObject\'s structure can only be modified before' +
-                                               u' it is registered within the endpoint!')
+        if self._internal.is_node_registered_within_endpoint():
+            raise CloudioModificationException('A CloudioRuntimeObject\'s structure can only be modified before' +
+                                               ' it is registered within the endpoint!')
 
         # Check if parameter is a class
-        if not isinstance(clsOrObject, CloudioObject):
+        if not isinstance(cls_or_object, CloudioObject):
             # Create an object of that class
-            cls = clsOrObject
+            cls = cls_or_object
             obj = cls()  # Create an object of that class
-            self.addObject(name, obj)
+            self.add_object(name, obj)
             return obj
         else:
             # We have an CloudioObject to add to the node
-            object = clsOrObject
-            object._internal.setParentObjectContainer(self)
-            object._internal.setName(name)
+            obj = cls_or_object
+            obj._internal.set_parent_object_container(self)
+            obj._internal.set_name(name)
 
             # Add object to the objects container
-            assert not name in self._internal.objects, u'Object with given name already present!'
-            self._internal.objects[name] = object
+            assert name not in self._internal.objects, 'Object with given name already present!'
+            self._internal.objects[name] = obj
 
-    def getAttribute(self, name):
-        return self._internal.getAttributes()[name]
+    def get_attribute(self, name):
+        return self._internal.get_attributes()[name]
 
-    def addAttribute(self, name, type, constraint=None, initialValue=None):
-        if self._internal.isNodeRegisteredWithinEndpoint():
-            raise CloudioModificationException(u'A CloudioRuntimeObject\'s structure can only be modified before' +
-                                               u' it is registered within the endpoint!')
+    def add_attribute(self, name, atype, constraint=None, initial_value=None):
+        if self._internal.is_node_registered_within_endpoint():
+            raise CloudioModificationException('A CloudioRuntimeObject\'s structure can only be modified before' +
+                                               ' it is registered within the endpoint!')
 
         # Create cloud.iO attribute
         attribute = CloudioAttribute()
 
-        attribute.setParent(self)
-        attribute.setName(name)
-        attribute.set_type(type)
+        attribute.set_parent(self)
+        attribute.set_name(name)
+        attribute.set_type(atype)
 
         # Set attribute constraint
         if constraint:
             if isinstance(constraint, CloudioAttributeConstraint):
-                attribute.setConstraint(constraint)
+                attribute.set_constraint(constraint)
             else:
-                assert isinstance(constraint, str) or isinstance(constraint, unicode), 'Wrong type'
-                attribute.setConstraint(CloudioAttributeConstraint(constraint))
+                assert isinstance(constraint, str), 'Wrong type'
+                attribute.set_constraint(CloudioAttributeConstraint(constraint))
         else:
-            attribute.setConstraint(CloudioAttributeConstraint('Invalid'))
+            attribute.set_constraint(CloudioAttributeConstraint('Invalid'))
 
-        if initialValue:
-            attribute.setValue(initialValue)
+        if initial_value:
+            attribute.set_value(initial_value)
 
-        assert not name in self._internal._attributes, u'Attribute with given name already present!'
+        assert name not in self._internal._attributes, 'Attribute with given name already present!'
         self._internal._attributes[name] = attribute
 
         return attribute

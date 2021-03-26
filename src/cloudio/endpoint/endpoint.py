@@ -43,6 +43,7 @@ logging.getLogger(__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ER
 
 logging.getLogger(__name__).info('cloudio-endpoint-python version: %s' % version)
 
+
 class CloudioEndpoint(CloudioNodeContainer):
     """The cloud.iO endpoint.
 
@@ -50,19 +51,19 @@ class CloudioEndpoint(CloudioNodeContainer):
     """
 
     # Constants ######################################################################################
-    MQTT_HOST_URI_PROPERTY    = u'ch.hevs.cloudio.endpoint.hostUri'
-    MQTT_PERSISTENCE_MEMORY   = u'memory'
-    MQTT_PERSISTENCE_FILE     = u'file'
-    MQTT_PERSISTENCE_NONE     = u'none'
-    MQTT_PERSISTENCE_PROPERTY = u'ch.hevs.cloudio.endpoint.persistence'
-    MQTT_PERSISTENCE_DEFAULT  = MQTT_PERSISTENCE_FILE
-    MQTT_PERSISTENCE_LOCATION = u'ch.hevs.cloudio.endpoint.persistenceLocation'
+    MQTT_HOST_URI_PROPERTY = 'ch.hevs.cloudio.endpoint.hostUri'
+    MQTT_PERSISTENCE_MEMORY = 'memory'
+    MQTT_PERSISTENCE_FILE = 'file'
+    MQTT_PERSISTENCE_NONE = 'none'
+    MQTT_PERSISTENCE_PROPERTY = 'ch.hevs.cloudio.endpoint.persistence'
+    MQTT_PERSISTENCE_DEFAULT = MQTT_PERSISTENCE_FILE
+    MQTT_PERSISTENCE_LOCATION = 'ch.hevs.cloudio.endpoint.persistenceLocation'
 
-    CERT_AUTHORITY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.authorityCert'
-    ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.version'    # tlsv1.0 or tlsv1.2
-    ENDPOINT_IDENTITY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.clientCert'        # PKCS12 based file (*.p12)
-    ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.clientCert'   # (*.pem)
-    ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = u'ch.hevs.cloudio.endpoint.ssl.clientKey'     # (*.pem)
+    CERT_AUTHORITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.authorityCert'
+    ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.version'     # tlsv1.0 or tlsv1.2
+    ENDPOINT_IDENTITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'         # PKCS12 based file (*.p12)
+    ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'    # (*.pem)
+    ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientKey'      # (*.pem)
 
     log = logging.getLogger(__name__)
 
@@ -70,10 +71,10 @@ class CloudioEndpoint(CloudioNodeContainer):
         self._endPointIsReady = False               # Set to true after connection and subscription
 
         self.uuid = uuid            # type: str
-        self.nodes = {}             # type: dict as CloudioNode
+        self.nodes = {}             # type: dict[CloudioNode]
         self.cleanSession = True
         self.messageFormat = None   # type: CloudioMessageFormat
-        self.persistence = None     # type MqttClientPersistence
+        self.persistence = None     # type: MqttClientPersistence
 
         self.log.debug('Creating Endpoint %s' % uuid)
 
@@ -88,16 +89,16 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.messageFormat = JsonMessageFormat()
 
         # Check if 'host' property is present in config file
-        host = configuration.getProperty(self.MQTT_HOST_URI_PROPERTY)
+        host = configuration.get_property(self.MQTT_HOST_URI_PROPERTY)
         if host == '':
             exit('Missing mandatory property "' + self.MQTT_HOST_URI_PROPERTY + '"')
 
         # Create persistence object.
-        persistenceType = configuration.getProperty(self.MQTT_PERSISTENCE_PROPERTY, self.MQTT_PERSISTENCE_DEFAULT)
+        persistenceType = configuration.get_property(self.MQTT_PERSISTENCE_PROPERTY, self.MQTT_PERSISTENCE_DEFAULT)
         if persistenceType == self.MQTT_PERSISTENCE_MEMORY:
             self.persistence = mqtt.MemoryPersistence()
         elif persistenceType == self.MQTT_PERSISTENCE_FILE:
-            persistenceLocation = configuration.getProperty(self.MQTT_PERSISTENCE_LOCATION)
+            persistenceLocation = configuration.get_property(self.MQTT_PERSISTENCE_LOCATION)
             self.persistence = mqtt.MqttDefaultFilePersistence(directory=persistenceLocation)
         elif persistenceType == self.MQTT_PERSISTENCE_NONE:
             self.persistence = None
@@ -113,14 +114,14 @@ class CloudioEndpoint(CloudioNodeContainer):
 
         # Last will is a message with the UUID of the endpoint and no payload.
         willMessage = 'DEAD'
-        self.options.set_will(u'@offline/' + uuid, willMessage, 1, False)
+        self.options.set_will('@offline/' + uuid, willMessage, 1, False)
 
-        self.options.caFile = configuration.getProperty(self.CERT_AUTHORITY_FILE_PROPERTY, None)
-        self.options.clientCertFile = configuration.getProperty(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
-        self.options.clientKeyFile = configuration.getProperty(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
-        self.options.username = configuration.getProperty('username')
-        self.options.password = configuration.getProperty('password')
-        self.options.tlsVersion = configuration.getProperty(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
+        self.options.caFile = configuration.get_property(self.CERT_AUTHORITY_FILE_PROPERTY, None)
+        self.options.clientCertFile = configuration.get_property(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
+        self.options.clientKeyFile = configuration.get_property(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
+        self.options.username = configuration.get_property('username')
+        self.options.password = configuration.get_property('password')
+        self.options.tlsVersion = configuration.get_property(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
 
         # Make path usable
         self.options.caFile = path_helpers.prettify(self.options.caFile)
@@ -171,11 +172,11 @@ class CloudioEndpoint(CloudioNodeContainer):
             else:
                 self.log.error('Method \"' + action + '\" not supported!')
         except Exception as exception:
-            self.log.error(u'Exception :' + exception.message)
+            self.log.error('Exception :' + exception.message)
             traceback.print_exc()
 
     def subscribeToSetCommands(self):
-        (result, mid) = self._client.subscribe(u'@set/' + self.getUuid().to_string() + '/#', 1)
+        (result, mid) = self._client.subscribe('@set/' + self.get_uuid().to_string() + '/#', 1)
         return True if result == self._client.MQTT_ERR_SUCCESS else False
 
     def addNode(self, nodeName, clsOrObject):
@@ -189,22 +190,22 @@ class CloudioEndpoint(CloudioNodeContainer):
                 node = clsOrObject
                 pass  # All right. We have the needed object
             else:
-                raise RuntimeError(u'Wrong cloud.iO object type')
+                raise RuntimeError('Wrong cloud.iO object type')
 
             if node:
                 # We got an object
-                node.setName(nodeName)
-                node.setParentNodeContainer(self)
+                node.set_name(nodeName)
+                node.set_parent_node_container(self)
 
-                assert not nodeName in self.nodes, u'Node with given name already present!'
+                assert not nodeName in self.nodes, 'Node with given name already present!'
                 self.nodes[nodeName] = node
 
                 # If the endpoint is online, send node add message
                 if self.isOnline():
-                    data = self.messageFormat.serializeNode(node)
-                    self._client.publish(u'@nodeAdded/' + node.getUuid().to_string(), data, 1, False)
+                    data = self.messageFormat.serialize_node(node)
+                    self._client.publish('@nodeAdded/' + node.get_uuid().to_string(), data, 1, False)
                 else:
-                    self.log.info(u'Not sending \'@nodeAdded\' message. No connection to broker!')
+                    self.log.info('Not sending \'@nodeAdded\' message. No connection to broker!')
 
     def getNode(self, nodeName):
         """Returns the node identified by the given name
@@ -232,12 +233,12 @@ class CloudioEndpoint(CloudioNodeContainer):
             if node:
                 location.pop()
                 # Get the attribute reference
-                attribute = node.findAttribute(location)
+                attribute = node.find_attribute(location)
                 if attribute:
                     # Deserialize the message into the attribute
-                    messageFormat.deserializeAttribute(data, attribute)
+                    messageFormat.deserialize_attribute(data, attribute)
                 else:
-                    self.log.error('Attribute \"' + location[0] + '\" in node \"' + node.getName() + '\" not found!')
+                    self.log.error('Attribute \"' + location[0] + '\" in node \"' + node.get_name() + '\" not found!')
             else:
                 self.log.error('Node \"' + location.pop() + '\" not found!')
         else:
@@ -246,40 +247,40 @@ class CloudioEndpoint(CloudioNodeContainer):
     ######################################################################
     # Interface implementations
     #
-    def getUuid(self):
+    def get_uuid(self):
         return TopicUuid(self)
 
-    def getName(self):
+    def get_name(self):
         return self.uuid
 
-    def setName(self, name):
-        raise CloudioModificationException(u'CloudioEndpoint name can not be changed!')
+    def set_name(self, name):
+        raise CloudioModificationException('CloudioEndpoint name can not be changed!')
 
-    def attributeHasChangedByEndpoint(self, attribute):
+    def attribute_has_changed_by_endpoint(self, attribute):
         """
         :param attribute:
         :type attribute: CloudioAttribute
         :return:
         """
         # Create the MQTT message using the given message format.
-        data = self.messageFormat.serializeAttribute(attribute)
+        data = self.messageFormat.serialize_attribute(attribute)
 
         messageQueued = False
         if self.isOnline():
             try:
-                messageQueued = self._client.publish(u'@update/' + attribute.getUuid().to_string(), data, 1, False)
+                messageQueued = self._client.publish('@update/' + attribute.get_uuid().to_string(), data, 1, False)
             except Exception as exception:
-                self.log.error(u'Exception :' + exception.message)
+                self.log.error('Exception :' + exception.message)
 
         # If the message could not be send for any reason, add the message to the pending
         # updates persistence if available.
         if not messageQueued and self.persistence:
             try:
-                self.persistence.put('PendingUpdate-' + attribute.getUuid().to_string().replace('/', ';')
+                self.persistence.put('PendingUpdate-' + attribute.get_uuid().to_string().replace('/', ';')
                                      + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
                                      PendingUpdate(data))
             except Exception as exception:
-                self.log.error(u'Exception :' + exception.message)
+                self.log.error('Exception :' + exception.message)
                 traceback.print_exc()
 
         # Check if there are messages in the persistence store to send
@@ -287,7 +288,7 @@ class CloudioEndpoint(CloudioNodeContainer):
             # Try to send stored messages to cloud.iO
             self._purgePersistentDataStore()
 
-    def attributeHasChangedByCloud(self, attribute):
+    def attribute_has_changed_by_cloud(self, attribute):
         """Informs the endpoint that an underlying attribute has changed (initiated from the cloud).
 
         Attribute changes initiated from the cloud (@set) are directly received
@@ -326,9 +327,9 @@ class CloudioEndpoint(CloudioNodeContainer):
 
     def announce(self):
         # Send birth message
-        self.log.info(u'Sending birth message...')
-        strMessage = self.messageFormat.serializeEndpoint(self)
-        self._client.publish(u'@online/' + self.uuid, strMessage, 1, True)
+        self.log.info('Sending birth message...')
+        strMessage = self.messageFormat.serialize_endpoint(self)
+        self._client.publish('@online/' + self.uuid, strMessage, 1, True)
 
     def _purgePersistentDataStore(self):
         """Tries to send stored messages to cloud.iO.
@@ -349,7 +350,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                             uuid = pendingUpdate.get_uuid_from_persistence_key(key)
 
                             # Try to send the update to the broker and remove it from the storage
-                            if self._client.publish(u'@update/' + uuid, pendingUpdate.get_data(), 1, False):
+                            if self._client.publish('@update/' + uuid, pendingUpdate.get_data(), 1, False):
                                 # Remove key from store
                                 self.persistence.remove(key)
                     time.sleep(0)   # Give other threads time to do its job

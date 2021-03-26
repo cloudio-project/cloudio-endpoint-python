@@ -2,11 +2,12 @@
 
 from abc import ABCMeta, abstractmethod
 
+
 class Uuid(object):
     """Interface to represent an object as a uuid (Universally Unique Identifier).
 
     An object implementing the UniqueIdentifiable interface has to return an object implementing
-    the Uuid interface as return value of the method getUuid().
+    the Uuid interface as return value of the method get_uuid().
 
     The only mandatory operation such an Uuid has to offer is to allow it to be compared it with other UUIDs for
     equality. However it is recommended that the standard Object's to_string() method return a unique string as well, in

@@ -5,6 +5,7 @@ from ..endpoint import *
 from ..cloudio_node import CloudioNode
 from ..cloudio_attribute import CloudioAttribute
 
+
 class CloudioMessageFormat(object):
     """
     The CloudioMessageFormat interface declares the methods that are used by the {@link CloudioEndpoint}
@@ -13,7 +14,7 @@ class CloudioMessageFormat(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def serializeEndpoint(self, endpoint):
+    def serialize_endpoint(self, endpoint):
         """A CloudioMessageFormat implementation should return the encoded payload of the serialization of the
            given endpoint.
 
@@ -25,7 +26,7 @@ class CloudioMessageFormat(object):
         pass
 
     @abstractmethod
-    def serializeNode(self, node):
+    def serialize_node(self, node):
         """A CloudioMessageFormat implementation should return the encoded payload of the serialization of the
            given node.
 
@@ -37,7 +38,7 @@ class CloudioMessageFormat(object):
         pass
 
     @abstractmethod
-    def serializeAttribute(self, attribute):
+    def serialize_attribute(self, attribute):
         """A CloudioMessageFormat implementation should return the encoded payload of the serialization of the
            given attribute.
 
@@ -49,7 +50,7 @@ class CloudioMessageFormat(object):
         pass
 
     @abstractmethod
-    def deserializeAttribute(self, data, attribute):
+    def deserialize_attribute(self, data, attribute):
         """A CloudioMessageFormat implementation should parse the data payload and update the given attribute
            according to the data.
 

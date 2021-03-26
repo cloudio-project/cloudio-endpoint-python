@@ -1,54 +1,55 @@
 # -*- coding: utf-8 -*-
 
 from cloudio.exception.invalid_cloudio_attribute_type_exception import InvalidCloudioAttributeTypeException
-import utils.py_version_compatibility as types
 
-class CloudioAttributeType():
+
+class CloudioAttributeType(object):
     """Identifies the different data types of attributes currently supported by cloud.io.
     """
     Invalid = 0     # Invalid data type
     Boolean = 1     # The attribute's value is of type boolean
     Integer = 2     # The attribute's value is of type short, int or long
-    Number  = 3     # The attribute's value is of type float or double
-    String  = 4     # The attribute's value is of type String
+    Number = 3      # The attribute's value is of type float or double
+    String = 4      # The attribute's value is of type String
 
-    def __init__(self, cloudioAttributeType):
+    def __init__(self, cloudio_attribute_type):
+        super(CloudioAttributeType, self).__init__()
         # Check if parameter is valid and yell otherwise
-        if cloudioAttributeType in (self.Invalid, self.Boolean, self.Integer, self.Number, self.String):
-            self._type = cloudioAttributeType
+        if cloudio_attribute_type in (self.Invalid, self.Boolean, self.Integer, self.Number, self.String):
+            self._type = cloudio_attribute_type
         else:
-            raise InvalidCloudioAttributeTypeException(cloudioAttributeType)
+            raise InvalidCloudioAttributeTypeException(cloudio_attribute_type)
 
     @classmethod
-    def fromRawType(cls, rawType):
+    def from_raw_type(cls, raw_type) -> int:
         """Converts a standard type to its cloud.iO type representation.
+        :raw_type The standard type to convert from.
         :return The corresponding cloud.iO type.
-        :type CloudioAttributeType
         """
-        if isinstance(rawType, bool) or rawType == types.BooleanType:
+        if isinstance(raw_type, bool):
             return cls.Boolean
-        elif isinstance(rawType, types.IntType) or rawType == types.IntType:
+        elif isinstance(raw_type, int):
             return cls.Integer
-        elif isinstance(rawType, float) or rawType == types.FloatType:
+        elif isinstance(raw_type, float):
             return cls.Number
-        elif isinstance(rawType, str) or rawType in (types.StringType, types.UnicodeType):
+        elif isinstance(raw_type, str) or isinstance(raw_type, bytes):
             return cls.String
         else:
             return cls.Invalid
 
     @classmethod
-    def fromRawTypeToString(cls, rawType):
+    def from_raw_type_to_string(cls, raw_type) -> str:
         """Converts a standard type to a string.
+        :raw_type The standard type to convert from.
         :return The type represented as a string.
-        :type str
         """
-        if isinstance(rawType, bool) or rawType == types.BooleanType:
+        if isinstance(raw_type, bool):
             return 'Boolean'
-        elif isinstance(rawType, types.IntType) or rawType == types.IntType:
+        elif isinstance(raw_type, int):
             return 'Integer'
-        elif isinstance(rawType, float) or rawType == types.FloatType:
+        elif isinstance(raw_type, float):
             return 'Number'
-        elif isinstance(rawType, str) or rawType in (types.StringType, types.UnicodeType):
+        elif isinstance(raw_type, str) or isinstance(raw_type, bytes):
             return 'String'
         else:
             return 'Invalid'
@@ -57,10 +58,9 @@ class CloudioAttributeType():
     def type(self):
         return self._type
 
-    def toString(self):
+    def to_string(self) -> str:
         """Converts CloudioAttributeType to string.
         :return The type in string format
-        :type str
         """
         if self._type == self.Boolean:
             return 'Boolean'

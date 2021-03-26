@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import types
 from .interface.object_container import CloudioObjectContainer
 from .exception.cloudio_modification_exception import CloudioModificationException
 from .topicuuid import TopicUuid
@@ -9,17 +8,18 @@ from .cloudio_object import CloudioObject
 
 class CloudioNode(CloudioObjectContainer):
     def __init__(self):
+        super(CloudioNode, self).__init__()
         self.parent = None
         self.name = None
         self.interfaces = {}
-        self.objects = {}           # type: {CloudioObject}
+        self.objects = {}           # type: dict[CloudioObject]
 
-        self._updateCloudioObjects()
+        self._update_cloudio_objects()
 
         # TODO Implement add to annotation
-        self._addImplementedInterfaceToAnnotation()
+        self._add_implemented_interface_to_annotation()
 
-    def _updateCloudioObjects(self):
+    def _update_cloudio_objects(self):
         # Check each field of the actual node
         for field in dir(self):
             # Check if it is an attribute and ...
@@ -28,20 +28,20 @@ class CloudioNode(CloudioObjectContainer):
                 if isinstance(attr, CloudioObject):
                     print('Node: Got an attribute based on an CloudioObject class')
 
-    def _addImplementedInterfaceToAnnotation(self):
+    def _add_implemented_interface_to_annotation(self):
         pass
 
     ######################################################################
     # Interface implementations
     #
-    def getUuid(self):
+    def get_uuid(self):
         # TODO Store topic uuid as attribute
         return TopicUuid(self)
 
-    def getName(self):
+    def get_name(self):
         return self.name
 
-    def setName(self, name):
+    def set_name(self, name):
         # If the node already has a name (we are renaming the node)
         # then fail with a runtime exception.
         if self.name:
@@ -50,13 +50,13 @@ class CloudioNode(CloudioObjectContainer):
         # Set the local name
         self.name = name
 
-    def getObjects(self):
+    def get_objects(self):
         return self.objects
 
-    def getParentNodeContainer(self):
+    def get_parent_node_container(self):
         return self.parent
 
-    def setParentNodeContainer(self, nodeContainer):
+    def set_parent_node_container(self, node_container):
         # If the object already has a parent (we are moving the object)
         # then fail with a runtime exception.
         if self.parent:
@@ -64,26 +64,26 @@ class CloudioNode(CloudioObjectContainer):
                                                '(Nodes can not be moved)!')
 
         # Set the parent
-        self.parent = nodeContainer
+        self.parent = node_container
 
-    def getParentObjectContainer(self):
+    def get_parent_object_container(self):
         return None
 
-    def setParentObjectContainer(self, objectContainer):
+    def set_parent_object_container(self, object_container):
         raise CloudioModificationException('A node can not have an object container as parent!')
 
-    def attributeHasChangedByEndpoint(self, attribute):
+    def attribute_has_changed_by_endpoint(self, attribute):
         if self.parent:
-            self.parent.attributeHasChangedByEndpoint(attribute)
+            self.parent.attribute_has_changed_by_endpoint(attribute)
 
-    def attributeHasChangedByCloud(self, attribute):
+    def attribute_has_changed_by_cloud(self, attribute):
         if self.parent:
-            self.parent.attributeHasChangedByCloud(attribute)
+            self.parent.attribute_has_changed_by_cloud(attribute)
 
-    def isNodeRegisteredWithinEndpoint(self):
-        return self.parent and self.parent.isNodeRegisteredWithinEndpoint()
+    def is_node_registered_within_endpoint(self):
+        return self.parent and self.parent.is_node_registered_within_endpoint()
 
-    def findAttribute(self, location):
+    def find_attribute(self, location):
         """Searches for an attribute.
 
         :param location: List containing the 'topic levels' constructed out of the topic uuid identifying the attribute.
@@ -93,31 +93,30 @@ class CloudioNode(CloudioObjectContainer):
         """
         if location:
             if len(location) > 0:
-                if location[-1] == u'objects':      # Compare with the last element
+                if location[-1] == 'objects':      # Compare with the last element
                     location.pop()     # Remove last item (peek item)
                     if len(location) > 0:
-                        if location[-1] in self.getObjects():
+                        if location[-1] in self.get_objects():
                             # Get object from container (dictionary) by key
-                            obj = self.getObjects()[location.pop()]
+                            obj = self.get_objects()[location.pop()]
                             if obj:
-                                return obj.findAttribute(location)
+                                return obj.find_attribute(location)
         return None
 
-    def findObject(self, location):
+    def find_object(self, location) -> CloudioObject or None:
         """Searches for object.
 
         :param location: List containing the 'topic levels' constructed out of the topic uuid identifying the attribute.
         :type location [str]
         :return: The cloudio object found or None
-        :rtype CloudioObject
         """
         if location:
             if len(location) > 0:
-                if location[-1] == u'objects':  # Compare with the last element
+                if location[-1] == 'objects':  # Compare with the last element
                     location.pop()  # Remove last item (peek item)
                     if len(location) > 0:
-                        if location[-1] in self.getObjects():
+                        if location[-1] in self.get_objects():
                             # Get object from container (dictionary) by key
-                            obj = self.getObjects()[location.pop()]
+                            obj = self.get_objects()[location.pop()]
                             return obj
         return None

@@ -9,7 +9,7 @@ from .cloudio_attribute import CloudioAttribute
 from .topicuuid import TopicUuid
 
 
-class CloudioObject():
+class CloudioObject(object):
     """Base class for all cloud.iO objects.
 
     An object can either contain attributes (CloudioAttribute, @StaticAttribute) or child
@@ -19,44 +19,44 @@ class CloudioObject():
     a scheme what attributes and child objects an object has to have. An object is conform to such a scheme if it
     matches exactly the structure of the class. It can not contain more attributes or child objects, then it would be
     not anymore conform to that class.
-
-    Todo: Add example code.
-
     """
     def __init__(self):
+        super(CloudioObject, self).__init__()
         self._internal = _InternalObject(self)
 
-    def getName(self):
-        return self._internal.getName()
+    def get_name(self):
+        return self._internal.get_name()
 
-    def setName(self, name):
-        self._internal.setName(name)
+    def set_name(self, name):
+        self._internal.set_name(name)
 
-    def findAttribute(self, location):
-        return self._internal.findAttribute(location)
+    def find_attribute(self, location):
+        return self._internal.find_attribute(location)
 
-    def findObject(self, location):
-        return self._internal.findObject(location)
+    def find_object(self, location):
+        return self._internal.find_object(location)
 
-    def getAttributes(self):
-        return self._internal.getAttributes()
+    def get_attributes(self):
+        return self._internal.get_attributes()
 
-    def attributeHasChangedByEndpoint(self, attribute):
-        self._internal.attributeHasChangedByEndpoint(attribute)
+    def attribute_has_changed_by_endpoint(self, attribute):
+        self._internal.attribute_has_changed_by_endpoint(attribute)
 
-    def attributeHasChangedByCloud(self, attribute):
-        self._internal.attributeHasChangedByCloud(attribute)
+    def attribute_has_changed_by_cloud(self, attribute):
+        self._internal.attribute_has_changed_by_cloud(attribute)
 
-    def isNodeRegisteredWithinEndpoint(self):
-        return self._internal.isNodeRegisteredWithinEndpoint()
+    def is_node_registered_within_endpoint(self):
+        return self._internal.is_node_registered_within_endpoint()
 
-    def getParentObjectContainer(self):
-        return self._internal.getParentObjectContainer()
+    def get_parent_object_container(self):
+        return self._internal.get_parent_object_container()
+
 
 class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
 
-    def __init__(self, externalObject):
-        self._externalObject = externalObject
+    def __init__(self, external_object):
+        super(_InternalObject, self).__init__()
+        self._externalObject = external_object
         self.parent = None      # type: CloudioObjectContainer or None
         self.name = None        # type: str or None
         self.conforms = None
@@ -65,9 +65,9 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         self._staticAttributesAdded = False
 
         # Check each field of the actual CloudioObject object.
-        for field in dir(externalObject):
-            # Check if it is an attribute and go get it
-            attr = getattr(externalObject, field)
+#        for field in dir(external_object):
+#            # Check if it is an attribute and go get it
+#            attr = getattr(external_object, field)
 #           if attr:
 #               if isinstance(attr, CloudioObject):
 #                  print('Got an attribute based on an CloudioObject class')
@@ -76,20 +76,20 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
 #               else:
 #                   print('Got an attribute with non-relevant type')
 
-    def getExternalObject(self):
+    def get_external_object(self):
         return self._externalObject
 
     ######################################################################
     # Interface implementations
     #
-    def getUuid(self):
+    def get_uuid(self):
         # TODO Store topic uuid as attribute
         return TopicUuid(self)
 
-    def getName(self):
+    def get_name(self):
         return self.name
 
-    def setName(self, name):
+    def set_name(self, name):
         # If the object already has a name (we are renaming the object)
         # then fail with a runtime exception.
         if self.name:
@@ -98,21 +98,21 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         # Set the local name
         self.name = name
 
-    def attributeHasChangedByEndpoint(self, attribute):
+    def attribute_has_changed_by_endpoint(self, attribute):
         if self.parent:
-            self.parent.attributeHasChangedByEndpoint(attribute)
+            self.parent.attribute_has_changed_by_endpoint(attribute)
 
-    def attributeHasChangedByCloud(self, attribute):
+    def attribute_has_changed_by_cloud(self, attribute):
         if self.parent:
-            self.parent.attributeHasChangedByCloud(attribute)
+            self.parent.attribute_has_changed_by_cloud(attribute)
 
-    def isNodeRegisteredWithinEndpoint(self):
-        return self.parent and self.parent.isNodeRegisteredWithinEndpoint()
+    def is_node_registered_within_endpoint(self):
+        return self.parent and self.parent.is_node_registered_within_endpoint()
 
-    def getObjects(self):
+    def get_objects(self):
         return self.objects
 
-    def setParentObjectContainer(self, objectContainer):
+    def set_parent_object_container(self, object_container):
         # If the object already has a parent (we are moving the object)
         # then fail with a runtime exception.
         if self.parent:
@@ -120,18 +120,18 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                                                '(Objects can not be moved)!')
 
         # Set the parent
-        self.parent = objectContainer
+        self.parent = object_container
 
-    def getParentNodeContainer(self):
+    def get_parent_node_container(self):
         return None
 
-    def getParentObjectContainer(self):
+    def get_parent_object_container(self):
         return self.parent
 
-    def setParentNodeContainer(self, nodeContainer):
-        raise CloudioModificationException(u'As this is not a node, it can not be embedded into a node container!')
+    def set_parent_node_container(self, node_container):
+        raise CloudioModificationException('As this is not a node, it can not be embedded into a node container!')
 
-    def findAttribute(self, location):
+    def find_attribute(self, location) -> CloudioAttribute or None:
         """Searches for an attribute.
 
         :param location: List containing the 'topic levels' constructed out of the topic uuid identifying the attribute.
@@ -140,24 +140,24 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         """
         if location:
             if len(location) > 0:
-                if location[-1] == u'objects':  # Compare with last element (peek element)
+                if location[-1] == 'objects':  # Compare with last element (peek element)
                     location.pop()     # Remove last item
                     if len(location) > 0:
-                        if location[-1] in self.getObjects():
-                            object = self.getObjects()[location.pop()]
-                            if object:
-                                return object.findAttribute(location)
-                elif location[-1] == u'attributes':
-                    self.getAttributes()    # Update attributes list
+                        if location[-1] in self.get_objects():
+                            obj = self.get_objects()[location.pop()]
+                            if obj:
+                                return obj.find_attribute(location)
+                elif location[-1] == 'attributes':
+                    self.get_attributes()    # Update attributes list
                     location.pop()         # Remove last item
                     if len(location) > 0:
-                        if location[-1] in self.getAttributes():
-                            attribute = self.getAttributes()[location.pop()]
+                        if location[-1] in self.get_attributes():
+                            attribute = self.get_attributes()[location.pop()]
                             if attribute:
                                 return attribute
         return None
 
-    def findObject(self, location):
+    def find_object(self, location):
         """Searches for an object.
 
         :param location: List containing the 'topic levels' constructed out of the topic uuid identifying the object.
@@ -166,19 +166,19 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         """
         if location:
             if len(location) > 0:
-                if location[-1] == u'objects':  # Compare with last element (peek element)
+                if location[-1] == 'objects':  # Compare with last element (peek element)
                     location.pop()     # Remove last item
                     if len(location) > 0:
-                        if location[-1] in self.getObjects():
-                            object = self.getObjects()[location.pop()]
-                            return object
-                elif location[-1] == u'attributes':
-                    object = self.getAttributes()    # Update attributes list
+                        if location[-1] in self.get_objects():
+                            obj = self.get_objects()[location.pop()]
+                            return obj
+                elif location[-1] == 'attributes':
+                    obj = self.get_attributes()       # Update attributes list
                     location.pop()         # Remove last item
-                    return object
+                    return obj
         return None
 
-    def getAttributes(self):
+    def get_attributes(self):
         """Returns the contained attributes in this object as a list
         :return A dictionary of attributes
         :rtype {CloudioAttribute}
@@ -195,28 +195,28 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                     # with a standard type)
                     #
                     # Check if it is a bool, int, float, string
-                    if isinstance(attr, types.BooleanType)  or \
-                       isinstance(attr, types.IntType)   or \
+                    if isinstance(attr, types.BooleanType) or \
+                       isinstance(attr, types.IntType) or \
                        isinstance(attr, types.FloatType) or \
                        isinstance(attr, types.StringType) or \
                        isinstance(attr, types.UnicodeType):
 
                         if field not in ('__module__', '__doc__'):  # Some excludes:
                             attribute = CloudioAttribute()
-                            attribute.setConstraint('static')
-                            attribute.setName(field)
-                            attribute.setParent(self)
-                            attribute.setStaticValue(attr)
+                            attribute.set_constraint('static')
+                            attribute.set_name(field)
+                            attribute.set_parent(self)
+                            attribute.set_static_value(attr)
 
-                            topicUuid = attribute.getUuid().to_string()
-                            if topicUuid and not topicUuid in self._attributes:
+                            topicUuid = attribute.get_uuid().to_string()
+                            if topicUuid and topicUuid not in self._attributes:
                                 self._attributes[topicUuid] = attribute
                             else:
                                 raise CloudioModificationException('Duplicate name for fields')
 
                     elif isinstance(attr, types.MethodType) or \
-                         type(attr) or \
-                         isinstance(attr, _InternalObject):
+                            type(attr) or \
+                            isinstance(attr, _InternalObject):
                         pass
                     else:
                         raise InvalidCloudioAttributeException(type(attr))
@@ -230,22 +230,23 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         """
         attrDict = {}
 
-        if self.conforms != None and len(self.conforms) > 0:
+        if self.conforms is not None and len(self.conforms) > 0:
             attrDict['conforms'] = self.conforms
 
         if hasattr(self, 'objects') and len(self.objects) > 0:
             attrDict['objects'] = self.objects
 
-        if hasattr(self, '_attributes')  and len(self._attributes) > 0:
+        if hasattr(self, '_attributes') and len(self._attributes) > 0:
             attrDict['attributes'] = self._attributes
 
         return encoder.default(attrDict)
 
     ######################################################################
-    # Privte methods
+    # Private methods
     #
-    def _getConforms(self):
+    @staticmethod
+    def _get_conforms():
         return None
 
-    def _setConforms(self, dataClass):
+    def _set_conforms(self, data_class):
         pass

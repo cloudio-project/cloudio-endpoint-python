@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 
-class PropertiesEndpointConfiguration():
+class PropertiesEndpointConfiguration(object):
 
     def __init__(self, properties):
+        super(PropertiesEndpointConfiguration, self).__init__()
         self._properties = properties   # type: dict
 
-    def getProperty(self, key, defaultValue=''):
+    def get_property(self, key, default_value=''):
         """
         :param key: The key of interest
-        :param defaultValue: Alternative value if property does not exist.
+        :param default_value: Alternative value if property does not exist.
         :return: The property value
         :rtype: str
         """
         if key in self._properties:
             return self._properties[key]
         else:
-            return defaultValue
+            return default_value
 
-    def containsKey(self, key):
+    def contains_key(self, key):
         """
         :param key: The key of interest
         :type key: str

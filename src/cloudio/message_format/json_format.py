@@ -19,21 +19,21 @@ class JsonMessageFormat(CloudioMessageFormat):
         self._encoder = _JsonMessageEncoder()
         pass
 
-    def serializeEndpoint(self, endpoint):
+    def serialize_endpoint(self, endpoint):
         data = {}
         nodes = {}
 
         for key, node in iteritems(endpoint.nodes):
-            nodes[node.getName()] = node
+            nodes[node.get_name()] = node
 
-        data[u'nodes'] = nodes
+        data['nodes'] = nodes
 
         message = ''
         # Encode data to json formatted byte array
         message += self._encoder.encode(data)
         return message
 
-    def serializeNode(self, node):
+    def serialize_node(self, node):
         message = ''
 
         #message += self._encoder.startObject()
@@ -42,19 +42,19 @@ class JsonMessageFormat(CloudioMessageFormat):
         #message += self._encoder.endObject()
         return message
 
-    def serializeAttribute(self, attribute):
+    def serialize_attribute(self, attribute):
         data = {}
-        data[u'type'] = attribute.getTypeAsString()
-        data[u'constraint'] = attribute.getConstraint().to_string()
+        data['type'] = attribute.get_type_as_string()
+        data['constraint'] = attribute.get_constraint().to_string()
 
         # Add timestamp only if attribute is not static
-        if attribute.getConstraint() != 'static':
-            timestamp = attribute.getTimestamp()
+        if attribute.get_constraint() != 'static':
+            timestamp = attribute.get_timestamp()
             if timestamp:
-                data[u'timestamp'] = timestamp / 1000.0
+                data['timestamp'] = timestamp / 1000.0
 
         attributeValue = attribute.get_value()
-        data[u'value'] = attributeValue
+        data['value'] = attributeValue
 
         message = ''
         # Encode data to json formatted byte array
@@ -62,7 +62,7 @@ class JsonMessageFormat(CloudioMessageFormat):
 
         return message
 
-    def deserializeAttribute(self, data, attribute):
+    def deserialize_attribute(self, data, attribute):
 
         dataDict = json.loads(data)
         """:type: dict"""
@@ -80,7 +80,7 @@ class JsonMessageFormat(CloudioMessageFormat):
             value = dataDict['value']
 
             if timestamp != 0 and value is not None:
-                type = attribute.getType()
+                type = attribute.get_type()
 
                 if type == AttributeType.Invalid:
                     pass
@@ -90,13 +90,13 @@ class JsonMessageFormat(CloudioMessageFormat):
                         bool_value = False if value.lower() in ['0', 'false', 'falsch', 'faux', 'off'] else True
                     else:
                         bool_value = bool(value)
-                    attribute.setValueFromCloud(bool_value, timestamp)
+                    attribute.set_value_from_cloud(bool_value, timestamp)
                 elif type == AttributeType.Integer:
-                    attribute.setValueFromCloud(int(value), timestamp)
+                    attribute.set_value_from_cloud(int(value), timestamp)
                 elif type == AttributeType.Number:
-                    attribute.setValueFromCloud(float(value), timestamp)
+                    attribute.set_value_from_cloud(float(value), timestamp)
                 elif type == AttributeType.String:
-                    attribute.setValueFromCloud(str(value), timestamp)
+                    attribute.set_value_from_cloud(str(value), timestamp)
                 else:
                     raise IOError('Attribute type not supported!')
 
@@ -129,7 +129,7 @@ class _JsonMessageEncoder(json.JSONEncoder):
         return obj
 
     def startObject(self):
-        return u'{'.encode()    # unicode to bytearray
+        return '{'.encode()    # unicode to bytearray
 
     def endObject(self):
-        return u'}'.encode()    # unicode to bytearray
+        return '}'.encode()    # unicode to bytearray
