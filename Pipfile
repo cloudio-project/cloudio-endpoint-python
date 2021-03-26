@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 coverage = "*"
+coverage-badge = "*"
 cloudio-endpoint-python = {editable = true, path = "."}
 
 [packages]

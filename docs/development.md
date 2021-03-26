@@ -23,6 +23,12 @@ $ pipenv run coverage run --source=./src -m unittest discover -s tests/cloudio
 $ pipenv run coverage report -m
 ```
 
+### Update Coverage Badge Image
+To update the coverage image shown on the readme page execute the following command:
+```bash
+$ pipenv run coverage-badge -f -o docs/images/coverage.svg
+```
+
 ## Link to Local Package
 If you want to use for example the `cloudio-glue-python` package from your locally cloned 
 git repository use a command similar like:

@@ -1,5 +1,6 @@
 # cloudio-endpoint-python
 ![version](https://img.shields.io/pypi/v/cloudio-endpoint-python.svg)
+![coverage](docs/images/coverage.svg)
 
 Python endpoint (IoT device) library for [cloud.iO](https://cloudio.hevs.ch).
 
