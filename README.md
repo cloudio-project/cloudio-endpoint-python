@@ -83,6 +83,9 @@ find in the `tests` folder the
 [VacuumCleanerConnector](https://github.com/cloudio-project/cloudio-endpoint-python/blob/master/tests/cloudio/connector/vacuumcleaner_connector.py)
 class as an example on how this job me be done.
 
+## Links to Internal Documentation
+- [Developer](./docs/development.md) Section
+
 ### TODO
 - [] Explain the `Model2CloudConnector` class
 - [] Explain the `@cloudio_attribute` decorator
