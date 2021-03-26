@@ -99,7 +99,7 @@ class VacuumCleanerClient(object):
 
             assert 'name' in config['node'], 'Missing \'name\' parameter in node group!'
         else:
-            sys.exit(u'Error reading config file')
+            sys.exit('Error reading config file')
 
         return config
 
@@ -126,7 +126,7 @@ class VacuumCleanerClient(object):
         print('VacuumCleanerClient rxed: ' + msg.topic)
 
     def _subscribe_to_updated_commands(self):
-        (result, mid) = self._client.subscribe(u'@update/' + self._endPointName + '/#', 1)
+        (result, mid) = self._client.subscribe('@update/' + self._endPointName + '/#', 1)
         return True if result == self.MQTT_ERR_SUCCESS else False
 
     def set_identification(self, new_identification):

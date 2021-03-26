@@ -24,7 +24,7 @@ class VacuumCleanerConnector(object):
         self.endpoint = CloudioEndpoint(cloudioEndpointName)
 
     def getEndpointName(self):
-        return self.endpoint.getName()
+        return self.endpoint.get_name()
 
     def createModel(self, xmlModelFile):
         try:
@@ -40,19 +40,19 @@ class VacuumCleanerConnector(object):
                 xmlConfigFile = minidom.parse(pathName)
 
                 if xmlConfigFile:
-                    configList = xmlConfigFile.getElementsByTagName(u'config')
+                    configList = xmlConfigFile.getElementsByTagName('config')
                     """:type : list of minidom.Element"""
 
                     for config in configList:
-                        deviceTypeList = config.getElementsByTagName(u'deviceType')
+                        deviceTypeList = config.getElementsByTagName('deviceType')
                         """:type : list of minidom.Element"""
 
                         for deviceType in deviceTypeList:
                             """:type : list of minidom.Element"""
-                            print(u'Parsing elements for device: ' + deviceType.getAttribute('typeId'))
+                            print('Parsing elements for device: ' + deviceType.getAttribute('typeId'))
                             self._parseDeviceTypeFromXmlDomElement(deviceType)
             else:
-                raise RuntimeError(u'Missing configuration file: %s' % pathName)
+                raise RuntimeError('Missing configuration file: %s' % pathName)
 
         except Exception as e:
             traceback.print_exc()
@@ -70,28 +70,28 @@ class VacuumCleanerConnector(object):
         :type deviceType: minidom.Element
         :return:
         """
-        assert deviceType.tagName == u'deviceType', u'Wrong DOM element name'
+        assert deviceType.tagName == 'deviceType', 'Wrong DOM element name'
 
-        nodeName = deviceType.getAttribute(u'typeId')
+        nodeName = deviceType.getAttribute('typeId')
         cloudioRuntimeNode = CloudioRuntimeNode()
-        cloudioRuntimeNode.declareImplementedInterface(u'NodeInterface')
+        cloudioRuntimeNode.declare_implemented_interface('NodeInterface')
 
-        objectList = deviceType.getElementsByTagName(u'object')
+        objectList = deviceType.getElementsByTagName('object')
         """:type : list of minidom.Element"""
         for obj in objectList:
-            objectName = obj.getAttribute(u'id')
+            objectName = obj.getAttribute('id')
             # Create cloud.iO object
             cloudioRuntimeObject = CloudioRuntimeObject()
             # Add object to the node
-            cloudioRuntimeNode.addObject(objectName, cloudioRuntimeObject)
+            cloudioRuntimeNode.add_object(objectName, cloudioRuntimeObject)
 
             # Get the attributes for the object node
-            attributeList = obj.getElementsByTagName(u'attribute')
+            attributeList = obj.getElementsByTagName('attribute')
             for attribute in attributeList:
                 self._parseAttributeFromXmlDomElement(cloudioRuntimeObject, attribute)
 
-        assert nodeName, u'No node name given!'
-        assert cloudioRuntimeNode, u'No cloud.iO node object given!'
+        assert nodeName, 'No node name given!'
+        assert cloudioRuntimeNode, 'No cloud.iO node object given!'
         self.endpoint.addNode(nodeName, cloudioRuntimeNode)
 
     @classmethod
@@ -104,11 +104,11 @@ class VacuumCleanerConnector(object):
         :type attributeElement: minidom.Element
         :return:
         """
-        assert attributeElement.tagName == u'attribute', u'Wrong DOM element name'
+        assert attributeElement.tagName == 'attribute', 'Wrong DOM element name'
 
-        theName = attributeElement.getAttribute(u'id')
-        strType = attributeElement.getAttribute(u'template')
-        strConstraint = attributeElement.getAttribute(u'constraint')
+        theName = attributeElement.getAttribute('id')
+        strType = attributeElement.getAttribute('template')
+        strConstraint = attributeElement.getAttribute('constraint')
 
         # TODO Get options
 
@@ -125,7 +125,7 @@ class VacuumCleanerConnector(object):
         elif strType.lower() == 'str' or strType.lower() == 'string':
             theType = str
 
-        assert theType, u'Attribute type unknown or not set!'
+        assert theType, 'Attribute type unknown or not set!'
 
-        cloudioRuntimeObject.addAttribute(theName, theType, strConstraint)
+        cloudioRuntimeObject.add_attribute(theName, theType, strConstraint)
 

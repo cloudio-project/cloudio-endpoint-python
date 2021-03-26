@@ -27,12 +27,14 @@ class VacuumCleaner(AttributeListener):
     def set_cloudio_buddy(self, cloudio_node):
         self.cloudioNode = cloudio_node
 
-        cloudio_parameter_object = self.cloudioNode.findObject(['Parameters',
+        assert self.cloudioNode, 'Cloudio node must be valid!'
+
+        cloudio_parameter_object = self.cloudioNode.find_object(['Parameters',
                                                                 'objects'])
 
-        for attributeName, cloudioAttribute in cloudio_parameter_object.getAttributes().items():
+        for attributeName, cloudioAttribute in cloudio_parameter_object.get_attributes().items():
             self._create_attribute(attributeName, cloudioAttribute)
-            cloudioAttribute.addListener(self)
+            cloudioAttribute.add_listener(self)
 
     def _create_attribute(self, attribute_name, cloudio_attribute):
         """
@@ -70,7 +72,7 @@ class VacuumCleaner(AttributeListener):
 
         :param attribute Attribute that has changed.
         """
-        internal_attribute_name = self._convert_to_internal_attribute_name(attribute.getName())
+        internal_attribute_name = self._convert_to_internal_attribute_name(attribute.get_name())
         print('VacuumCleaner attr changed: ' + str(attribute.get_value()))
 
         # Check if we have an attribute with the same name

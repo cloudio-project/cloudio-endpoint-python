@@ -5,9 +5,13 @@ import time
 import logging
 import json
 import unittest
+
+from tests.cloudio.paths import update_working_directory
 from connector.vacuumcleaner_connector import VacuumCleanerConnector
 from model.vacuum_cleaner import VacuumCleaner
 from client.vacuumcleaner_client import VacuumCleanerClient
+
+update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/cloudio/{this_file}.py'
 
 VACUUM_CLEANER_NAME = 'VacuumCleanerEndpoint'
 
@@ -23,7 +27,7 @@ class VacuumCleanerTestClient(VacuumCleanerClient):
         self.rxedMessages = {}
 
     def _subscribe_to_updated_commands(self):
-        topic = u'@update/' + self._endPointName + '/#'
+        topic = '@update/' + self._endPointName + '/#'
         print('Subscribing to: ' + topic + ' messages')
         (result, mid) = self._client.subscribe(topic, 1)
         return True if result == self.MQTT_ERR_SUCCESS else False
@@ -90,11 +94,11 @@ class TestCloudioPersistenceMemory(unittest.TestCase):
     def test_persistenceMemory(self):
         # Create location stack and get the according cloud.iO attribute
         attr_location = ['set_throughput', 'attributes', 'Parameters', 'objects']
-        cloudio_attribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).findAttribute(attr_location)
+        cloudio_attribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).find_attribute(attr_location)
 
         for i in range(0, self.msgToSend):
             print('Sending update ' + str(i + 1))
-            cloudio_attribute.setValue(i)
+            cloudio_attribute.set_value(i)
             time.sleep(.5)
 
         time.sleep(1)

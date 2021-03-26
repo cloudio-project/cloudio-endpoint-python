@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import logging
 import unittest
 from cloudio.interface.uuid import Uuid
 from cloudio.topicuuid import TopicUuid
+from tests.cloudio.paths import update_working_directory
+
+update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/cloudio/{this_file}.py'
+
 
 class TestTopicUuid(unittest.TestCase):
 
@@ -36,7 +41,7 @@ class TestTopicUuid(unittest.TestCase):
         self.assertTrue(t1.equals(t1))      # Check equal(self)
 
         # Only TopicUuid as parameter are allowed.
-        # All other sould return false
+        # All other should return false
         self.assertFalse(t1.equals(''))
         self.assertFalse(t1.equals('other topic'))
         self.assertFalse(t1.equals('Some topic'))
@@ -46,5 +51,12 @@ class TestTopicUuid(unittest.TestCase):
         self.assertTrue(t1.equals(t2))
         self.assertTrue(t2.equals(t1))
 
+
 if __name__ == '__main__':
+
+    # Enable logging
+    logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S',
+                        level=logging.INFO)
+
     unittest.main()
