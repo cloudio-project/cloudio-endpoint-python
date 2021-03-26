@@ -19,7 +19,7 @@ $ pipenv run python -m unittest discover -s tests/cloudio
 ## Running Test Coverage
 To run the test coverage execute the following commands:
 ```bash
-$ pipenv run coverage --source=./src run -m unittest discover -s tests/cloudio
+$ pipenv run coverage run --source=./src -m unittest discover -s tests/cloudio
 $ pipenv run coverage report -m
 ```
 

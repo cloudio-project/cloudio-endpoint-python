@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from .topicuuid import TopicUuid
+from cloudio.topicuuid import TopicUuid
 from cloudio.interface.unique_identifiable import UniqueIdentifiable
 from cloudio.interface.attribute_listener import AttributeListener
 from cloudio.exception.cloudio_modification_exception import CloudioModificationException
@@ -104,7 +104,7 @@ class CloudioAttribute(UniqueIdentifiable):
             self._parent.attribute_has_changed_by_cloud(self)
 
         # Notify all listeners.
-        if self._listeners is not None:
+        if self._listeners:
             for listener in self._listeners:
                 # noinspection unchecked
                 listener.attribute_has_changed(self)
@@ -150,7 +150,7 @@ class CloudioAttribute(UniqueIdentifiable):
     # Named item implementation
     #
     def get_name(self):
-        return self._name
+        return self._name if self._name else 'unknown'
 
     def set_name(self, name):
         """
@@ -185,6 +185,9 @@ class CloudioAttribute(UniqueIdentifiable):
                         types.StringType, types.UnicodeType):
             self._value = the_type()
 
+            # Init to invalid
+            self._type = AttributeType(AttributeType.Invalid)
+
             # Set cloudio attribute type accordingly
             if the_type in (types.BooleanType, ):
                 self._type = AttributeType(AttributeType.Boolean)
@@ -192,10 +195,9 @@ class CloudioAttribute(UniqueIdentifiable):
                 self._type = AttributeType(AttributeType.Integer)
             elif the_type in (types.FloatType, ):
                 self._type = AttributeType(AttributeType.Number)
-            elif the_type in (types.StringType, types.UnicodeType):
-                self._type = AttributeType(AttributeType.String)
             else:
-                self._type = AttributeType(AttributeType.Invalid)
+                assert the_type in (types.StringType, types.UnicodeType), 'Seems we got a new type!'
+                self._type = AttributeType(AttributeType.String)
         else:
             raise InvalidCloudioAttributeException(the_type)
 
