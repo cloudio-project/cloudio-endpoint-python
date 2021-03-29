@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABCMeta, abstractmethod
-from .unique_identifiable import UniqueIdentifiable
+from .unique_identifiable import CloudioUniqueIdentifiable
 
 
-class CloudioAttributeContainer(UniqueIdentifiable):
+class CloudioAttributeContainer(CloudioUniqueIdentifiable):
     """Interface to be implemented by all classes that can hold attributes."""
     __metaclass__ = ABCMeta
 

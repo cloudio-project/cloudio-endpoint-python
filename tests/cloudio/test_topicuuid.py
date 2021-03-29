@@ -3,7 +3,7 @@
 
 import logging
 import unittest
-from cloudio.endpoint.interface.uuid import Uuid
+from cloudio.endpoint.interface.uuid import CloudioUuid
 from cloudio.endpoint.topicuuid import TopicUuid
 from tests.cloudio.paths import update_working_directory
 
@@ -16,13 +16,13 @@ class TestTopicUuid(unittest.TestCase):
         topicUuid = TopicUuid()
 
     def test_checkAbstractClassRelation(self):
-        # TopicUuid needs to implement the Uuid interface
-        self.assertTrue(issubclass(TopicUuid, Uuid))
+        # TopicUuid needs to implement the CloudioUuid interface
+        self.assertTrue(issubclass(TopicUuid, CloudioUuid))
 
     def test_checkAbstractClassInstantiation(self):
         topicUuid = TopicUuid()
         # TopicUuid needs to implement the interface
-        self.assertTrue(isinstance(topicUuid, Uuid))
+        self.assertTrue(isinstance(topicUuid, CloudioUuid))
 
     def test_isValidMethod(self):
         t1 = TopicUuid()

@@ -3,7 +3,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class AttributeListener(object):
+class CloudioAttributeListener(object):
     """
     This interface enables an application object to get notified as soon as there was a new value set to an attribute.
     If the change was set from the local application or from the cloud does not matter. This means that even on

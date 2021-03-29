@@ -2,12 +2,12 @@
 
 import logging
 
-from cloudio.endpoint.interface.attribute_listener import AttributeListener
+from cloudio.endpoint.interface.attribute_listener import CloudioAttributeListener
 
 logging.getLogger(__name__).setLevel(logging.INFO)
 
 
-class VacuumCleaner(AttributeListener):
+class VacuumCleaner(CloudioAttributeListener):
     """Class representing the 'real' vacuum cleaner.
     """
 
@@ -64,7 +64,7 @@ class VacuumCleaner(AttributeListener):
     def attribute_has_changed(self, attribute):
         """This method gets called when an attribute changes.
 
-        AttributeListener interface implementation.
+        CloudioAttributeListener interface implementation.
 
         Used to get informed about attribute value changes in the cloud
         representation of the node/device.

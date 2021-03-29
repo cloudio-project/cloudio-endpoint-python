@@ -3,7 +3,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class NamedItem(object):
+class CloudioNamedItem(object):
     """An object owning a name.
     """
     __metaclass__ = ABCMeta

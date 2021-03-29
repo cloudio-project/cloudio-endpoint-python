@@ -9,7 +9,6 @@ import cloudio.common.utils.timestamp as TimeStampProvider
 from cloudio.common.utils.resource_loader import ResourceLoader
 from cloudio.common.utils import path_helpers
 import cloudio.common.mqtt as mqtt
-from cloudio.endpoint.node import CloudioNode
 from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
 from cloudio.endpoint.interface.node_container import CloudioNodeContainer
 from cloudio.endpoint.interface.message_format import CloudioMessageFormat
@@ -66,6 +65,8 @@ class CloudioEndpoint(CloudioNodeContainer):
     log = logging.getLogger(__name__)
 
     def __init__(self, uuid, configuration=None, locations : str or list = None):
+        from cloudio.endpoint.node import CloudioNode
+
         self._endPointIsReady = False               # Set to true after connection and subscription
 
         self.uuid = uuid            # type: str
@@ -190,6 +191,8 @@ class CloudioEndpoint(CloudioNodeContainer):
         return True if result == self._client.MQTT_ERR_SUCCESS else False
 
     def addNode(self, nodeName, clsOrObject):
+        from cloudio.endpoint.node import CloudioNode
+
         if nodeName != '' and clsOrObject != None:
             node = None
 
