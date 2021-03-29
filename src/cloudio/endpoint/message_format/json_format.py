@@ -2,9 +2,9 @@
 
 import json
 import inspect
+from cloudio.common.utils import timestamp as timestamp_helpers
 from cloudio.endpoint.interface.message_format import CloudioMessageFormat
 from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
-from utils import timestamp as timestamp_helpers
 
 # Links:
 # - http://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable

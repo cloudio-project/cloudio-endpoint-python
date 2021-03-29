@@ -4,7 +4,7 @@
 import logging
 import unittest
 
-from cloudio.pending_update import PendingUpdate
+from cloudio.common.mqtt.pending_update import PendingUpdate
 from tests.cloudio.paths import update_working_directory
 
 update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/cloudio/{this_file}.py'

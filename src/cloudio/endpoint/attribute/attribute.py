@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import cloudio.common.utils.timestamp as TimeStampProvider
 from cloudio.endpoint.topicuuid import TopicUuid
 from cloudio.endpoint.interface.unique_identifiable import UniqueIdentifiable
 from cloudio.endpoint.interface.attribute_listener import AttributeListener
@@ -8,7 +9,6 @@ from cloudio.endpoint.exception.cloudio_modification_exception import CloudioMod
 from cloudio.endpoint.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
 from cloudio.endpoint.attribute.constraint import CloudioAttributeConstraint as AttributeConstraint
-import utils.timestamp as TimeStampProvider
 
 
 class CloudioAttribute(UniqueIdentifiable):

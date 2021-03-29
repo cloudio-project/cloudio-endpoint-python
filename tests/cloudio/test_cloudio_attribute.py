@@ -3,11 +3,11 @@
 
 import logging
 import unittest
-from cloudio.cloudio_attribute import CloudioAttribute
-from cloudio.interface.attribute_listener import AttributeListener
-from cloudio.exception.cloudio_modification_exception import CloudioModificationException
-from cloudio.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
-from utils import timestamp as timestamp_helpers
+from cloudio.common.utils import timestamp as timestamp_helpers
+from cloudio.endpoint.attribute import CloudioAttribute
+from cloudio.endpoint.interface.attribute_listener import AttributeListener
+from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.endpoint.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 from tests.cloudio.paths import update_working_directory
 
 update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/cloudio/{this_file}.py'

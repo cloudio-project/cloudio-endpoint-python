@@ -5,8 +5,10 @@ import os
 import time
 import logging
 import traceback
-import utils.timestamp as TimeStampProvider
-import cloudio.endpoint.mqtt_helpers as mqtt
+import cloudio.common.utils.timestamp as TimeStampProvider
+from cloudio.common.utils.resource_loader import ResourceLoader
+from cloudio.common.utils import path_helpers
+import cloudio.common.mqtt as mqtt
 from cloudio.endpoint.node import CloudioNode
 from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
 from cloudio.endpoint.interface.node_container import CloudioNodeContainer
@@ -15,14 +17,11 @@ from cloudio.endpoint.message_format.factory import MessageFormatFactory
 from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
 from cloudio.endpoint.exception.invalid_property_exception import InvalidPropertyException
 from cloudio.endpoint.message_format.json_format import JsonMessageFormat
-from utils.resource_loader import ResourceLoader
-from utils import path_helpers
-from cloudio.endpoint.pending_update import PendingUpdate
 from cloudio.endpoint.topicuuid import TopicUuid
 
 version = ''
 # Get endpoint python version info from init file
-with open(os.path.dirname(os.path.realpath(__file__)) + '/__init__.py') as vf:
+with open(os.path.dirname(os.path.realpath(__file__)) + '/version.py') as vf:
     content = vf.readlines()
     for line in content:
         if '__version__' in line:
@@ -110,7 +109,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         # Create persistence object.
         persistenceType = configuration.get_property(self.MQTT_PERSISTENCE_PROPERTY, self.MQTT_PERSISTENCE_DEFAULT)
         if persistenceType == self.MQTT_PERSISTENCE_MEMORY:
-            self.persistence = mqtt.MemoryPersistence()
+            self.persistence = mqtt.MqttMemoryPersistence()
         elif persistenceType == self.MQTT_PERSISTENCE_FILE:
             persistenceLocation = configuration.get_property(self.MQTT_PERSISTENCE_LOCATION)
             self.persistence = mqtt.MqttDefaultFilePersistence(directory=persistenceLocation)

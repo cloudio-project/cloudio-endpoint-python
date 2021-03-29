@@ -4,8 +4,8 @@
 
 import logging
 import unittest
-from cloudio.cloudio_runtime_node import CloudioRuntimeNode
-from cloudio.cloudio_object import CloudioObject
+from cloudio.endpoint.runtime import CloudioRuntimeNode
+from cloudio.endpoint.object import CloudioObject
 from tests.cloudio.paths import update_working_directory
 
 update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/cloudio/{this_file}.py'

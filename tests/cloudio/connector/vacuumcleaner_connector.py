@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import sys, os, time
+import os
 import logging
 import traceback
 from xml.dom import minidom
-from utils import path_helpers
 
+from cloudio.common.utils import path_helpers
 from cloudio.endpoint import CloudioEndpoint
-from cloudio.cloudio_runtime_node import CloudioRuntimeNode
-from cloudio.cloudio_runtime_object import CloudioRuntimeObject
+from cloudio.endpoint.runtime.node import CloudioRuntimeNode
+from cloudio.endpoint.runtime.object import CloudioRuntimeObject
 
 # Enable logging
 logging.getLogger(__name__).setLevel(logging.INFO)
+
 
 class VacuumCleanerConnector(object):
     """Creates the cloud.iO endpoint according to the model file.
@@ -20,15 +21,15 @@ class VacuumCleanerConnector(object):
     """
     log = logging.getLogger(__name__)
 
-    def __init__(self, cloudioEndpointName):
-        self.endpoint = CloudioEndpoint(cloudioEndpointName)
+    def __init__(self, cloudio_endpoint_name):
+        self.endpoint = CloudioEndpoint(cloudio_endpoint_name)
 
     def getEndpointName(self):
         return self.endpoint.get_name()
 
-    def createModel(self, xmlModelFile):
+    def createModel(self, xml_model_file):
         try:
-            pathName = path_helpers.prettify(xmlModelFile)
+            pathName = path_helpers.prettify(xml_model_file)
 
             self.log.info('Reading cloud.iO enpoint model from \'%s\'' % pathName)
 

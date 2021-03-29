@@ -13,6 +13,7 @@ twine = "*"
 [packages]
 paho-mqtt = "*"
 configobj = "*"
+cloudio-common-python = "==0.1.0"
 
 [requires]
 python_version = "3.9"

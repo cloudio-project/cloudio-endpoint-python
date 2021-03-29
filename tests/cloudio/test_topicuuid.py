@@ -3,8 +3,8 @@
 
 import logging
 import unittest
-from cloudio.interface.uuid import Uuid
-from cloudio.topicuuid import TopicUuid
+from cloudio.endpoint.interface.uuid import Uuid
+from cloudio.endpoint.topicuuid import TopicUuid
 from tests.cloudio.paths import update_working_directory
 
 update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/cloudio/{this_file}.py'

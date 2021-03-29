@@ -7,9 +7,9 @@ import shutil
 import unittest
 
 from tests.cloudio.paths import update_working_directory
-from cloudio.mqtt_helpers import MqttDefaultFilePersistence
-from utils import path_helpers
-from cloudio.pending_update import PendingUpdate
+from cloudio.common.utils import path_helpers
+from cloudio.common.mqtt import MqttDefaultFilePersistence
+from cloudio.common.mqtt import PendingUpdate
 
 update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/cloudio/{this_file}.py'
 
