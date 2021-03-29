@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import utils.py_version_compatibility as types
+import types
 from .interface.object_container import CloudioObjectContainer
 from .interface.attribute_container import CloudioAttributeContainer
 from .exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
@@ -195,11 +195,11 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                     # with a standard type)
                     #
                     # Check if it is a bool, int, float, string
-                    if isinstance(attr, types.BooleanType) or \
-                       isinstance(attr, types.IntType) or \
-                       isinstance(attr, types.FloatType) or \
-                       isinstance(attr, types.StringType) or \
-                       isinstance(attr, types.UnicodeType):
+                    if isinstance(attr, bool) or \
+                       isinstance(attr, int) or \
+                       isinstance(attr, float) or \
+                       isinstance(attr, bytes) or \
+                       isinstance(attr, str):
 
                         if field not in ('__module__', '__doc__'):  # Some excludes:
                             attribute = CloudioAttribute()

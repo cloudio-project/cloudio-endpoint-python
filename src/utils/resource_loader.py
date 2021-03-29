@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import six
 import os
-if six.PY2:
-    import urlparse                         # pip install urllib3
-else:
-    import urllib.parse as urlparse
+import urllib.parse as urlparse         # pip install urllib3
 from os.path import expanduser
 from configobj import ConfigObj         # pip install configobj
 

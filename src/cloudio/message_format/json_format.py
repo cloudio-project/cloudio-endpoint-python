@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from six import iteritems
 import json
 import inspect
 from ..interface.message_format import CloudioMessageFormat
@@ -23,7 +22,7 @@ class JsonMessageFormat(CloudioMessageFormat):
         data = {}
         nodes = {}
 
-        for key, node in iteritems(endpoint.nodes):
+        for key, node in endpoint.nodes.items():
             nodes[node.get_name()] = node
 
         data['nodes'] = nodes

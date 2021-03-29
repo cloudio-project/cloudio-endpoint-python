@@ -5,7 +5,6 @@ import os
 import time
 import logging
 import traceback
-import six
 import utils.timestamp as TimeStampProvider
 import cloudio.mqtt_helpers as mqtt
 from cloudio.cloudio_node import CloudioNode
@@ -146,11 +145,8 @@ class CloudioEndpoint(CloudioNodeContainer):
     def _onMessageArrived(self, client, userdata, msg):
         #print(msg.topic + ': ' + str(msg.payload))
         try:
-            if six.PY3:
-                # Need to convert from bytes to string
-                payload = msg.payload.decode('utf-8')
-            else:
-                payload = msg.payload
+            # Need to convert from bytes to string
+            payload = msg.payload.decode('utf-8')
 
             # First determine the message format (first byte identifies the message format).
             messageFormat = MessageFormatFactory.messageFormat(payload[0])

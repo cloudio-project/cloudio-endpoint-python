@@ -3,11 +3,5 @@
 __author__ = 'Thomas Sterren'
 __version__ = '0.2.14'
 
-import six
-
-if six.PY3:
-    from .endpoint import CloudioEndpoint
-    from .endpoint import version
-else:
-    from endpoint import CloudioEndpoint
-    from endpoint import version
+from .endpoint import CloudioEndpoint
+from .endpoint import version

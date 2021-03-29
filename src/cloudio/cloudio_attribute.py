@@ -8,7 +8,6 @@ from cloudio.exception.cloudio_modification_exception import CloudioModification
 from cloudio.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
 from cloudio.cloudio_attribute_type import CloudioAttributeType as AttributeType
 from cloudio.cloudio_attribute_constraint import CloudioAttributeConstraint as AttributeConstraint
-import utils.py_version_compatibility as types
 import utils.timestamp as TimeStampProvider
 
 
@@ -181,22 +180,21 @@ class CloudioAttribute(UniqueIdentifiable):
         if self._value:
             raise CloudioModificationException('The Attribute has already a type (Changing the type is not allowed)!')
 
-        if the_type in (types.BooleanType, types.IntType, types.LongType, types.FloatType,
-                        types.StringType, types.UnicodeType):
+        if the_type in (bool, int, float, bytes, str):
             self._value = the_type()
 
             # Init to invalid
             self._type = AttributeType(AttributeType.Invalid)
 
             # Set cloudio attribute type accordingly
-            if the_type in (types.BooleanType, ):
+            if the_type in (bool, ):
                 self._type = AttributeType(AttributeType.Boolean)
-            elif the_type in (types.IntType, types.LongType):
+            elif the_type in (int, ):
                 self._type = AttributeType(AttributeType.Integer)
-            elif the_type in (types.FloatType, ):
+            elif the_type in (float, ):
                 self._type = AttributeType(AttributeType.Number)
             else:
-                assert the_type in (types.StringType, types.UnicodeType), 'Seems we got a new type!'
+                assert the_type in (bytes, str), 'Seems we got a new type!'
                 self._type = AttributeType(AttributeType.String)
         else:
             raise InvalidCloudioAttributeException(the_type)
