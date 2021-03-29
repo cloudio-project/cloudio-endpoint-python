@@ -25,7 +25,7 @@ class ResourceLoader():
                 if os.path.isfile(filePath):
                     properties = ConfigObj(filePath)
                     return properties
-            elif url.scheme == 'file':
+            elif url.scheme in ('file', 'path'):
                     filePath = os.path.join(url.path, filename)
                     if os.path.isfile(filePath):
                         properties = ConfigObj(filePath)
