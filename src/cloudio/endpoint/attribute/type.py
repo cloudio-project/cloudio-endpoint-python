@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from cloudio.exception.invalid_cloudio_attribute_type_exception import InvalidCloudioAttributeTypeException
+from cloudio.endpoint.exception.invalid_cloudio_attribute_type_exception import InvalidCloudioAttributeTypeException
 
 
 class CloudioAttributeType(object):

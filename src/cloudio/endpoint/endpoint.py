@@ -6,19 +6,19 @@ import time
 import logging
 import traceback
 import utils.timestamp as TimeStampProvider
-import cloudio.mqtt_helpers as mqtt
-from cloudio.cloudio_node import CloudioNode
-from cloudio.properties_endpoint_configuration import PropertiesEndpointConfiguration
-from cloudio.interface.node_container import CloudioNodeContainer
-from cloudio.interface.message_format import CloudioMessageFormat
-from cloudio.message_format.factory import MessageFormatFactory
-from cloudio.exception.cloudio_modification_exception import CloudioModificationException
-from cloudio.exception.invalid_property_exception import InvalidPropertyException
+import cloudio.endpoint.mqtt_helpers as mqtt
+from cloudio.endpoint.node import CloudioNode
+from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
+from cloudio.endpoint.interface.node_container import CloudioNodeContainer
+from cloudio.endpoint.interface.message_format import CloudioMessageFormat
+from cloudio.endpoint.message_format.factory import MessageFormatFactory
+from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.endpoint.exception.invalid_property_exception import InvalidPropertyException
+from cloudio.endpoint.message_format.json_format import JsonMessageFormat
 from utils.resource_loader import ResourceLoader
-from cloudio.message_format.json_format import JsonMessageFormat
 from utils import path_helpers
-from cloudio.pending_update import PendingUpdate
-from cloudio.topicuuid import TopicUuid
+from cloudio.endpoint.pending_update import PendingUpdate
+from cloudio.endpoint.topicuuid import TopicUuid
 
 version = ''
 # Get endpoint python version info from init file
@@ -66,7 +66,7 @@ class CloudioEndpoint(CloudioNodeContainer):
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, uuid, configuration=None):
+    def __init__(self, uuid, configuration=None, locations : str or list = None):
         self._endPointIsReady = False               # Set to true after connection and subscription
 
         self.uuid = uuid            # type: str
@@ -79,10 +79,25 @@ class CloudioEndpoint(CloudioNodeContainer):
 
         # Check if a configuration with properties is given
         if configuration is None:
+            propertiesFile = self.uuid + '.properties'
+            ext_locations = ['home:' + '/.config/cloud.io/', 'file:/etc/cloud.io/']
+            if locations:
+                if isinstance(locations, str):
+                    ext_locations = [locations,] + ext_locations
+                else:
+                    ext_locations = locations + ext_locations
+
+
             # Try to load properties using a config file
-            properties = ResourceLoader.loadFromLocations(self.uuid + '.properties',
-                                                          ['home:' + '/.config/cloud.io/', 'file:/etc/cloud.io/'])
-            configuration = PropertiesEndpointConfiguration(properties)
+            properties = ResourceLoader.loadFromLocations(propertiesFile,
+                                                          ext_locations)
+            if properties:
+                configuration = PropertiesEndpointConfiguration(properties)
+            else:
+                message = 'Could not find properties file \'' + propertiesFile + '\' in the following locations:\n'
+                for location in ext_locations:
+                    message += ' - ' + location + '\n'
+                exit(message)
 
         self._retryInterval = 10    # Connect retry interval in seconds
         self.messageFormat = JsonMessageFormat()
@@ -264,7 +279,8 @@ class CloudioEndpoint(CloudioNodeContainer):
         messageQueued = False
         if self.isOnline():
             try:
-                messageQueued = self._client.publish('@update/' + attribute.get_uuid().to_string(), data, 1, False)
+                topic = '@update/' + attribute.get_uuid().to_string()
+                messageQueued = self._client.publish(topic, data, 1, False)
             except Exception as exception:
                 self.log.error('Exception :' + exception.message)
 

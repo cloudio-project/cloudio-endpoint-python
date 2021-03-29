@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABCMeta, abstractmethod
-from ..endpoint import *
-from ..cloudio_node import CloudioNode
-from ..cloudio_attribute import CloudioAttribute
+from cloudio.endpoint.node import CloudioNode
+from cloudio.endpoint.attribute import CloudioAttribute
 
 
 class CloudioMessageFormat(object):

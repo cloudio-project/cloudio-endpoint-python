@@ -2,8 +2,8 @@
 
 import json
 import inspect
-from ..interface.message_format import CloudioMessageFormat
-from ..cloudio_attribute_type import CloudioAttributeType as AttributeType
+from cloudio.endpoint.interface.message_format import CloudioMessageFormat
+from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
 from utils import timestamp as timestamp_helpers
 
 # Links:

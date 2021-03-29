@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from cloudio.topicuuid import TopicUuid
-from cloudio.interface.unique_identifiable import UniqueIdentifiable
-from cloudio.interface.attribute_listener import AttributeListener
-from cloudio.exception.cloudio_modification_exception import CloudioModificationException
-from cloudio.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
-from cloudio.cloudio_attribute_type import CloudioAttributeType as AttributeType
-from cloudio.cloudio_attribute_constraint import CloudioAttributeConstraint as AttributeConstraint
+from cloudio.endpoint.topicuuid import TopicUuid
+from cloudio.endpoint.interface.unique_identifiable import UniqueIdentifiable
+from cloudio.endpoint.interface.attribute_listener import AttributeListener
+from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.endpoint.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
+from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
+from cloudio.endpoint.attribute.constraint import CloudioAttributeConstraint as AttributeConstraint
 import utils.timestamp as TimeStampProvider
 
 

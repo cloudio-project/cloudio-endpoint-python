@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from .interface.object_container import CloudioObjectContainer
-from .exception.cloudio_modification_exception import CloudioModificationException
-from .topicuuid import TopicUuid
-from .cloudio_object import CloudioObject
+from cloudio.endpoint.interface.object_container import CloudioObjectContainer
+from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.endpoint.topicuuid import TopicUuid
+from cloudio.endpoint.object import CloudioObject
 
 
 class CloudioNode(CloudioObjectContainer):

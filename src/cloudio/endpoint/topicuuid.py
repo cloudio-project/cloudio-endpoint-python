@@ -16,9 +16,9 @@ class TopicUuid(uuid.Uuid):
         self._topic = None  # type: str or None
 
         if cloud_io_element:
-            from .cloudio_attribute import CloudioAttribute
-            from .interface.node_container import CloudioNodeContainer
-            from .interface.object_container import CloudioObjectContainer
+            from cloudio.endpoint.attribute import CloudioAttribute
+            from cloudio.endpoint.interface.node_container import CloudioNodeContainer
+            from cloudio.endpoint.interface.object_container import CloudioObjectContainer
 
             try:
                 if isinstance(cloud_io_element, CloudioAttribute):

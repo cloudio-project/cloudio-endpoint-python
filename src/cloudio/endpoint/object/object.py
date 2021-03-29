@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import types
-from .interface.object_container import CloudioObjectContainer
-from .interface.attribute_container import CloudioAttributeContainer
-from .exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
-from .exception.cloudio_modification_exception import CloudioModificationException
-from .cloudio_attribute import CloudioAttribute
-from .topicuuid import TopicUuid
+from cloudio.endpoint.interface.object_container import CloudioObjectContainer
+from cloudio.endpoint.interface.attribute_container import CloudioAttributeContainer
+from cloudio.endpoint.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
+from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.endpoint.attribute import CloudioAttribute
+from cloudio.endpoint.topicuuid import TopicUuid
 
 
 class CloudioObject(object):

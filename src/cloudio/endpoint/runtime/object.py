@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from cloudio.exception.cloudio_modification_exception import CloudioModificationException
-from .cloudio_object import CloudioObject
-from .cloudio_attribute import CloudioAttribute
-from .cloudio_attribute_constraint import CloudioAttributeConstraint
+from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.endpoint.object import CloudioObject
+from cloudio.endpoint.attribute import CloudioAttribute
+from cloudio.endpoint.attribute.constraint import CloudioAttributeConstraint
 
 
 class CloudioRuntimeObject(CloudioObject):

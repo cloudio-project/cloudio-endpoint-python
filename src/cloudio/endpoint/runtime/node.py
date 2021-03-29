@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from cloudio.cloudio_node import CloudioNode
-from cloudio.cloudio_object import CloudioObject
+from cloudio.endpoint.node import CloudioNode
+from cloudio.endpoint.object import CloudioObject
 
 
 class CloudioRuntimeNode(CloudioNode):
-    """The CloudioAdLibNode class allows to create the structure of a cloud.iO node at runtime.
+    """The CloudioRuntimeNode class allows to create the structure of a cloud.iO node at runtime.
 
     It is in contrast with the CloudioNode class which uses a static model.
     """
