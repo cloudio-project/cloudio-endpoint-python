@@ -36,7 +36,7 @@ with open(os.path.dirname(os.path.realpath(__file__)) + '/version.py') as vf:
 logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.DEBUG)
-logging.getLogger(__name__).setLevel(logging.INFO)    # DEBUG, INFO, WARNING, ERROR, CRITICAL
+logging.getLogger(__name__).setLevel(logging.INFO)  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 logging.getLogger(__name__).info('cloudio-endpoint-python version: %s' % version)
 
@@ -57,23 +57,23 @@ class CloudioEndpoint(CloudioNodeContainer):
     MQTT_PERSISTENCE_LOCATION = 'ch.hevs.cloudio.endpoint.persistenceLocation'
 
     CERT_AUTHORITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.authorityCert'
-    ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.version'     # tlsv1.0 or tlsv1.2
-    ENDPOINT_IDENTITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'         # PKCS12 based file (*.p12)
-    ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'    # (*.pem)
-    ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientKey'      # (*.pem)
+    ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.version'  # tlsv1.0 or tlsv1.2
+    ENDPOINT_IDENTITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'  # PKCS12 based file (*.p12)
+    ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'  # (*.pem)
+    ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientKey'  # (*.pem)
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, uuid, configuration=None, locations : str or list = None):
+    def __init__(self, uuid, configuration=None, locations: str or list = None):
         from cloudio.endpoint.node import CloudioNode
 
-        self._endPointIsReady = False               # Set to true after connection and subscription
+        self._endPointIsReady = False  # Set to true after connection and subscription
 
-        self.uuid = uuid            # type: str
-        self.nodes = {}             # type: dict[CloudioNode]
+        self.uuid = uuid  # type: str
+        self.nodes = {}  # type: dict[CloudioNode]
         self.cleanSession = True
-        self.messageFormat = None   # type: CloudioMessageFormat
-        self.persistence = None     # type: MqttClientPersistence
+        self.messageFormat = None  # type: CloudioMessageFormat
+        self.persistence = None  # type: MqttClientPersistence
 
         self.log.debug('Creating Endpoint %s' % uuid)
 
@@ -83,10 +83,9 @@ class CloudioEndpoint(CloudioNodeContainer):
             ext_locations = ['home:' + '/.config/cloud.io/', 'file:/etc/cloud.io/']
             if locations:
                 if isinstance(locations, str):
-                    ext_locations = [locations,] + ext_locations
+                    ext_locations = [locations, ] + ext_locations
                 else:
                     ext_locations = locations + ext_locations
-
 
             # Try to load properties using a config file
             properties = ResourceLoader.loadFromLocations(propertiesFile,
@@ -99,7 +98,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                     message += ' - ' + location + '\n'
                 exit(message)
 
-        self._retryInterval = 10    # Connect retry interval in seconds
+        self._retryInterval = 10  # Connect retry interval in seconds
         self.messageFormat = JsonMessageFormat()
 
         # Check if 'host' property is present in config file
@@ -158,7 +157,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         self._client.stop()
 
     def _onMessageArrived(self, client, userdata, msg):
-        #print(msg.topic + ': ' + str(msg.payload))
+        # print(msg.topic + ': ' + str(msg.payload))
         try:
             # Need to convert from bytes to string
             payload = msg.payload.decode('utf-8')
@@ -239,8 +238,8 @@ class CloudioEndpoint(CloudioNodeContainer):
         """
         # The path to the location must be start with the actual UUID of the endpoint.
         if location and self.uuid == location.pop() and \
-           location and 'nodes' == location.pop() and \
-           location:
+                location and 'nodes' == location.pop() and \
+                location:
             # Get the node with the name according to the topic
             node = self.nodes.get(location[-1])
             if node:
@@ -367,7 +366,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                             if self._client.publish('@update/' + uuid, pendingUpdate.get_data(), 1, False):
                                 # Remove key from store
                                 self.persistence.remove(key)
-                    time.sleep(0)   # Give other threads time to do its job
+                    time.sleep(0)  # Give other threads time to do its job
                 else:
                     break
 
