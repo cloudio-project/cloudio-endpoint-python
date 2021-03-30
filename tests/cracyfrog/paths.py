@@ -7,6 +7,7 @@ WORKING_DIRECTORY = os.path.dirname(__file__)
 
 # Add additional paths allowing to correctly import local modules
 sys.path.insert(0, os.path.abspath(os.path.join(WORKING_DIRECTORY, '.')))
+sys.path.insert(0, os.path.abspath(os.path.join(WORKING_DIRECTORY, '../../')))
 
 
 def update_working_directory():
