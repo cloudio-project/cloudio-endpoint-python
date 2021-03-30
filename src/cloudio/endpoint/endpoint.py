@@ -5,9 +5,11 @@ import os
 import time
 import logging
 import traceback
+from dataclasses import dataclass
 import cloudio.common.utils.timestamp as TimeStampProvider
 from cloudio.common.utils.resource_loader import ResourceLoader
 from cloudio.common.utils import path_helpers
+from cloudio.common.core.threaded import Threaded
 import cloudio.common.mqtt as mqtt
 from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
 from cloudio.endpoint.interface.node_container import CloudioNodeContainer
@@ -41,7 +43,15 @@ logging.getLogger(__name__).setLevel(logging.INFO)  # DEBUG, INFO, WARNING, ERRO
 logging.getLogger(__name__).info('cloudio-endpoint-python version: %s' % version)
 
 
-class CloudioEndpoint(CloudioNodeContainer):
+@dataclass
+class MqttMessage:
+    topic: str
+    payload: str
+    qos: int = 1
+    retain: bool = False
+
+
+class CloudioEndpoint(Threaded, CloudioNodeContainer):
     """The cloud.iO endpoint.
 
     Contains among other things the mqtt client to talk to the cloudio broker.
@@ -65,6 +75,8 @@ class CloudioEndpoint(CloudioNodeContainer):
     log = logging.getLogger(__name__)
 
     def __init__(self, uuid, configuration=None, locations: str or list = None):
+        super(CloudioEndpoint, self).__init__()
+
         from cloudio.endpoint.node import CloudioNode
 
         self._endPointIsReady = False  # Set to true after connection and subscription
@@ -74,6 +86,11 @@ class CloudioEndpoint(CloudioNodeContainer):
         self.cleanSession = True
         self.messageFormat = None  # type: CloudioMessageFormat
         self.persistence = None  # type: MqttClientPersistence
+        self._publishMessage = list()  # type: list[MqttMessage]
+        self._receivedMessage = list()  # type: list[mqtt.MQTTMessage]
+
+        self._publishedNotAcknowledgedMessage = dict()  # type: dict[mqtt.MQTTMessageInfo]
+        self._publishedNotAcknowledgedHighWaterMark = 0
 
         self.log.debug('Creating Endpoint %s' % uuid)
 
@@ -149,15 +166,74 @@ class CloudioEndpoint(CloudioNodeContainer):
         self._client.set_on_connected_callback(self._onConnected)
         # Register callback method to be called when receiving a message over MQTT
         self._client.set_on_message_callback(self._onMessageArrived)
+        # Register callback method to get notified after message was published (received by the MQTT broker)
+        self._client.set_on_messsage_published(self._onMessagePublished)
         # Start the client
         self._client.start()
+
+        # Setup and start internal thread
+        self.setup_thread(name=uuid)
+        self.start_thread()
+
+    def _run(self):
+        while self._thread_should_run:
+
+            self._processReceivedMessages()
+            self._processPublishMessages()
+
+            self._checkPublishedNotAcknowledgedContainer()
+
+            # Wait until next interval begins
+            if self._thread_should_run:
+                self._thread_sleep_interval()
+
+        self._threadLeftRunLoop = True
 
     def close(self):
         # Stop Mqtt client
         self._client.stop()
 
+    def _publish(self, topic, payload, qos=1, retain=False):
+        msg = MqttMessage(topic, payload, qos=qos, retain=retain)
+        self._publishMessage.append(msg)
+
+        # Wake up endpoint thread. It will publish the queued message. See _processPublishMessages()
+        self.wakeup_thread()
+
+    def _processPublishMessages(self):
+        while len(self._publishMessage):
+            msg = self._publishMessage.pop(0)
+            message_info = self._client.publish(msg.topic, msg.payload, msg.qos, msg.retain)
+
+            if message_info.rc == self._client.MQTT_ERR_SUCCESS:
+                # Add message to published (but not acknowledged) messages
+                self._publishedNotAcknowledgedMessage[message_info.mid] = msg
+            else:
+                print('Could not transmit')
+
+    def _checkPublishedNotAcknowledgedContainer(self):
+        msg_count = len(self._publishedNotAcknowledgedMessage)
+        if msg_count > 0:
+            self._publishedNotAcknowledgedHighWaterMark = max(self._publishedNotAcknowledgedHighWaterMark, msg_count)
+            if msg_count > 1:
+                print('Not published messages: {} (max: {})'.format(msg_count,
+                                                                    self._publishedNotAcknowledgedHighWaterMark))
+
     def _onMessageArrived(self, client, userdata, msg):
+        # Called by the MQTT client thread!
+
         # print(msg.topic + ': ' + str(msg.payload))
+
+        self._receivedMessage.append(msg)
+        # Tell endpoint thread it can process a message
+        self.wakeup_thread()
+
+    def _processReceivedMessages(self):
+        while len(self._receivedMessage):
+            msg = self._receivedMessage.pop(0)
+            self._processReceivedMessage(msg)
+
+    def _processReceivedMessage(self, msg) -> bool:
         try:
             # Need to convert from bytes to string
             payload = msg.payload.decode('utf-8')
@@ -184,6 +260,19 @@ class CloudioEndpoint(CloudioNodeContainer):
         except Exception as exception:
             self.log.error('Exception :' + exception.message)
             traceback.print_exc()
+
+    def _onMessagePublished(self, client, userdata, mid):
+        # Called by the MQTT client thread!
+
+        # Remove the sent message from the list
+        if mid in self._publishedNotAcknowledgedMessage:
+            del self._publishedNotAcknowledgedMessage[mid]
+        else:
+            print('Warning: #{} not in published msgs!'.format(mid))
+
+        msg_count = len(self._publishedNotAcknowledgedMessage)
+        if msg_count > 0:
+            self._publishedNotAcknowledgedHighWaterMark = max(self._publishedNotAcknowledgedHighWaterMark, msg_count)
 
     def subscribeToSetCommands(self):
         (result, mid) = self._client.subscribe('@set/' + self.get_uuid().to_string() + '/#', 1)
@@ -215,7 +304,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                 # If the endpoint is online, send node add message
                 if self.isOnline():
                     data = self.messageFormat.serialize_node(node)
-                    self._client.publish('@nodeAdded/' + node.get_uuid().to_string(), data, 1, False)
+                    self._publish('@nodeAdded/' + node.get_uuid().to_string(), data)
                 else:
                     self.log.info('Not sending \'@nodeAdded\' message. No connection to broker!')
 
@@ -281,7 +370,8 @@ class CloudioEndpoint(CloudioNodeContainer):
         if self.isOnline():
             try:
                 topic = '@update/' + attribute.get_uuid().to_string()
-                messageQueued = self._client.publish(topic, data, 1, False)
+                self._publish(topic, data)
+                messageQueued = True  # TODO Fix this
             except Exception as exception:
                 self.log.error('Exception :' + exception.message)
 
@@ -342,7 +432,7 @@ class CloudioEndpoint(CloudioNodeContainer):
         # Send birth message
         self.log.info('Sending birth message...')
         strMessage = self.messageFormat.serialize_endpoint(self)
-        self._client.publish('@online/' + self.uuid, strMessage, 1, True)
+        self._publish('@online/' + self.uuid, strMessage, retain=True)
 
     def _purgePersistentDataStore(self):
         """Tries to send stored messages to cloud.iO.
@@ -363,7 +453,7 @@ class CloudioEndpoint(CloudioNodeContainer):
                             uuid = pendingUpdate.get_uuid_from_persistence_key(key)
 
                             # Try to send the update to the broker and remove it from the storage
-                            if self._client.publish('@update/' + uuid, pendingUpdate.get_data(), 1, False):
+                            if self._publish('@update/' + uuid, pendingUpdate.get_data()):
                                 # Remove key from store
                                 self.persistence.remove(key)
                     time.sleep(0)  # Give other threads time to do its job
