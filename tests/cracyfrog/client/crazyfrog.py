@@ -42,7 +42,7 @@ class CrazyFrogClient(object):
 
         self._client = MqttReconnectClient(config['cloudio']['host'],
                                            client_id=self._endPointName + '-client-',
-                                           clean_session=False,
+                                           clean_session=True,
                                            options=self.connectOptions)
 
         # Register callback method for connection established
