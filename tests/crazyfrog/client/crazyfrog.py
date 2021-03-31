@@ -22,7 +22,7 @@ class CrazyFrogClient(object):
 
     def __init__(self, config_file):
         self._isRunning = True
-        self._interval = 0.25
+        self._interval = 0.10  # Every 100 milliseconds
         self._isConnected = False
 
         config = self.parse_config_file(config_file)
@@ -122,7 +122,7 @@ class CrazyFrogClient(object):
     def execute(self):
         while self._isRunning:
             secs = time.time()
-            frequency = 1.0 / 10    # [Hz]
+            frequency = 1.0 / 10  # [Hz]
             # https://en.wikipedia.org/wiki/Triangle_wave
             triangle_value = 10 * 2 / math.pi * math.asin(math.sin(2.0 * math.pi * frequency * secs))
             print('Updating triangle value: {0:0.2f}'.format(triangle_value))

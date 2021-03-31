@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 
-from tests.cracyfrog import paths
+from tests.crazyfrog import paths
 
 paths.update_working_directory()
 
 
 def main():
-    from tests.cracyfrog.endpoint import CrazyFrogEndpoint
+    from tests.crazyfrog.endpoint import CrazyFrogEndpoint
 
     crazyFrogEndpoint = CrazyFrogEndpoint()
     crazyFrogEndpoint.initialize()

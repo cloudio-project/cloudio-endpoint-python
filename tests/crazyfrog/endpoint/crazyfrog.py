@@ -14,7 +14,7 @@ class CrazyFrogEndpoint(CloudioAttributeListener):
         from cloudio.endpoint.attribute import CloudioAttribute
 
         self._isRunning = True
-        self._interval = 0.5
+        self._interval = 0.5  # Every 500 milliseconds
 
         self._endpoint = CloudioEndpoint(cloudio_endpoint_name, locations='path:../config/')
 
@@ -53,7 +53,7 @@ class CrazyFrogEndpoint(CloudioAttributeListener):
             frequency = 1.0 / 10  # [Hz]
             sinus_value = 10 * math.sin(2.0 * math.pi * frequency * secs)
             self._sinus.set_value(sinus_value)
-            print('Updating sinus value: {0:0.2f}'.format(self._sinus.get_value()))
+            # print('Updating sinus value: {0:0.2f}'.format(self._sinus.get_value()))
             time.sleep(self._interval)
 
     def attribute_has_changed(self, attribute):
@@ -63,7 +63,8 @@ class CrazyFrogEndpoint(CloudioAttributeListener):
 
         :param attribute Attribute that has changed.
         """
-        print('{} attr changed: {}'.format(self.__class__.__name__, str(attribute.get_value())))
+
+        # print('{} attribute changed: {}'.format(self.__class__.__name__, str(attribute.get_value())))
 
         # Notify the cloud that attribute was changed
         attribute.set_value(attribute.get_value())

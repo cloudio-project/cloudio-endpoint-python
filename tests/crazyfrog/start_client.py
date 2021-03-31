@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import paths
-from tests.cracyfrog.client.crazyfrog import CrazyFrogClient
 
 paths.update_working_directory()
 
 
 def main():
+    from tests.crazyfrog.client.crazyfrog import CrazyFrogClient
+
     client = CrazyFrogClient('~/.config/cloud.io/client/CrazyFrogClient.config')
     client.execute()
 
