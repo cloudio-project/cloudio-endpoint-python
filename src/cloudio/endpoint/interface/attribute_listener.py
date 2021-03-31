@@ -13,9 +13,11 @@ class CloudioAttributeListener(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def attribute_has_changed(self, attribute):
+    def attribute_has_changed(self, attribute, from_cloud: bool):
         """This method is called upon an attribute has been changed.
 
         :param attribute Attribute that has changed.
+        :param from_cloud True if attribute was changed from cloud. False means attribute did
+               change internally (from endpoint).
         """
         pass

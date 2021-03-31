@@ -57,15 +57,19 @@ class CrazyFrogEndpoint(CloudioAttributeListener):
             # print('Updating sinus value: {0:0.2f}'.format(self._sinus.get_value()))
             time.sleep(self._interval)
 
-    def attribute_has_changed(self, attribute):
+    def attribute_has_changed(self, attribute, from_cloud: bool):
         """This method gets called when an attribute was updated from the cloud.
 
         CloudioAttributeListener interface implementation.
 
         :param attribute Attribute that has changed.
+        :param from_cloud True if attribute was changed from cloud. False means attribute did
+               change internally (from endpoint).
         """
 
         # print('{} attribute changed: {}'.format(self.__class__.__name__, str(attribute.get_value())))
 
-        # Notify the cloud that attribute was changed
-        attribute.set_value(attribute.get_value())
+        if from_cloud:
+            # Notify the cloud that attribute was changed
+            # (Sends an '@update' value so it can be seen by all clients)
+            attribute.set_value(attribute.get_value())

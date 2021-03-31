@@ -48,34 +48,39 @@ class VacuumCleaner(CloudioAttributeListener):
         setattr(self, internal_attribute_name, cloudio_attribute.get_value())
 
     @staticmethod
-    def _convert_to_internal_attribute_name(cloudio_attribute_name):
+    def _convert_to_internal_attribute_name(cloudio_attribute_name, camel_case=False):
         internal_attribute_name = cloudio_attribute_name
         if cloudio_attribute_name.startswith('set'):
             # internal_attribute_name = '_' + cloudio_attribute_name[4:4 + 1].lower() + cloudio_attribute_name[5:]
-            internal_attribute_name = cloudio_attribute_name[3:]     # Remove 'set'
-            words = list(filter(None, internal_attribute_name.split('_')))
-            internal_attribute_name = ''.join((map(lambda x: x.capitalize(), words)))
+            internal_attribute_name = cloudio_attribute_name[3:]  # Remove 'set'
 
-            internal_attribute_name = internal_attribute_name[0].lower() + internal_attribute_name[1:]
-            internal_attribute_name = '_' + internal_attribute_name
+            if camel_case:
+                # Convert from ex. '_power_on' to '_powerOn'
+                words = list(filter(None, internal_attribute_name.split('_')))
+                internal_attribute_name = ''.join((map(lambda x: x.capitalize(), words)))
+
+                internal_attribute_name = internal_attribute_name[0].lower() + internal_attribute_name[1:]
+                internal_attribute_name = '_' + internal_attribute_name
 
         return internal_attribute_name
 
-    def attribute_has_changed(self, attribute):
+    def attribute_has_changed(self, attribute, from_cloud: bool):
         """This method gets called when an attribute changes.
 
         CloudioAttributeListener interface implementation.
 
-        Used to get informed about attribute value changes in the cloud
-        representation of the node/device.
 
         :param attribute Attribute that has changed.
+        :param from_cloud True if attribute was changed from cloud. False means attribute did
+               change internally (from endpoint).
         """
-        internal_attribute_name = self._convert_to_internal_attribute_name(attribute.get_name())
-        print('VacuumCleaner attr changed: ' + str(attribute.get_value()))
+        if from_cloud:
+            internal_attribute_name = self._convert_to_internal_attribute_name(attribute.get_name())
+            print('VacuumCleaner attr changed: ' + str(attribute.get_value()))
 
-        # Check if we have an attribute with the same name
-        if hasattr(self, internal_attribute_name):
-            setattr(self, internal_attribute_name, attribute.get_value())
-        else:
-            self.log.warning('Attribute \'' + internal_attribute_name + '\' not found in ' + self.__class__.__name__)
+            # Check if we have an attribute with the same name
+            if hasattr(self, internal_attribute_name):
+                setattr(self, internal_attribute_name, attribute.get_value())
+            else:
+                self.log.warning(
+                    'Attribute \'' + internal_attribute_name + '\' not found in ' + self.__class__.__name__)
