@@ -4,10 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+build = "*"
 coverage = "*"
 coverage-badge = "*"
 cloudio-endpoint-python = {editable = true, path = "."}
-setuptools = "*"
 twine = "*"
 
 [packages]

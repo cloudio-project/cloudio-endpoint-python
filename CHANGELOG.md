@@ -1,10 +1,10 @@
 # Changelog
 
-## Next
+## 1.0.0 - (2021-03-31)
 - Added a thread to `CloudioEndpoint` class to decouple MQTT client calls 
 - Removed Python2 support
 - Reformatted code according to [PEP 8](https://www.python.org/dev/peps/pep-0008/)
-- Changed `CloudioAttributeListener` interface
+- Extended `CloudioAttributeListener` interface
 
 ## 0.2.14 - (2020-07-08)
 - Bugfix in attributeHasChangedByEndpoint() with PendingUpdate
