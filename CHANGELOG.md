@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1 - (2021-03-31)
+- Updated homepage link
+
 ## 1.0.0 - (2021-03-31)
 - Added a thread to `CloudioEndpoint` class to decouple MQTT client calls 
 - Removed Python2 support
