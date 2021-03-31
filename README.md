@@ -1,10 +1,12 @@
 # cloudio-endpoint-python
 ![version](https://img.shields.io/pypi/v/cloudio-endpoint-python.svg)
+![coverage](docs/images/coverage.svg)
 
 Python endpoint (IoT device) library for [cloud.iO](https://cloudio.hevs.ch).
 
-The endpoint has been tested with python version 2.7.x. The code is developed to 
-support also python version 3.x, but has not been tested. 
+The endpoint has been tested with python version 3.x. Support for python version 2.7.x 
+has been removed since v1.0.0. If you still run python v2.x, please use version v0.2.15 
+of this library.
 
 ## Introduction
 
@@ -81,6 +83,9 @@ of action is to provide a `Connector` class which is responsible to do this job.
 find in the `tests` folder the 
 [VacuumCleanerConnector](https://github.com/cloudio-project/cloudio-endpoint-python/blob/master/tests/cloudio/connector/vacuumcleaner_connector.py)
 class as an example on how this job me be done.
+
+## Links to Internal Documentation
+- [Developer](./docs/development.md) Section
 
 ### TODO
 - [] Explain the `Model2CloudConnector` class
