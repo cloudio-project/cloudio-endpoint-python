@@ -42,13 +42,14 @@ $ cd <into project>
 # Install package needed for deployment (setuptools and twine) 
 $ pipenv install
 
-# Build source distribution (dist/{<project-name>-x.y.z}.tar.gz file)
-$ pipenv run setup.py sdist
+# Build the package
+$ pipenv run python -m build
 
 # Optional: Send to test server
 $ pipenv run twine upload --repository testpypi dist/*
 
 # Upload to official server
+$ pipenv run twine upload --repository pypi dist/{<project-name>-x.y.z}*.whl
 $ pipenv run twine upload --repository pypi dist/{<project-name>-x.y.z}.tar.gz
 ```
 
