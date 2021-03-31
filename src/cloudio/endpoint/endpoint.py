@@ -47,6 +47,7 @@ logging.getLogger(__name__).info('cloudio-endpoint-python version: %s' % version
 class MqttMessage:
     topic: str
     payload: str
+    timestamp: int = 0
     qos: int = 1
     retain: bool = False
 
@@ -182,6 +183,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             self._processPublishMessages()
 
             self._checkPublishedNotAcknowledgedContainer()
+            self._check_presistent_data_store()
 
             # Wait until next interval begins
             if self._thread_should_run:
@@ -193,23 +195,36 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # Stop Mqtt client
         self._client.stop()
 
-    def _publish(self, topic, payload, qos=1, retain=False):
-        msg = MqttMessage(topic, payload, qos=qos, retain=retain)
+    def _publish(self, topic, payload, timestamp=0, qos=1, retain=False):
+
+        if timestamp == 0:
+            timestamp = TimeStampProvider.getTimeInMilliseconds()
+
+        msg = MqttMessage(topic, payload, timestamp=timestamp, qos=qos, retain=retain)
         self._publishMessage.append(msg)
 
         # Wake up endpoint thread. It will publish the queued message. See _processPublishMessages()
         self.wakeup_thread()
 
     def _processPublishMessages(self):
+        """Processes message ready to be send to cloud.iO.
+
+        In case the MQTT broker is not available, the messages are stored in the
+        persistent data store.
+        """
         while len(self._publishMessage):
+            # Get next message
             msg = self._publishMessage.pop(0)
+
+            # Publish message via the MQTT client
             message_info = self._client.publish(msg.topic, msg.payload, msg.qos, msg.retain)
 
             if message_info.rc == self._client.MQTT_ERR_SUCCESS:
                 # Add message to published (but not acknowledged) messages
                 self._publishedNotAcknowledgedMessage[message_info.mid] = msg
             else:
-                print('Could not transmit')
+                # Could not transmit. Add it to data store
+                self._put_persistent_data_store(msg.topic, msg.payload, msg.timestamp)
 
     def _checkPublishedNotAcknowledgedContainer(self):
         msg_count = len(self._publishedNotAcknowledgedMessage)
@@ -244,25 +259,27 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 self.log.error('Message-format ' + payload[0] + " not supported!")
                 return
 
-            topicLevels = msg.topic.split('/')
+            topic_levels = self.get_topic_levels(msg.topic)
             # Create attribute location path stack.
             location = []
-            for topicLevel in topicLevels:
+            for topicLevel in topic_levels:
                 location.insert(0, topicLevel)
 
             # Read the action tag from the topic
-            action = topicLevels[0]
+            action = topic_levels[0]
             if action == '@set':
                 location.pop()
                 self._set(msg.topic, location, messageFormat, payload)
             else:
                 self.log.error('Method \"' + action + '\" not supported!')
-        except Exception as exception:
-            self.log.error('Exception :' + exception.message)
+        except Exception:
             traceback.print_exc()
 
     def _onMessagePublished(self, client, userdata, mid):
         # Called by the MQTT client thread!
+
+        if mid % 100 == 0:
+            print('Msg #{} sent'.format(mid))
 
         # Remove the sent message from the list
         if mid in self._publishedNotAcknowledgedMessage:
@@ -361,35 +378,17 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         """
         :param attribute:
         :type attribute: CloudioAttribute
-        :return:
         """
-        # Create the MQTT message using the given message format.
-        data = self.messageFormat.serialize_attribute(attribute)
 
-        messageQueued = False
-        if self.isOnline():
-            try:
-                topic = '@update/' + attribute.get_uuid().to_string()
-                self._publish(topic, data)
-                messageQueued = True  # TODO Fix this
-            except Exception as exception:
-                self.log.error('Exception :' + exception.message)
+        try:
+            # Create the MQTT message using the given message format.
+            topic = '@update/' + attribute.get_uuid().to_string()
+            payload = self.messageFormat.serialize_attribute(attribute)
 
-        # If the message could not be send for any reason, add the message to the pending
-        # updates persistence if available.
-        if not messageQueued and self.persistence:
-            try:
-                self.persistence.put('PendingUpdate-' + attribute.get_uuid().to_string().replace('/', ';')
-                                     + '-' + str(TimeStampProvider.getTimeInMilliseconds()),
-                                     PendingUpdate(data))
-            except Exception as exception:
-                self.log.error('Exception :' + exception.message)
-                traceback.print_exc()
-
-        # Check if there are messages in the persistence store to send
-        if messageQueued and self.persistence and len(self.persistence.keys()) > 0:
-            # Try to send stored messages to cloud.iO
-            self._purgePersistentDataStore()
+            self._publish(topic, payload, timestamp=attribute.get_timestamp())
+        except Exception as exception:
+            self.log.error('Exception :' + exception.message)
+            traceback.print_exc()
 
     def attribute_has_changed_by_cloud(self, attribute):
         """Informs the endpoint that an underlying attribute has changed (initiated from the cloud).
@@ -434,28 +433,87 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         strMessage = self.messageFormat.serialize_endpoint(self)
         self._publish('@online/' + self.uuid, strMessage, retain=True)
 
+    @staticmethod
+    def get_action(topic: str) -> str:
+        """Extracts the action from a topic.
+
+        Ex. topic: '@update/CrazyFrogEndpoint/nodes/CrazyFrog/objects/properties/attributes/_sinus'
+        returns '@update'
+        """
+        topicLevels = topic.split('/')
+
+        # Read the action tag from the topic
+        action = topicLevels[0]
+        return action
+
+    @staticmethod
+    def get_topic_levels(topic: str) -> list[str]:
+        """Breaks the topic into its pieces.
+        """
+        topic_levels = topic.split('/')
+        return topic_levels
+
+    def _check_presistent_data_store(self):
+        # Check if there are messages in the persistence store
+        if self.isOnline() and self.persistence and len(self.persistence.keys()) > 0:
+            # Try to send stored messages to cloud.iO
+            self._purgePersistentDataStore()
+
+    def _put_persistent_data_store(self, topic, payload, timestamp):
+        # If the message could not be send for any reason, add the message to the pending
+        # updates persistence if available.
+        if self.persistence:
+            if timestamp == 0:
+                timestamp = TimeStampProvider.getTimeInMilliseconds()
+
+            action = self.get_action(topic)
+            topic_levels = self.get_topic_levels(topic)
+            topic_levels.pop(0)  # Remove action
+
+            try:
+                if action == '@update':
+                    msg_id = 'PendingUpdate-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                elif action == '@nodeAdded':
+                    msg_id = 'PendingNodeAdded-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                else:
+                    raise Exception('Unknown action type!')
+            except Exception as exception:
+                self.log.error('Exception :' + exception.message)
+                traceback.print_exc()
+
     def _purgePersistentDataStore(self):
         """Tries to send stored messages to cloud.iO.
         """
         if self.persistence:
             print(str(len(self.persistence.keys())) + ' in persistence')
+
+            action_map = {
+                'PendingUpdate-': '@update',
+                'PendingNodeAdded-': '@nodeAdded'}
+
             for key in self.persistence.keys():
                 if self.isOnline():
-                    # Is it a pending update?
-                    if key.startswith('PendingUpdate-'):
-                        # Get the pending update persistent object from store
-                        pendingUpdate = self.persistence.get(key)
+                    for pending_data_type, action in action_map.items():
+                        # Check pending data type
+                        if key.startswith(pending_data_type):
+                            # Get the pending update persistent object from store
+                            pendingUpdate = self.persistence.get(key)
 
-                        if pendingUpdate is not None:
-                            print('Copy pers: ' + key + ': ' + pendingUpdate.get_data())
+                            if pendingUpdate is not None:
+                                print('Copy pers: ' + key + ': ' + pendingUpdate.get_data())
 
-                            # Get the uuid of the endpoint
-                            uuid = pendingUpdate.get_uuid_from_persistence_key(key)
+                                # Get the uuid of the endpoint
+                                uuid = pendingUpdate.get_uuid_from_persistence_key(key)
 
-                            # Try to send the update to the broker and remove it from the storage
-                            if self._publish('@update/' + uuid, pendingUpdate.get_data()):
+                                # Try to send the update to the broker and remove it from the storage
+                                topic = action + '/' + uuid
+                                self._publish(topic, pendingUpdate.get_data())
+
                                 # Remove key from store
                                 self.persistence.remove(key)
+                            break
                     time.sleep(0)  # Give other threads time to do its job
                 else:
                     break
