@@ -93,6 +93,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         self._publish_message = list()  # type: list[MqttMessage]
         self._received_message = list()  # type: list[mqtt.MQTTMessage]
 
+        # Used for debug/testing purpose only
         self._published_not_acknowledged_message = dict()  # type: dict[mqtt.MQTTMessageInfo]
         self._published_not_acknowledged_high_water_mark = 0
 
@@ -234,9 +235,9 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         if msg_count > 0:
             self._published_not_acknowledged_high_water_mark = max(self._published_not_acknowledged_high_water_mark,
                                                                    msg_count)
-            if msg_count > 1:
-                print('Not published messages: {} (max: {})'.format(msg_count,
-                                                                    self._published_not_acknowledged_high_water_mark))
+            # if msg_count > 1:
+            #     print('Not published messages: {} (max: {})'.format(msg_count,
+            #                                                        self._published_not_acknowledged_high_water_mark))
 
     def _onMessageArrived(self, client, userdata, msg):
         # Called by the MQTT client thread!
@@ -289,7 +290,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         if mid in self._published_not_acknowledged_message:
             del self._published_not_acknowledged_message[mid]
         else:
-            print('Warning: #{} not in published msgs!'.format(mid))
+            # print('Warning: #{} not in published msgs!'.format(mid))
+            pass
 
         msg_count = len(self._published_not_acknowledged_message)
         if msg_count > 0:
