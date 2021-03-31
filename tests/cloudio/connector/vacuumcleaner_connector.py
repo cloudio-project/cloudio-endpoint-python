@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import sys, os, time
 import logging
+import os
 import traceback
 from xml.dom import minidom
-from utils import path_helpers
 
+from cloudio.common.utils import path_helpers
 from cloudio.endpoint import CloudioEndpoint
-from cloudio.cloudio_runtime_node import CloudioRuntimeNode
-from cloudio.cloudio_runtime_object import CloudioRuntimeObject
+from cloudio.endpoint.runtime.node import CloudioRuntimeNode
+from cloudio.endpoint.runtime.object import CloudioRuntimeObject
 
 # Enable logging
 logging.getLogger(__name__).setLevel(logging.INFO)
+
 
 class VacuumCleanerConnector(object):
     """Creates the cloud.iO endpoint according to the model file.
@@ -20,41 +21,41 @@ class VacuumCleanerConnector(object):
     """
     log = logging.getLogger(__name__)
 
-    def __init__(self, cloudioEndpointName):
-        self.endpoint = CloudioEndpoint(cloudioEndpointName)
+    def __init__(self, cloudio_endpoint_name):
+        self.endpoint = CloudioEndpoint(cloudio_endpoint_name)
 
-    def getEndpointName(self):
-        return self.endpoint.getName()
+    def get_endpoint_name(self):
+        return self.endpoint.get_name()
 
-    def createModel(self, xmlModelFile):
+    def create_model(self, xml_model_file):
         try:
-            pathName = path_helpers.prettify(xmlModelFile)
+            path_name = path_helpers.prettify(xml_model_file)
 
-            self.log.info('Reading cloud.iO enpoint model from \'%s\'' % pathName)
+            self.log.info('Reading cloud.iO endpoint model from \'%s\'' % path_name)
 
-            pathName = os.path.abspath(pathName)    # Convert to absolute path to make isfile() happy
+            path_name = os.path.abspath(path_name)  # Convert to absolute path to make isfile() happy
 
             # Check if config file is present
-            if os.path.isfile(pathName):
+            if os.path.isfile(path_name):
                 # Parse XML config file
-                xmlConfigFile = minidom.parse(pathName)
+                xml_config_file = minidom.parse(path_name)
 
-                if xmlConfigFile:
-                    configList = xmlConfigFile.getElementsByTagName(u'config')
+                if xml_config_file:
+                    configList = xml_config_file.getElementsByTagName('config')
                     """:type : list of minidom.Element"""
 
                     for config in configList:
-                        deviceTypeList = config.getElementsByTagName(u'deviceType')
+                        device_type_list = config.getElementsByTagName('deviceType')
                         """:type : list of minidom.Element"""
 
-                        for deviceType in deviceTypeList:
+                        for device_type in device_type_list:
                             """:type : list of minidom.Element"""
-                            print(u'Parsing elements for device: ' + deviceType.getAttribute('typeId'))
-                            self._parseDeviceTypeFromXmlDomElement(deviceType)
+                            print('Parsing elements for device: ' + device_type.getAttribute('typeId'))
+                            self._parse_device_type_from_xml_dom_element(device_type)
             else:
-                raise RuntimeError(u'Missing configuration file: %s' % pathName)
+                raise RuntimeError('Missing configuration file: %s' % path_name)
 
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
 
         # After the endpoint is fully created the presents can be announced
@@ -63,69 +64,66 @@ class VacuumCleanerConnector(object):
     def close(self):
         self.endpoint.close()
 
-    def _parseDeviceTypeFromXmlDomElement(self, deviceType):
+    def _parse_device_type_from_xml_dom_element(self, device_type):
         """Parses a device type from an xml dom element
 
-        :param deviceType:
-        :type deviceType: minidom.Element
+        :param device_type:
+        :type device_type: minidom.Element
         :return:
         """
-        assert deviceType.tagName == u'deviceType', u'Wrong DOM element name'
+        assert device_type.tagName == 'deviceType', 'Wrong DOM element name'
 
-        nodeName = deviceType.getAttribute(u'typeId')
-        cloudioRuntimeNode = CloudioRuntimeNode()
-        cloudioRuntimeNode.declareImplementedInterface(u'NodeInterface')
+        node_name = device_type.getAttribute('typeId')
+        cloudio_runtime_node = CloudioRuntimeNode()
+        cloudio_runtime_node.declare_implemented_interface('NodeInterface')
 
-        objectList = deviceType.getElementsByTagName(u'object')
+        object_list = device_type.getElementsByTagName('object')
         """:type : list of minidom.Element"""
-        for obj in objectList:
-            objectName = obj.getAttribute(u'id')
+        for obj in object_list:
+            object_name = obj.getAttribute('id')
             # Create cloud.iO object
-            cloudioRuntimeObject = CloudioRuntimeObject()
+            cloudio_runtime_object = CloudioRuntimeObject()
             # Add object to the node
-            cloudioRuntimeNode.addObject(objectName, cloudioRuntimeObject)
+            cloudio_runtime_node.add_object(object_name, cloudio_runtime_object)
 
             # Get the attributes for the object node
-            attributeList = obj.getElementsByTagName(u'attribute')
+            attributeList = obj.getElementsByTagName('attribute')
             for attribute in attributeList:
-                self._parseAttributeFromXmlDomElement(cloudioRuntimeObject, attribute)
+                self._parse_attribute_from_xml_dom_element(cloudio_runtime_object, attribute)
 
-        assert nodeName, u'No node name given!'
-        assert cloudioRuntimeNode, u'No cloud.iO node object given!'
-        self.endpoint.addNode(nodeName, cloudioRuntimeNode)
+        assert node_name, 'No node name given!'
+        assert cloudio_runtime_node, 'No cloud.iO node object given!'
+        self.endpoint.add_node(node_name, cloudio_runtime_node)
 
     @classmethod
-    def _parseAttributeFromXmlDomElement(cls, cloudioRuntimeObject, attributeElement):
+    def _parse_attribute_from_xml_dom_element(cls, cloudio_runtime_object, attribute_element):
         """Parses an attribute from an xml dom element
 
-        :parame cloudioRuntimeObject:
-        :type cloudioRuntimeObject: CloudioRuntimeObject
-        :param attributeElement:
-        :type attributeElement: minidom.Element
+        :param cloudio_runtime_object:
+        :type cloudio_runtime_object: CloudioRuntimeObject
+        :param attribute_element:
+        :type attribute_element: minidom.Element
         :return:
         """
-        assert attributeElement.tagName == u'attribute', u'Wrong DOM element name'
+        assert attribute_element.tagName == 'attribute', 'Wrong DOM element name'
 
-        theName = attributeElement.getAttribute(u'id')
-        strType = attributeElement.getAttribute(u'template')
-        strConstraint = attributeElement.getAttribute(u'constraint')
-
-        # TODO Get options
+        the_name = attribute_element.getAttribute('id')
+        str_type = attribute_element.getAttribute('template')
+        str_constraint = attribute_element.getAttribute('constraint')
 
         # TODO Convert constraint from 'string' to CloudioAttributeConstraint
 
-        theType = None
+        the_type = None
 
-        if strType.lower() == 'bool' or strType.lower() == 'boolean':
-            theType = bool
-        elif strType.lower() in ('short', 'long', 'integer'):
-            theType = int
-        elif strType.lower() == 'float' or strType.lower() == 'double' or strType.lower() == 'number':
-            theType = float
-        elif strType.lower() == 'str' or strType.lower() == 'string':
-            theType = str
+        if str_type.lower() == 'bool' or str_type.lower() == 'boolean':
+            the_type = bool
+        elif str_type.lower() in ('short', 'long', 'integer'):
+            the_type = int
+        elif str_type.lower() == 'float' or str_type.lower() == 'double' or str_type.lower() == 'number':
+            the_type = float
+        elif str_type.lower() == 'str' or str_type.lower() == 'string':
+            the_type = str
 
-        assert theType, u'Attribute type unknown or not set!'
+        assert the_type, 'Attribute type unknown or not set!'
 
-        cloudioRuntimeObject.addAttribute(theName, theType, strConstraint)
-
+        cloudio_runtime_object.add_attribute(the_name, the_type, str_constraint)

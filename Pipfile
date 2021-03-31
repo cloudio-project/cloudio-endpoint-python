@@ -4,10 +4,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+coverage = "*"
+coverage-badge = "*"
+cloudio-endpoint-python = {editable = true, path = "."}
+setuptools = "*"
+twine = "*"
 
 [packages]
-paho-mqtt = "*"
 configobj = "*"
+cloudio-common-python = "==0.1.0"
 
 [requires]
 python_version = "3.9"
