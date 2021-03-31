@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import json
 import inspect
+import json
+
 from cloudio.common.utils import timestamp as timestamp_helpers
-from cloudio.endpoint.interface.message_format import CloudioMessageFormat
 from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
+from cloudio.endpoint.interface.message_format import CloudioMessageFormat
+
 
 # Links:
 # - http://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
@@ -14,6 +16,7 @@ class JsonMessageFormat(CloudioMessageFormat):
 
     All messages have to start with the identifier for this format 0x7B ('{' character).
     """
+
     def __init__(self):
         self._encoder = _JsonMessageEncoder()
         pass
@@ -35,10 +38,10 @@ class JsonMessageFormat(CloudioMessageFormat):
     def serialize_node(self, node):
         message = ''
 
-        #message += self._encoder.startObject()
+        # message += self._encoder.startObject()
         # Encode data to json formatted byte array
         message += self._encoder.encode(node)
-        #message += self._encoder.endObject()
+        # message += self._encoder.endObject()
         return message
 
     def serialize_attribute(self, attribute):
@@ -52,8 +55,8 @@ class JsonMessageFormat(CloudioMessageFormat):
             if timestamp:
                 data['timestamp'] = timestamp / 1000.0
 
-        attributeValue = attribute.get_value()
-        data['value'] = attributeValue
+        attribute_value = attribute.get_value()
+        data['value'] = attribute_value
 
         message = ''
         # Encode data to json formatted byte array
@@ -63,20 +66,20 @@ class JsonMessageFormat(CloudioMessageFormat):
 
     def deserialize_attribute(self, data, attribute):
 
-        dataDict = json.loads(data)
+        data_dict = json.loads(data)
         """:type: dict"""
 
         # In case there is no timestamp present, create one using
         # the current time
-        if not 'timestamp' in dataDict:
-            dataDict['timestamp'] = timestamp_helpers.getTimeInMilliseconds()
+        if not 'timestamp' in data_dict:
+            data_dict['timestamp'] = timestamp_helpers.getTimeInMilliseconds()
 
-        if isinstance(dataDict, dict) and \
-            'timestamp' in dataDict and \
-            'value' in dataDict:
+        if isinstance(data_dict, dict) and \
+                'timestamp' in data_dict and \
+                'value' in data_dict:
 
-            timestamp = int(dataDict['timestamp'] * 1000)
-            value = dataDict['value']
+            timestamp = int(data_dict['timestamp'] * 1000)
+            value = data_dict['value']
 
             if timestamp != 0 and value is not None:
                 type = attribute.get_type()
@@ -99,6 +102,7 @@ class JsonMessageFormat(CloudioMessageFormat):
                 else:
                     raise IOError('Attribute type not supported!')
 
+
 class _JsonMessageEncoder(json.JSONEncoder):
     def __init__(self):
         super(_JsonMessageEncoder, self).__init__()
@@ -111,24 +115,24 @@ class _JsonMessageEncoder(json.JSONEncoder):
             # Remove attributes that could cause circular references
             d = dict((key, value)
                      for key, value in inspect.getmembers(obj)
-                        if not key.startswith("__") and
-                           not key.startswith("_abc_") and
-                           not key in ('parent', '_parent', '_externalObject') and
-                           not key in ('log',) and
-                           not inspect.isabstract(value) and
-                           not inspect.isbuiltin(value) and
-                           not inspect.isfunction(value) and
-                           not inspect.isgenerator(value) and
-                           not inspect.isgeneratorfunction(value) and
-                           not inspect.ismethod(value) and
-                           not inspect.ismethoddescriptor(value) and
-                           not inspect.isroutine(value)
-            )
+                     if not key.startswith("__") and
+                     not key.startswith("_abc_") and
+                     not key in ('parent', '_parent', '_externalObject') and
+                     not key in ('log',) and
+                     not inspect.isabstract(value) and
+                     not inspect.isbuiltin(value) and
+                     not inspect.isfunction(value) and
+                     not inspect.isgenerator(value) and
+                     not inspect.isgeneratorfunction(value) and
+                     not inspect.ismethod(value) and
+                     not inspect.ismethoddescriptor(value) and
+                     not inspect.isroutine(value)
+                     )
             return self.default(d)
         return obj
 
     def startObject(self):
-        return '{'.encode()    # unicode to bytearray
+        return '{'.encode()  # unicode to bytearray
 
     def endObject(self):
-        return '}'.encode()    # unicode to bytearray
+        return '}'.encode()  # unicode to bytearray

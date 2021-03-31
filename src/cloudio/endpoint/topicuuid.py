@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import traceback
+
 from .interface import uuid
 
 
@@ -72,14 +73,14 @@ class TopicUuid(uuid.CloudioUuid):
     #
     def _get_attribute_topic(self, cloudio_attribute):
         return self._get_attribute_container_topic(cloudio_attribute.get_parent()) + '/attributes/' + \
-            cloudio_attribute.get_name()
+               cloudio_attribute.get_name()
 
     def _get_attribute_container_topic(self, attribute_container):
         # TODO Remove check below and put an assert for attributeContainer
         if attribute_container is None or attribute_container.get_name() is None:
             return '<no parent>' + '/objects/' + '<no name>'
         return self._get_object_container_topic(attribute_container.get_parent_object_container()) + \
-            '/objects/' + attribute_container.get_name()
+               '/objects/' + attribute_container.get_name()
 
     def _get_object_container_topic(self, object_container):
         if not object_container:

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import types
-from cloudio.endpoint.interface.object_container import CloudioObjectContainer
-from cloudio.endpoint.interface.attribute_container import CloudioAttributeContainer
-from cloudio.endpoint.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
-from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
+
 from cloudio.endpoint.attribute import CloudioAttribute
+from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
+from cloudio.endpoint.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
+from cloudio.endpoint.interface.attribute_container import CloudioAttributeContainer
+from cloudio.endpoint.interface.object_container import CloudioObjectContainer
 from cloudio.endpoint.topicuuid import TopicUuid
 
 
@@ -20,6 +21,7 @@ class CloudioObject(object):
     matches exactly the structure of the class. It can not contain more attributes or child objects, then it would be
     not anymore conform to that class.
     """
+
     def __init__(self):
         super(CloudioObject, self).__init__()
         self._internal = _InternalObject(self)
@@ -57,24 +59,25 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
     def __init__(self, external_object):
         super(_InternalObject, self).__init__()
         self._externalObject = external_object
-        self.parent = None      # type: CloudioObjectContainer or None
-        self.name = None        # type: str or None
+        self.parent = None  # type: CloudioObjectContainer or None
+        self.name = None  # type: str or None
         self.conforms = None
         self.objects = {}
         self._attributes = {}
         self._staticAttributesAdded = False
 
         # Check each field of the actual CloudioObject object.
-#        for field in dir(external_object):
-#            # Check if it is an attribute and go get it
-#            attr = getattr(external_object, field)
-#           if attr:
-#               if isinstance(attr, CloudioObject):
-#                  print('Got an attribute based on an CloudioObject class')
-#               elif type(field) == CloudioAttribute:
-#                   print('Got an attribute based on an CloudioAttribute class')
-#               else:
-#                   print('Got an attribute with non-relevant type')
+
+    #        for field in dir(external_object):
+    #            # Check if it is an attribute and go get it
+    #            attr = getattr(external_object, field)
+    #           if attr:
+    #               if isinstance(attr, CloudioObject):
+    #                  print('Got an attribute based on an CloudioObject class')
+    #               elif type(field) == CloudioAttribute:
+    #                   print('Got an attribute based on an CloudioAttribute class')
+    #               else:
+    #                   print('Got an attribute with non-relevant type')
 
     def get_external_object(self):
         return self._externalObject
@@ -141,15 +144,15 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         if location:
             if len(location) > 0:
                 if location[-1] == 'objects':  # Compare with last element (peek element)
-                    location.pop()     # Remove last item
+                    location.pop()  # Remove last item
                     if len(location) > 0:
                         if location[-1] in self.get_objects():
                             obj = self.get_objects()[location.pop()]
                             if obj:
                                 return obj.find_attribute(location)
                 elif location[-1] == 'attributes':
-                    self.get_attributes()    # Update attributes list
-                    location.pop()         # Remove last item
+                    self.get_attributes()  # Update attributes list
+                    location.pop()  # Remove last item
                     if len(location) > 0:
                         if location[-1] in self.get_attributes():
                             attribute = self.get_attributes()[location.pop()]
@@ -167,14 +170,14 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         if location:
             if len(location) > 0:
                 if location[-1] == 'objects':  # Compare with last element (peek element)
-                    location.pop()     # Remove last item
+                    location.pop()  # Remove last item
                     if len(location) > 0:
                         if location[-1] in self.get_objects():
                             obj = self.get_objects()[location.pop()]
                             return obj
                 elif location[-1] == 'attributes':
-                    obj = self.get_attributes()       # Update attributes list
-                    location.pop()         # Remove last item
+                    obj = self.get_attributes()  # Update attributes list
+                    location.pop()  # Remove last item
                     return obj
         return None
 
@@ -196,10 +199,10 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
                     #
                     # Check if it is a bool, int, float, string
                     if isinstance(attr, bool) or \
-                       isinstance(attr, int) or \
-                       isinstance(attr, float) or \
-                       isinstance(attr, bytes) or \
-                       isinstance(attr, str):
+                            isinstance(attr, int) or \
+                            isinstance(attr, float) or \
+                            isinstance(attr, bytes) or \
+                            isinstance(attr, str):
 
                         if field not in ('__module__', '__doc__'):  # Some excludes:
                             attribute = CloudioAttribute()

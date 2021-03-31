@@ -6,11 +6,11 @@ from cloudio.endpoint.exception.invalid_cloudio_attribute_type_exception import 
 class CloudioAttributeType(object):
     """Identifies the different data types of attributes currently supported by cloud.io.
     """
-    Invalid = 0     # Invalid data type
-    Boolean = 1     # The attribute's value is of type boolean
-    Integer = 2     # The attribute's value is of type short, int or long
-    Number = 3      # The attribute's value is of type float or double
-    String = 4      # The attribute's value is of type String
+    Invalid = 0  # Invalid data type
+    Boolean = 1  # The attribute's value is of type boolean
+    Integer = 2  # The attribute's value is of type short, int or long
+    Number = 3  # The attribute's value is of type float or double
+    String = 4  # The attribute's value is of type String
 
     def __init__(self, cloudio_attribute_type):
         super(CloudioAttributeType, self).__init__()

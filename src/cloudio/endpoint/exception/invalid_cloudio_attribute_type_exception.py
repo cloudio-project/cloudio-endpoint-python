@@ -2,4 +2,5 @@
 
 class InvalidCloudioAttributeTypeException(Exception):
     def __init__(self, type):
-        super(InvalidCloudioAttributeTypeException, self).__init__(str(type) + ' is not a valid cloud.io attribute type!')
+        super(InvalidCloudioAttributeTypeException, self).__init__(
+            str(type) + ' is not a valid cloud.io attribute type!')

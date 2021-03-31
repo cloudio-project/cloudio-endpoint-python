@@ -4,7 +4,7 @@ class PropertiesEndpointConfiguration(object):
 
     def __init__(self, properties):
         super(PropertiesEndpointConfiguration, self).__init__()
-        self._properties = properties   # type: dict
+        self._properties = properties  # type: dict
 
     def get_property(self, key, default_value=''):
         """

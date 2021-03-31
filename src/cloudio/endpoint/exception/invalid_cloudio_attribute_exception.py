@@ -9,4 +9,5 @@ class InvalidCloudioAttributeException(Exception):
             super(InvalidCloudioAttributeException, self).__init__(message)
         else:
             type = value
-            super(InvalidCloudioAttributeException, self).__init__('Data type ' + str(type) + ' not supported by cloud.io!')
+            super(InvalidCloudioAttributeException, self).__init__(
+                'Data type ' + str(type) + ' not supported by cloud.io!')

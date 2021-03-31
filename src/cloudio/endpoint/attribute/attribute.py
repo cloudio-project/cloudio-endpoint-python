@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import logging
+
 import cloudio.common.utils.timestamp as TimeStampProvider
-from cloudio.endpoint.topicuuid import TopicUuid
-from cloudio.endpoint.interface.unique_identifiable import CloudioUniqueIdentifiable
-from cloudio.endpoint.interface.attribute_listener import CloudioAttributeListener
+from cloudio.endpoint.attribute.constraint import CloudioAttributeConstraint as AttributeConstraint
+from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
 from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
 from cloudio.endpoint.exception.invalid_cloudio_attribute_exception import InvalidCloudioAttributeException
-from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
-from cloudio.endpoint.attribute.constraint import CloudioAttributeConstraint as AttributeConstraint
+from cloudio.endpoint.interface.attribute_listener import CloudioAttributeListener
+from cloudio.endpoint.interface.unique_identifiable import CloudioUniqueIdentifiable
+from cloudio.endpoint.topicuuid import TopicUuid
 
 
 class CloudioAttribute(CloudioUniqueIdentifiable):
@@ -18,14 +19,14 @@ class CloudioAttribute(CloudioUniqueIdentifiable):
     log = logging.getLogger(__name__)
 
     def __init__(self):
-        self._name = None           # type: str or None
+        self._name = None  # type: str or None
         self._parent = None
-        self._topicUuid = None      # type: TopicUuid or None
+        self._topic_uuid = None  # type: TopicUuid or None
         self._constraint = None
-        self._type = None           # type: AttributeType or None
+        self._type = None  # type: AttributeType or None
         self._timestamp = None
-        self._value = None          # type: bool or int or float or str or None
-        self._listeners = None      # type: list[CloudioAttributeListener] or None
+        self._value = None  # type: bool or int or float or str or None
+        self._listeners = None  # type: list[CloudioAttributeListener] or None
 
     def add_listener(self, listener):
         """Adds the given listener to the list of listeners that will get informed about a change of the attribute.
@@ -54,10 +55,10 @@ class CloudioAttribute(CloudioUniqueIdentifiable):
     # CloudioUniqueIdentifiable implementation
     #
     def get_uuid(self):
-        if not self._topicUuid:
-            self._topicUuid = TopicUuid(self)
+        if not self._topic_uuid:
+            self._topic_uuid = TopicUuid(self)
 
-        return self._topicUuid
+        return self._topic_uuid
 
     def set_value(self, value, timestamp=None):
         if not timestamp:
@@ -187,11 +188,11 @@ class CloudioAttribute(CloudioUniqueIdentifiable):
             self._type = AttributeType(AttributeType.Invalid)
 
             # Set cloudio attribute type accordingly
-            if the_type in (bool, ):
+            if the_type in (bool,):
                 self._type = AttributeType(AttributeType.Boolean)
-            elif the_type in (int, ):
+            elif the_type in (int,):
                 self._type = AttributeType(AttributeType.Integer)
-            elif the_type in (float, ):
+            elif the_type in (float,):
                 self._type = AttributeType(AttributeType.Number)
             else:
                 assert the_type in (bytes, str), 'Seems we got a new type!'

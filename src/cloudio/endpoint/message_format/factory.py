@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ..interface.message_format import CloudioMessageFormat
 from .json_format import JsonMessageFormat
 from .jsonzip_format import JsonZipMessageFormat
+
 
 class MessageFormatFactory():
     """Provides the necessary MessageFormat converter in order to serialize/deserialize a message.
@@ -12,7 +12,7 @@ class MessageFormatFactory():
     - 'z': zipped json format
     """
 
-    formats = {}    # key: int, values: CloudioMessageFormat
+    formats = {}  # key: int, values: CloudioMessageFormat
 
     @classmethod
     def messageFormat(cls, messageFormatId):

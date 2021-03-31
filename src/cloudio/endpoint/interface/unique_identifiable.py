@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABCMeta, abstractmethod
+
 from .named_item import CloudioNamedItem
 
 
 class CloudioUniqueIdentifiable(CloudioNamedItem):
-
     __metaclass__ = ABCMeta
 
     @abstractmethod

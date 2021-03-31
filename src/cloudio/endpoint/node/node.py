@@ -35,7 +35,6 @@ class CloudioNode(CloudioObjectContainer):
     # Interface implementations
     #
     def get_uuid(self):
-        # TODO Store topic uuid as attribute
         return TopicUuid(self)
 
     def get_name(self):
