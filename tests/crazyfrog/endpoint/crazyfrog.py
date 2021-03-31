@@ -52,6 +52,7 @@ class CrazyFrogEndpoint(CloudioAttributeListener):
             secs = time.time()
             frequency = 1.0 / 10  # [Hz]
             sinus_value = 10 * math.sin(2.0 * math.pi * frequency * secs)
+            sinus_value = round(sinus_value, 2)
             self._sinus.set_value(sinus_value)
             # print('Updating sinus value: {0:0.2f}'.format(self._sinus.get_value()))
             time.sleep(self._interval)
