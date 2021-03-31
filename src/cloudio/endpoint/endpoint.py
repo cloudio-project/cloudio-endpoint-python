@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import time
 import logging
+import os
 import traceback
 from dataclasses import dataclass
-import cloudio.common.utils.timestamp as TimeStampProvider
-from cloudio.common.utils.resource_loader import ResourceLoader
-from cloudio.common.utils import path_helpers
-from cloudio.common.core.threaded import Threaded
+
 import cloudio.common.mqtt as mqtt
-from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
-from cloudio.endpoint.interface.node_container import CloudioNodeContainer
-from cloudio.endpoint.interface.message_format import CloudioMessageFormat
-from cloudio.endpoint.message_format.factory import MessageFormatFactory
+import cloudio.common.utils.timestamp as TimeStampProvider
+import time
+from cloudio.common.core.threaded import Threaded
+from cloudio.common.utils import path_helpers
+from cloudio.common.utils.resource_loader import ResourceLoader
 from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
 from cloudio.endpoint.exception.invalid_property_exception import InvalidPropertyException
+from cloudio.endpoint.interface.message_format import CloudioMessageFormat
+from cloudio.endpoint.interface.node_container import CloudioNodeContainer
+from cloudio.endpoint.message_format.factory import MessageFormatFactory
 from cloudio.endpoint.message_format.json_format import JsonMessageFormat
+from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
 from cloudio.endpoint.topicuuid import TopicUuid
 
 version = ''
