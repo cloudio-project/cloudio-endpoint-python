@@ -70,7 +70,7 @@ class TestCloudioPersistenceMemory(unittest.TestCase):
 
         # Load cloud.iO endpoint model from file
         self.log.info('Creating cloud.iO model...')
-        self.connector.createModel('../config/vacuum-cleaner-model.xml')
+        self.connector.create_model('../config/vacuum-cleaner-model.xml')
 
         # Get the cloud.iO representation of the vacuum cleaner
         cloudio_vacuum_cleaner = self.connector.endpoint.get_node(VACUUM_CLEANER_NAME)

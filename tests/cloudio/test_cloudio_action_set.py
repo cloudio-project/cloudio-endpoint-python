@@ -31,7 +31,7 @@ class TestCloudioSetAction(unittest.TestCase):
 
         # Load cloud.iO endpoint model from file
         self.log.info('Creating cloud.iO model...')
-        self.connector.createModel('../config/vacuum-cleaner-model.xml')
+        self.connector.create_model('../config/vacuum-cleaner-model.xml')
 
         # Get the cloud.iO representation of the vacuum cleaner
         cloudio_vacuum_cleaner = self.connector.endpoint.get_node(VACUUM_CLEANER_NAME)
@@ -153,9 +153,9 @@ class TestCloudioSetAction(unittest.TestCase):
         # Check if changes are updated in the cloud
         self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)  # Value not changed in the cloud
         # Wait for the model attribute to change
-        self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
+        self._waitModelAttributeToChange(self.vacuumCleaner._power_on, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
-        self.assertTrue(self.vacuumCleaner._powerOn == new_power_state_value)  # Value not changed in local model
+        self.assertTrue(self.vacuumCleaner._power_on == new_power_state_value)  # Value not changed in local model
 
         # Change the vacuum cleaner's power state to 'true'
         new_power_state_value = True
@@ -166,9 +166,9 @@ class TestCloudioSetAction(unittest.TestCase):
         # Check if changes are updated in the cloud
         self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)
         # Wait for the model attribute to change
-        self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
+        self._waitModelAttributeToChange(self.vacuumCleaner._power_on, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
-        self.assertTrue(self.vacuumCleaner._powerOn == new_power_state_value)
+        self.assertTrue(self.vacuumCleaner._power_on == new_power_state_value)
 
         # ... and again to 'false'
         new_power_state_value = False
@@ -179,9 +179,9 @@ class TestCloudioSetAction(unittest.TestCase):
         # Check if changes are updated in the cloud
         self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)
         # Wait for the model attribute to change
-        self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
+        self._waitModelAttributeToChange(self.vacuumCleaner._power_on, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
-        self.assertTrue(self.vacuumCleaner._powerOn == new_power_state_value)
+        self.assertTrue(self.vacuumCleaner._power_on == new_power_state_value)
 
         # ... and what's with 1
         new_power_state_value = 1
@@ -192,9 +192,9 @@ class TestCloudioSetAction(unittest.TestCase):
         # Check if changes are updated in the cloud
         self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)
         # Wait for the model attribute to change
-        self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
+        self._waitModelAttributeToChange(self.vacuumCleaner._power_on, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
-        self.assertTrue(self.vacuumCleaner._powerOn == new_power_state_value)
+        self.assertTrue(self.vacuumCleaner._power_on == new_power_state_value)
 
         # ... and with 0
         new_power_state_value = 0
@@ -205,9 +205,9 @@ class TestCloudioSetAction(unittest.TestCase):
         # Check if changes are updated in the cloud
         self.assertTrue(cloudio_attribute.get_value() == new_power_state_value)
         # Wait for the model attribute to change
-        self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
+        self._waitModelAttributeToChange(self.vacuumCleaner._power_on, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
-        self.assertTrue(self.vacuumCleaner._powerOn == new_power_state_value)
+        self.assertTrue(self.vacuumCleaner._power_on == new_power_state_value)
 
         # ... and what's with '1'
         new_power_state_value = '1'
@@ -218,9 +218,9 @@ class TestCloudioSetAction(unittest.TestCase):
         # Check if changes are updated in the cloud
         self.assertTrue(cloudio_attribute.get_value() == bool(new_power_state_value))
         # Wait for the model attribute to change
-        self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
+        self._waitModelAttributeToChange(self.vacuumCleaner._power_on, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
-        self.assertTrue(self.vacuumCleaner._powerOn == bool(new_power_state_value))
+        self.assertTrue(self.vacuumCleaner._power_on == bool(new_power_state_value))
 
         # ... and with '0'
         new_power_state_value = '0'
@@ -232,9 +232,9 @@ class TestCloudioSetAction(unittest.TestCase):
         comp_val = False if (new_power_state_value == '0') else True
         self.assertTrue(cloudio_attribute.get_value() == comp_val)
         # Wait for the model attribute to change
-        self._waitModelAttributeToChange(self.vacuumCleaner._powerOn, new_power_state_value)
+        self._waitModelAttributeToChange(self.vacuumCleaner._power_on, new_power_state_value)
         # Check if vacuum cleaner model gets notified upon the change
-        self.assertTrue(self.vacuumCleaner._powerOn == comp_val)
+        self.assertTrue(self.vacuumCleaner._power_on == comp_val)
 
     # @unittest.skip('because adding a new test')
     def test_setActionWithNumberParameter(self):
@@ -276,9 +276,9 @@ class TestCloudioSetAction(unittest.TestCase):
             # Check if changes are updated in the cloud
             self.assertEqual(cloudio_attribute.get_value(), int(newOperationMode))
             # Wait for the model attribute to change
-            self._waitModelAttributeToChange(self.vacuumCleaner._operatingMode, int(newOperationMode))
+            self._waitModelAttributeToChange(self.vacuumCleaner._operating_mode, int(newOperationMode))
             # Check if vacuum cleaner model gets notified upon the change
-            self.assertEqual(self.vacuumCleaner._operatingMode, int(newOperationMode))
+            self.assertEqual(self.vacuumCleaner._operating_mode, int(newOperationMode))
 
 
 if __name__ == '__main__':

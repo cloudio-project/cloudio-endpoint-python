@@ -14,22 +14,22 @@ class VacuumCleaner(CloudioAttributeListener):
     log = logging.getLogger(__name__)
 
     def __init__(self):
-        self.cloudioNode = None
+        self.cloudio_node = None
 
         # The following attributes will be initialized by the cloud.io node (see 'config/vacuum-cleaner-model.xml')
         # They are added here to make the code interpreter happy
         self._identification = None
-        self._powerOn = None
+        self._power_on = None
         self._throughput = None
-        self._operatingMode = None
+        self._operating_mode = None
 
     def set_cloudio_buddy(self, cloudio_node):
-        self.cloudioNode = cloudio_node
+        self.cloudio_node = cloudio_node
 
-        assert self.cloudioNode, 'Cloudio node must be valid!'
+        assert self.cloudio_node, 'Cloudio node must be valid!'
 
-        cloudio_parameter_object = self.cloudioNode.find_object(['Parameters',
-                                                                'objects'])
+        cloudio_parameter_object = self.cloudio_node.find_object(['Parameters',
+                                                                 'objects'])
 
         for attributeName, cloudioAttribute in cloudio_parameter_object.get_attributes().items():
             self._create_attribute(attributeName, cloudioAttribute)

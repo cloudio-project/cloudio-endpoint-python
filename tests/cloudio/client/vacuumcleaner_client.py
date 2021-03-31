@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import json
+import logging
 import os
+
+import paho.mqtt.client as mqtt
 import sys
 import time
-import logging
-import json
-import paho.mqtt.client as mqtt
-
-from cloudio.common.utils import path_helpers
-from cloudio.common.utils import datetime_helpers
 from cloudio.common.mqtt import MqttConnectOptions, MqttReconnectClient
+from cloudio.common.utils import datetime_helpers
+from cloudio.common.utils import path_helpers
 
 logging.getLogger(__name__).setLevel(logging.INFO)
 
@@ -24,7 +24,7 @@ class VacuumCleanerClient(object):
 
     def __init__(self, config_file):
         self._isConnected = False
-        self._useReconnectClient = True             # Chooses the MQTT client
+        self._useReconnectClient = True  # Chooses the MQTT client
         config = self.parse_config_file(config_file)
 
         self._qos = int(config['cloudio']['qos'])
