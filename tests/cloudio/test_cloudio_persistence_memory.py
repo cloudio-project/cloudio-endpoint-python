@@ -65,7 +65,7 @@ class TestCloudioPersistenceMemory(unittest.TestCase):
 
         # Wait until connected to cloud.iO
         self.log.info('Waiting to connect endpoint to cloud.iO...')
-        while not self.cloudioEndPoint.isOnline():
+        while not self.cloudioEndPoint.is_online():
             time.sleep(0.2)
 
         # Load cloud.iO endpoint model from file
@@ -73,7 +73,7 @@ class TestCloudioPersistenceMemory(unittest.TestCase):
         self.connector.createModel('../config/vacuum-cleaner-model.xml')
 
         # Get the cloud.iO representation of the vacuum cleaner
-        cloudio_vacuum_cleaner = self.connector.endpoint.getNode(VACUUM_CLEANER_NAME)
+        cloudio_vacuum_cleaner = self.connector.endpoint.get_node(VACUUM_CLEANER_NAME)
 
         # Create vacuum cleaner object and associate cloud.iO reference to it
         self.vacuumCleaner = VacuumCleaner()
@@ -94,7 +94,7 @@ class TestCloudioPersistenceMemory(unittest.TestCase):
     def test_persistenceMemory(self):
         # Create location stack and get the according cloud.iO attribute
         attr_location = ['set_throughput', 'attributes', 'Parameters', 'objects']
-        cloudio_attribute = self.cloudioEndPoint.getNode(VACUUM_CLEANER_NAME).find_attribute(attr_location)
+        cloudio_attribute = self.cloudioEndPoint.get_node(VACUUM_CLEANER_NAME).find_attribute(attr_location)
 
         for i in range(0, self.msgToSend):
             print('Sending update ' + str(i + 1))

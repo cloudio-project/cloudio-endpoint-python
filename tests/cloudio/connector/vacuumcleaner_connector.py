@@ -93,7 +93,7 @@ class VacuumCleanerConnector(object):
 
         assert nodeName, 'No node name given!'
         assert cloudioRuntimeNode, 'No cloud.iO node object given!'
-        self.endpoint.addNode(nodeName, cloudioRuntimeNode)
+        self.endpoint.add_node(nodeName, cloudioRuntimeNode)
 
     @classmethod
     def _parseAttributeFromXmlDomElement(cls, cloudioRuntimeObject, attributeElement):

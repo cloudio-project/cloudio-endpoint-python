@@ -45,9 +45,11 @@ logging.getLogger(__name__).info('cloudio-endpoint-python version: %s' % version
 
 @dataclass
 class MqttMessage:
+    """Data structure used internally by CloudioEndpoint class.
+    """
     topic: str
     payload: str
-    timestamp: int = 0
+    timestamp: int = 0  # Time in milliseconds
     qos: int = 1
     retain: bool = False
 
@@ -80,24 +82,24 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
         from cloudio.endpoint.node import CloudioNode
 
-        self._endPointIsReady = False  # Set to true after connection and subscription
+        self._end_point_is_ready = False  # Set to true after connection and subscription
 
         self.uuid = uuid  # type: str
         self.nodes = {}  # type: dict[CloudioNode]
-        self.cleanSession = True
-        self.messageFormat = None  # type: CloudioMessageFormat
+        self.clean_session = True
+        self.message_format = None  # type: CloudioMessageFormat
         self.persistence = None  # type: MqttClientPersistence
-        self._publishMessage = list()  # type: list[MqttMessage]
-        self._receivedMessage = list()  # type: list[mqtt.MQTTMessage]
+        self._publish_message = list()  # type: list[MqttMessage]
+        self._received_message = list()  # type: list[mqtt.MQTTMessage]
 
-        self._publishedNotAcknowledgedMessage = dict()  # type: dict[mqtt.MQTTMessageInfo]
-        self._publishedNotAcknowledgedHighWaterMark = 0
+        self._published_not_acknowledged_message = dict()  # type: dict[mqtt.MQTTMessageInfo]
+        self._published_not_acknowledged_high_water_mark = 0
 
         self.log.debug('Creating Endpoint %s' % uuid)
 
         # Check if a configuration with properties is given
         if configuration is None:
-            propertiesFile = self.uuid + '.properties'
+            properties_file = self.uuid + '.properties'
             ext_locations = ['home:' + '/.config/cloud.io/', 'file:/etc/cloud.io/']
             if locations:
                 if isinstance(locations, str):
@@ -106,18 +108,18 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                     ext_locations = locations + ext_locations
 
             # Try to load properties using a config file
-            properties = ResourceLoader.loadFromLocations(propertiesFile,
+            properties = ResourceLoader.loadFromLocations(properties_file,
                                                           ext_locations)
             if properties:
                 configuration = PropertiesEndpointConfiguration(properties)
             else:
-                message = 'Could not find properties file \'' + propertiesFile + '\' in the following locations:\n'
+                message = 'Could not find properties file \'' + properties_file + '\' in the following locations:\n'
                 for location in ext_locations:
                     message += ' - ' + location + '\n'
                 exit(message)
 
-        self._retryInterval = 10  # Connect retry interval in seconds
-        self.messageFormat = JsonMessageFormat()
+        self._retry_interval = 10  # Connect retry interval in seconds
+        self.message_format = JsonMessageFormat()
 
         # Check if 'host' property is present in config file
         host = configuration.get_property(self.MQTT_HOST_URI_PROPERTY)
@@ -125,18 +127,18 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             exit('Missing mandatory property "' + self.MQTT_HOST_URI_PROPERTY + '"')
 
         # Create persistence object.
-        persistenceType = configuration.get_property(self.MQTT_PERSISTENCE_PROPERTY, self.MQTT_PERSISTENCE_DEFAULT)
-        if persistenceType == self.MQTT_PERSISTENCE_MEMORY:
+        persistence_type = configuration.get_property(self.MQTT_PERSISTENCE_PROPERTY, self.MQTT_PERSISTENCE_DEFAULT)
+        if persistence_type == self.MQTT_PERSISTENCE_MEMORY:
             self.persistence = mqtt.MqttMemoryPersistence()
-        elif persistenceType == self.MQTT_PERSISTENCE_FILE:
+        elif persistence_type == self.MQTT_PERSISTENCE_FILE:
             persistenceLocation = configuration.get_property(self.MQTT_PERSISTENCE_LOCATION)
             self.persistence = mqtt.MqttDefaultFilePersistence(directory=persistenceLocation)
-        elif persistenceType == self.MQTT_PERSISTENCE_NONE:
+        elif persistence_type == self.MQTT_PERSISTENCE_NONE:
             self.persistence = None
         else:
             raise InvalidPropertyException('Unknown persistence implementation ' +
                                            '(ch.hevs.cloudio.endpoint.persistence): ' +
-                                           '\'' + persistenceType + '\'')
+                                           '\'' + persistence_type + '\'')
         # Open peristence storage
         if self.persistence:
             self.persistence.open(client_id=self.uuid, server_uri=host)
@@ -144,8 +146,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         self.options = mqtt.MqttConnectOptions()
 
         # Last will is a message with the UUID of the endpoint and no payload.
-        willMessage = 'DEAD'
-        self.options.set_will('@offline/' + uuid, willMessage, 1, False)
+        will_message = 'DEAD'
+        self.options.set_will('@offline/' + uuid, will_message, 1, False)
 
         self.options.caFile = configuration.get_property(self.CERT_AUTHORITY_FILE_PROPERTY, None)
         self.options.clientCertFile = configuration.get_property(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
@@ -161,14 +163,14 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
         self._client = mqtt.MqttReconnectClient(host,
                                                 client_id=self.uuid + '-endpoint-',
-                                                clean_session=self.cleanSession,
+                                                clean_session=self.clean_session,
                                                 options=self.options)
         # Register callback method for connection established
-        self._client.set_on_connected_callback(self._onConnected)
+        self._client.set_on_connected_callback(self._on_connected)
         # Register callback method to be called when receiving a message over MQTT
         self._client.set_on_message_callback(self._onMessageArrived)
         # Register callback method to get notified after message was published (received by the MQTT broker)
-        self._client.set_on_messsage_published(self._onMessagePublished)
+        self._client.set_on_messsage_published(self._on_message_published)
         # Start the client
         self._client.start()
 
@@ -179,17 +181,17 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
     def _run(self):
         while self._thread_should_run:
 
-            self._processReceivedMessages()
-            self._processPublishMessages()
+            self._process_received_messages()
+            self._process_publish_messages()
 
-            self._checkPublishedNotAcknowledgedContainer()
+            self._check_published_not_acknowledged_container()
             self._check_presistent_data_store()
 
             # Wait until next interval begins
             if self._thread_should_run:
                 self._thread_sleep_interval()
 
-        self._threadLeftRunLoop = True
+        self._thread_left_run_loop = True
 
     def close(self):
         # Stop Mqtt client
@@ -201,51 +203,52 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             timestamp = TimeStampProvider.getTimeInMilliseconds()
 
         msg = MqttMessage(topic, payload, timestamp=timestamp, qos=qos, retain=retain)
-        self._publishMessage.append(msg)
+        self._publish_message.append(msg)
 
-        # Wake up endpoint thread. It will publish the queued message. See _processPublishMessages()
+        # Wake up endpoint thread. It will publish the queued message. See _process_publish_messages()
         self.wakeup_thread()
 
-    def _processPublishMessages(self):
+    def _process_publish_messages(self):
         """Processes message ready to be send to cloud.iO.
 
         In case the MQTT broker is not available, the messages are stored in the
         persistent data store.
         """
-        while len(self._publishMessage):
+        while len(self._publish_message):
             # Get next message
-            msg = self._publishMessage.pop(0)
+            msg = self._publish_message.pop(0)
 
             # Publish message via the MQTT client
             message_info = self._client.publish(msg.topic, msg.payload, msg.qos, msg.retain)
 
             if message_info.rc == self._client.MQTT_ERR_SUCCESS:
                 # Add message to published (but not acknowledged) messages
-                self._publishedNotAcknowledgedMessage[message_info.mid] = msg
+                self._published_not_acknowledged_message[message_info.mid] = msg
             else:
                 # Could not transmit. Add it to data store
                 self._put_persistent_data_store(msg.topic, msg.payload, msg.timestamp)
 
-    def _checkPublishedNotAcknowledgedContainer(self):
-        msg_count = len(self._publishedNotAcknowledgedMessage)
+    def _check_published_not_acknowledged_container(self):
+        msg_count = len(self._published_not_acknowledged_message)
         if msg_count > 0:
-            self._publishedNotAcknowledgedHighWaterMark = max(self._publishedNotAcknowledgedHighWaterMark, msg_count)
+            self._published_not_acknowledged_high_water_mark = max(self._published_not_acknowledged_high_water_mark,
+                                                                   msg_count)
             if msg_count > 1:
                 print('Not published messages: {} (max: {})'.format(msg_count,
-                                                                    self._publishedNotAcknowledgedHighWaterMark))
+                                                                    self._published_not_acknowledged_high_water_mark))
 
     def _onMessageArrived(self, client, userdata, msg):
         # Called by the MQTT client thread!
 
         # print(msg.topic + ': ' + str(msg.payload))
 
-        self._receivedMessage.append(msg)
+        self._received_message.append(msg)
         # Tell endpoint thread it can process a message
         self.wakeup_thread()
 
-    def _processReceivedMessages(self):
-        while len(self._receivedMessage):
-            msg = self._receivedMessage.pop(0)
+    def _process_received_messages(self):
+        while len(self._received_message):
+            msg = self._received_message.pop(0)
             self._processReceivedMessage(msg)
 
     def _processReceivedMessage(self, msg) -> bool:
@@ -254,8 +257,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             payload = msg.payload.decode('utf-8')
 
             # First determine the message format (first byte identifies the message format).
-            messageFormat = MessageFormatFactory.messageFormat(payload[0])
-            if messageFormat == None:
+            message_format = MessageFormatFactory.messageFormat(payload[0])
+            if message_format == None:
                 self.log.error('Message-format ' + payload[0] + " not supported!")
                 return
 
@@ -269,76 +272,77 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             action = topic_levels[0]
             if action == '@set':
                 location.pop()
-                self._set(msg.topic, location, messageFormat, payload)
+                self._set(msg.topic, location, message_format, payload)
             else:
                 self.log.error('Method \"' + action + '\" not supported!')
         except Exception:
             traceback.print_exc()
 
-    def _onMessagePublished(self, client, userdata, mid):
+    def _on_message_published(self, client, userdata, mid):
         # Called by the MQTT client thread!
 
         if mid % 100 == 0:
             print('Msg #{} sent'.format(mid))
 
         # Remove the sent message from the list
-        if mid in self._publishedNotAcknowledgedMessage:
-            del self._publishedNotAcknowledgedMessage[mid]
+        if mid in self._published_not_acknowledged_message:
+            del self._published_not_acknowledged_message[mid]
         else:
             print('Warning: #{} not in published msgs!'.format(mid))
 
-        msg_count = len(self._publishedNotAcknowledgedMessage)
+        msg_count = len(self._published_not_acknowledged_message)
         if msg_count > 0:
-            self._publishedNotAcknowledgedHighWaterMark = max(self._publishedNotAcknowledgedHighWaterMark, msg_count)
+            self._published_not_acknowledged_high_water_mark = max(self._published_not_acknowledged_high_water_mark,
+                                                                   msg_count)
 
-    def subscribeToSetCommands(self):
+    def subscribe_to_set_commands(self):
         (result, mid) = self._client.subscribe('@set/' + self.get_uuid().to_string() + '/#', 1)
         return True if result == self._client.MQTT_ERR_SUCCESS else False
 
-    def addNode(self, nodeName, clsOrObject):
+    def add_node(self, node_name, cls_or_object):
         from cloudio.endpoint.node import CloudioNode
 
-        if nodeName != '' and clsOrObject != None:
+        if node_name != '' and cls_or_object != None:
             node = None
 
-            self.log.debug('Adding node %s' % nodeName)
+            self.log.debug('Adding node %s' % node_name)
 
             # Add node to endpoint
-            if isinstance(clsOrObject, CloudioNode):
-                node = clsOrObject
+            if isinstance(cls_or_object, CloudioNode):
+                node = cls_or_object
                 pass  # All right. We have the needed object
             else:
                 raise RuntimeError('Wrong cloud.iO object type')
 
             if node:
                 # We got an object
-                node.set_name(nodeName)
+                node.set_name(node_name)
                 node.set_parent_node_container(self)
 
-                assert not nodeName in self.nodes, 'Node with given name already present!'
-                self.nodes[nodeName] = node
+                assert not node_name in self.nodes, 'Node with given name already present!'
+                self.nodes[node_name] = node
 
                 # If the endpoint is online, send node add message
-                if self.isOnline():
-                    data = self.messageFormat.serialize_node(node)
+                if self.is_online():
+                    data = self.message_format.serialize_node(node)
                     self._publish('@nodeAdded/' + node.get_uuid().to_string(), data)
                 else:
                     self.log.info('Not sending \'@nodeAdded\' message. No connection to broker!')
 
-    def getNode(self, nodeName):
+    def get_node(self, node_name):
         """Returns the node identified by the given name
-        :param nodeName The Name of the node
-        :type nodeName str
+        :param node_name The Name of the node
+        :type node_name str
         """
-        return self.nodes.get(nodeName, None)
+        return self.nodes.get(node_name, None)
 
-    def _set(self, topic, location, messageFormat, data):
+    def _set(self, topic, location, message_format, data):
         """Assigns a new value to a cloud.iO attribute.
 
         :param topic: Topic representing the attribute
         :param location: Location stack
         :type location list
-        :param messageFormat: Message format according to the data parameter
+        :param message_format: Message format according to the data parameter
         :param data: Contains among other things the value to be assigned
         :return:
         """
@@ -354,7 +358,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 attribute = node.find_attribute(location)
                 if attribute:
                     # Deserialize the message into the attribute
-                    messageFormat.deserialize_attribute(data, attribute)
+                    message_format.deserialize_attribute(data, attribute)
                 else:
                     self.log.error('Attribute \"' + location[0] + '\" in node \"' + node.get_name() + '\" not found!')
             else:
@@ -383,7 +387,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         try:
             # Create the MQTT message using the given message format.
             topic = '@update/' + attribute.get_uuid().to_string()
-            payload = self.messageFormat.serialize_attribute(attribute)
+            payload = self.message_format.serialize_attribute(attribute)
 
             self._publish(topic, payload, timestamp=attribute.get_timestamp())
         except Exception as exception:
@@ -399,7 +403,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         """
         pass
 
-    def _onConnected(self):
+    def _on_connected(self):
         """This callback is called after the MQTT client has successfully connected to cloud.iO.
         """
         # Announce our presence to the broker
@@ -407,7 +411,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # It is too early here because the endpoint model
         # is not loaded at this moment
 
-        success = self.subscribeToSetCommands()
+        success = self.subscribe_to_set_commands()
         if not success:
             self.log.critical('Could not subscribe to @set topic!')
 
@@ -416,22 +420,22 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # It may not be a good idea to send this data to cloud.iO using
         # the connection thread!
 
-        self._endPointIsReady = True
+        self._end_point_is_ready = True
 
         time.sleep(4)  # Give the clients time to connect to cloud.iO and to setup the mqtt queue
 
-    def _onConnectionThreadFinished(self):
+    def _on_connection_thread_finished(self):
         self.log.info('Connection thread finished')
         self.thread = None
 
-    def isOnline(self):
-        return self._client.is_connected() and self._endPointIsReady
+    def is_online(self):
+        return self._client.is_connected() and self._end_point_is_ready
 
     def announce(self):
         # Send birth message
         self.log.info('Sending birth message...')
-        strMessage = self.messageFormat.serialize_endpoint(self)
-        self._publish('@online/' + self.uuid, strMessage, retain=True)
+        str_message = self.message_format.serialize_endpoint(self)
+        self._publish('@online/' + self.uuid, str_message, retain=True)
 
     @staticmethod
     def get_action(topic: str) -> str:
@@ -440,10 +444,10 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         Ex. topic: '@update/CrazyFrogEndpoint/nodes/CrazyFrog/objects/properties/attributes/_sinus'
         returns '@update'
         """
-        topicLevels = topic.split('/')
+        topic_levels = topic.split('/')
 
         # Read the action tag from the topic
-        action = topicLevels[0]
+        action = topic_levels[0]
         return action
 
     @staticmethod
@@ -455,7 +459,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
     def _check_presistent_data_store(self):
         # Check if there are messages in the persistence store
-        if self.isOnline() and self.persistence and len(self.persistence.keys()) > 0:
+        if self.is_online() and self.persistence and len(self.persistence.keys()) > 0:
             # Try to send stored messages to cloud.iO
             self._purgePersistentDataStore()
 
@@ -494,22 +498,22 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 'PendingNodeAdded-': '@nodeAdded'}
 
             for key in self.persistence.keys():
-                if self.isOnline():
+                if self.is_online():
                     for pending_data_type, action in action_map.items():
                         # Check pending data type
                         if key.startswith(pending_data_type):
                             # Get the pending update persistent object from store
-                            pendingUpdate = self.persistence.get(key)
+                            pending_update = self.persistence.get(key)
 
-                            if pendingUpdate is not None:
-                                print('Copy pers: ' + key + ': ' + pendingUpdate.get_data())
+                            if pending_update is not None:
+                                print('Copy pers: ' + key + ': ' + pending_update.get_data())
 
                                 # Get the uuid of the endpoint
-                                uuid = pendingUpdate.get_uuid_from_persistence_key(key)
+                                uuid = pending_update.get_uuid_from_persistence_key(key)
 
                                 # Try to send the update to the broker and remove it from the storage
                                 topic = action + '/' + uuid
-                                self._publish(topic, pendingUpdate.get_data())
+                                self._publish(topic, pending_update.get_data())
 
                                 # Remove key from store
                                 self.persistence.remove(key)

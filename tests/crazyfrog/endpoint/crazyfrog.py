@@ -22,7 +22,7 @@ class CrazyFrogEndpoint(CloudioAttributeListener):
 
     def initialize(self):
         # Wait until connected to cloud.iO
-        while not self._endpoint.isOnline():
+        while not self._endpoint.is_online():
             time.sleep(0.2)
 
         self._create_model()
@@ -45,7 +45,7 @@ class CrazyFrogEndpoint(CloudioAttributeListener):
         self._triangle = params.add_attribute('_triangle', float, 'parameter')
         self._triangle.add_listener(self)
 
-        self._endpoint.addNode('CrazyFrog', node)
+        self._endpoint.add_node('CrazyFrog', node)
 
     def exec(self):
         while self._isRunning:
