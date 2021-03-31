@@ -62,7 +62,7 @@ class CloudioAttribute(CloudioUniqueIdentifiable):
 
     def set_value(self, value, timestamp=None):
         if not timestamp:
-            timestamp = TimeStampProvider.getTimeInMilliseconds()
+            timestamp = TimeStampProvider.get_time_in_milliseconds()
 
         # TODO Check constraint.
 

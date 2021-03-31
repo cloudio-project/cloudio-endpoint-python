@@ -110,8 +110,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                     ext_locations = locations + ext_locations
 
             # Try to load properties using a config file
-            properties = ResourceLoader.loadFromLocations(properties_file,
-                                                          ext_locations)
+            properties = ResourceLoader.load_from_locations(properties_file,
+                                                            ext_locations)
             if properties:
                 configuration = PropertiesEndpointConfiguration(properties)
             else:
@@ -151,17 +151,17 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         will_message = 'DEAD'
         self.options.set_will('@offline/' + uuid, will_message, 1, False)
 
-        self.options.caFile = configuration.get_property(self.CERT_AUTHORITY_FILE_PROPERTY, None)
-        self.options.clientCertFile = configuration.get_property(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
-        self.options.clientKeyFile = configuration.get_property(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
+        self.options.ca_file = configuration.get_property(self.CERT_AUTHORITY_FILE_PROPERTY, None)
+        self.options.client_cert_file = configuration.get_property(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
+        self.options.client_key_file = configuration.get_property(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
         self.options.username = configuration.get_property('username')
         self.options.password = configuration.get_property('password')
-        self.options.tlsVersion = configuration.get_property(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
+        self.options.tls_version = configuration.get_property(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
 
         # Make path usable
-        self.options.caFile = path_helpers.prettify(self.options.caFile)
-        self.options.clientCertFile = path_helpers.prettify(self.options.clientCertFile)
-        self.options.clientKeyFile = path_helpers.prettify(self.options.clientKeyFile)
+        self.options.ca_file = path_helpers.prettify(self.options.ca_file)
+        self.options.client_cert_file = path_helpers.prettify(self.options.client_cert_file)
+        self.options.client_key_file = path_helpers.prettify(self.options.client_key_file)
 
         self._client = mqtt.MqttReconnectClient(host,
                                                 client_id=self.uuid + '-endpoint-',
@@ -176,7 +176,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # Start the client
         self._client.start()
 
-        # Setup and start internal thread
+        # Setup and start internal _thread
         self.setup_thread(name=uuid)
         self.start_thread()
 
@@ -202,12 +202,12 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
     def _publish(self, topic, payload, timestamp=0, qos=1, retain=False):
 
         if timestamp == 0:
-            timestamp = TimeStampProvider.getTimeInMilliseconds()
+            timestamp = TimeStampProvider.get_time_in_milliseconds()
 
         msg = MqttMessage(topic, payload, timestamp=timestamp, qos=qos, retain=retain)
         self._publish_message.append(msg)
 
-        # Wake up endpoint thread. It will publish the queued message. See _process_publish_messages()
+        # Wake up endpoint _thread. It will publish the queued message. See _process_publish_messages()
         self.wakeup_thread()
 
     def _process_publish_messages(self):
@@ -240,12 +240,12 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             #                                                        self._published_not_acknowledged_high_water_mark))
 
     def _onMessageArrived(self, client, userdata, msg):
-        # Called by the MQTT client thread!
+        # Called by the MQTT client _thread!
 
         # print(msg.topic + ': ' + str(msg.payload))
 
         self._received_message.append(msg)
-        # Tell endpoint thread it can process a message
+        # Tell endpoint _thread it can process a message
         self.wakeup_thread()
 
     def _process_received_messages(self):
@@ -281,10 +281,10 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             traceback.print_exc()
 
     def _on_message_published(self, client, userdata, mid):
-        # Called by the MQTT client thread!
+        # Called by the MQTT client _thread!
 
-        if mid % 100 == 0:
-            print('Msg #{} sent'.format(mid))
+        # if mid % 100 == 0:
+            # print('Msg #{} sent'.format(mid))
 
         # Remove the sent message from the list
         if mid in self._published_not_acknowledged_message:
@@ -421,14 +421,14 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # Try to send stored messages to cloud.iO
         # self._purgePersistentDataStore()
         # It may not be a good idea to send this data to cloud.iO using
-        # the connection thread!
+        # the connection _thread!
 
         self._end_point_is_ready = True
 
         time.sleep(4)  # Give the clients time to connect to cloud.iO and to setup the mqtt queue
 
     def _on_connection_thread_finished(self):
-        self.log.info('Connection thread finished')
+        self.log.info('Connection _thread finished')
         self.thread = None
 
     def is_online(self):
@@ -471,7 +471,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # updates persistence if available.
         if self.persistence:
             if timestamp == 0:
-                timestamp = TimeStampProvider.getTimeInMilliseconds()
+                timestamp = TimeStampProvider.get_time_in_milliseconds()
 
             action = self.get_action(topic)
             topic_levels = self.get_topic_levels(topic)

@@ -86,7 +86,7 @@ class TestCloudioPersistenceFile(unittest.TestCase):
 
         self.persistenceFile.open('theClientId', 'theUri')
 
-        storage_directory = os.path.join(directory, self.persistenceFile._perClientIdAndServerUriDirectory)
+        storage_directory = os.path.join(directory, self.persistenceFile._per_client_id_and_server_uri_directory)
         self.assertTrue(os.path.isdir(storage_directory))   # Sub-directory must now exist
 
         del self.persistenceFile
@@ -119,7 +119,7 @@ class TestCloudioPersistenceFile(unittest.TestCase):
         self.persistenceFile.open('the Client/ Id-888', '\\the:Server:Uri ')
 
         # Check storage directory
-        self.assertEqual(self.persistenceFile._perClientIdAndServerUriDirectory, storage_directory_name)
+        self.assertEqual(self.persistenceFile._per_client_id_and_server_uri_directory, storage_directory_name)
         # Compare storage directory name
         self.assertEqual(self.persistenceFile._storage_directory(), storage_directory)
         # Directory must now exist

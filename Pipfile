@@ -11,7 +11,6 @@ setuptools = "*"
 twine = "*"
 
 [packages]
-paho-mqtt = "*"
 configobj = "*"
 cloudio-common-python = "==0.1.0"
 

@@ -36,7 +36,7 @@ class CrazyFrogClient(object):
 
         self.connectOptions = MqttConnectOptions()
 
-        self.connectOptions.caFile = path_helpers.prettify(config['cloudio']['cert'])
+        self.connectOptions.ca_file = path_helpers.prettify(config['cloudio']['cert'])
         self.connectOptions.username = config['cloudio']['username']
         self.connectOptions.password = config['cloudio']['password']
 
@@ -114,7 +114,7 @@ class CrazyFrogClient(object):
                 '/objects/parameters/attributes/_triangle'
 
         payload = {
-            'timestamp': datetime_helpers.getCurrentTimestamp(),
+            'timestamp': datetime_helpers.get_current_timestamp(),
             'value': new_identification
         }
         self._client.publish(topic, json.dumps(payload), qos=self._qos)

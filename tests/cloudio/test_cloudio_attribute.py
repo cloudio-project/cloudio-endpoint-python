@@ -39,7 +39,7 @@ class TestCloudioAttribute(unittest.TestCase):
     def test_addRemoveListener(self):
         cAttr = CloudioAttribute()
         aListener01 = TestAttributeListener()
-        timestamp = timestamp_helpers.getTimeInMilliseconds()
+        timestamp = timestamp_helpers.get_time_in_milliseconds()
 
         cAttr.set_value_from_cloud(837602, timestamp)
 

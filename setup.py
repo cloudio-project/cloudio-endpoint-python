@@ -8,11 +8,12 @@ https://packaging.python.org/en/latest/distributing.html
 https://github.com/pypa/sampleproject
 """
 
-# Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+import os
 # To use a consistent encoding
 from codecs import open
-import os
+
+# Always prefer setuptools over distutils
+from setuptools import setup, find_packages
 
 
 def read_version_info():
@@ -106,7 +107,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
