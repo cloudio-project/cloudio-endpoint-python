@@ -14,7 +14,7 @@ update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/
 
 
 class TestAttributeListener(CloudioAttributeListener):
-    def attribute_has_changed(self, attribute):
+    def attribute_has_changed(self, attribute, from_cloud: bool):
         pass
 
 
