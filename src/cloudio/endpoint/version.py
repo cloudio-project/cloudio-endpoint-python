@@ -5,5 +5,10 @@ __author__ = 'Thomas Sterren'
 __contributors__ = []
 __version__ = '1.0.1'
 
-if __name__ == '__main__':
+
+def main():
     print(__version__)
+
+
+if __name__ == '__main__':
+    main()
