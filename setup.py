@@ -86,7 +86,13 @@ setup(
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url='https://github.com/cloudio-project/cloudio-endpoint-python',  # Optional
+    url='https://cloudio.hevs.ch',  # Optional
+
+    project_url={
+        "Bug Tracker": "https://github.com/cloudio-project/cloudio-endpoint-python/issues",
+        "Source Code": "https://github.com/cloudio-project/cloudio-endpoint-python",
+        "Documentation": "https://github.com/cloudio-project/cloudio-endpoint-python#cloudio-endpoint-python",
+    },
 
     # This should be your name or the name of the organization which owns the
     # project.
