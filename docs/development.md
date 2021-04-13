@@ -32,15 +32,19 @@ $ pipenv run coverage-badge -f -o docs/images/coverage.svg
 ## Generate and Upload Distribution Package
 Prior to upload a new Python package be sure to create first a new release
 of the project:
+ - Update development branch
+ - Run tests with coverage 
  - Increment version number
- - Update changelog file
+ - Update `CHANGELOG.md` file
+ - Check content of `setup.py` and change accordingly
+ - Generate distribution packages
  - Push to master branch
 
 ```bash
 $ cd <into project>
 
-# Install package needed for deployment (setuptools and twine) 
-$ pipenv install
+# Install package needed for deployment (coverage, build, twine, etc.) 
+$ pipenv install --dev
 
 # Build the package
 $ pipenv run python -m build

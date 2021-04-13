@@ -3,7 +3,7 @@
 import inspect
 import json
 
-from cloudio.common.utils import timestamp as timestamp_helpers
+from cloudio.common.utils import timestamp_helpers as timestamp_helpers
 from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
 from cloudio.endpoint.interface.message_format import CloudioMessageFormat
 

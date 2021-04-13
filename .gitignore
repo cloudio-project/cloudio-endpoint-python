@@ -91,4 +91,3 @@ ENV/
 
 .DS_Store
 Pipfile.lock
-pyproject.toml

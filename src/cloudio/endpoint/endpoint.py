@@ -7,7 +7,7 @@ import traceback
 from dataclasses import dataclass
 
 import cloudio.common.mqtt as mqtt
-import cloudio.common.utils.timestamp as TimeStampProvider
+import cloudio.common.utils.timestamp_helpers as TimeStampProvider
 import time
 from cloudio.common.core.threaded import Threaded
 from cloudio.common.utils import path_helpers
@@ -172,7 +172,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # Register callback method to be called when receiving a message over MQTT
         self._client.set_on_message_callback(self._onMessageArrived)
         # Register callback method to get notified after message was published (received by the MQTT broker)
-        self._client.set_on_messsage_published(self._on_message_published)
+        self._client.set_on_message_published(self._on_message_published)
         # Start the client
         self._client.start()
 

@@ -2,7 +2,7 @@
 
 import logging
 
-import cloudio.common.utils.timestamp as TimeStampProvider
+import cloudio.common.utils.timestamp_helpers as TimeStampProvider
 from cloudio.endpoint.attribute.constraint import CloudioAttributeConstraint as AttributeConstraint
 from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
 from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
@@ -31,7 +31,7 @@ class CloudioAttribute(CloudioUniqueIdentifiable):
     def add_listener(self, listener):
         """Adds the given listener to the list of listeners that will get informed about a change of the attribute.
 
-        :param listener: Reference to the object implementing the AttributeListener interface to add.
+        :param listener: Reference to the object implementing the CloudioAttributeListener interface to add.
         :type listener: CloudioAttributeListener
         """
         if listener is not None:
@@ -45,7 +45,7 @@ class CloudioAttribute(CloudioUniqueIdentifiable):
     def remove_listener(self, listener):
         """Removes the given listener from the list of listeners.
 
-        :param listener: Reference to the object implementing the AttributeListener interface to remove.
+        :param listener: Reference to the object implementing the CloudioAttributeListener interface to remove.
         :type listener: CloudioAttributeListener
         """
         if listener is not None and self._listeners is not None:

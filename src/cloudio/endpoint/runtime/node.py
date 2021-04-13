@@ -39,6 +39,7 @@ class CloudioRuntimeNode(CloudioNode):
             # Add object to the objects container
             assert name not in self.objects, 'Object with given name already present!'
             self.objects[name] = obj
+            return obj
 
     def declare_implemented_interface(self, interface_name):
         """Declares that the node implements the given interface.
