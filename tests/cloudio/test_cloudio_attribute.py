@@ -3,7 +3,7 @@
 
 import logging
 import unittest
-from cloudio.common.utils import timestamp as timestamp_helpers
+from cloudio.common.utils import timestamp_helpers as timestamp_helpers
 from cloudio.endpoint.attribute import CloudioAttribute
 from cloudio.endpoint.interface.attribute_listener import CloudioAttributeListener
 from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException

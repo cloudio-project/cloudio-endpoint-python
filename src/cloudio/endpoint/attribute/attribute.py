@@ -2,7 +2,7 @@
 
 import logging
 
-import cloudio.common.utils.timestamp as TimeStampProvider
+import cloudio.common.utils.timestamp_helpers as TimeStampProvider
 from cloudio.endpoint.attribute.constraint import CloudioAttributeConstraint as AttributeConstraint
 from cloudio.endpoint.attribute.type import CloudioAttributeType as AttributeType
 from cloudio.endpoint.exception.cloudio_modification_exception import CloudioModificationException
