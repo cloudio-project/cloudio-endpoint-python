@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0 - (2021-04-13)
+- Updated to `cloudio-common-python` v0.3.0
+
 ## 1.0.1 - (2021-03-31)
 - Updated homepage link
 
