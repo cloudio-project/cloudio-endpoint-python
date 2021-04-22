@@ -35,14 +35,6 @@ with open(os.path.dirname(os.path.realpath(__file__)) + '/version.py') as vf:
             version = version.strip(' ')
             break
 
-# Enable logging
-logging.basicConfig(format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    level=logging.DEBUG)
-logging.getLogger(__name__).setLevel(logging.INFO)  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-
-logging.getLogger(__name__).info('cloudio-endpoint-python version: %s' % version)
-
 
 @dataclass
 class MqttMessage:
