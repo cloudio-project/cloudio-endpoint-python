@@ -345,7 +345,6 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         """
         # The path to the location must be start with the actual UUID of the endpoint.
         if location and self.uuid == location.pop() and \
-                location and 'nodes' == location.pop() and \
                 location:
             # Get the node with the name according to the topic
             node = self.nodes.get(location[-1])
