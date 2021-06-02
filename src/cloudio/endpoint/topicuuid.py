@@ -72,26 +72,26 @@ class TopicUuid(uuid.CloudioUuid):
     # Private methods
     #
     def _get_attribute_topic(self, cloudio_attribute):
-        return self._get_attribute_container_topic(cloudio_attribute.get_parent()) + '/attributes/' + \
+        return self._get_attribute_container_topic(cloudio_attribute.get_parent()) + '/' + \
                cloudio_attribute.get_name()
 
     def _get_attribute_container_topic(self, attribute_container):
         # TODO Remove check below and put an assert for attributeContainer
         if attribute_container is None or attribute_container.get_name() is None:
-            return '<no parent>' + '/objects/' + '<no name>'
+            return '<no parent>' + '/' + '<no name>'
         return self._get_object_container_topic(attribute_container.get_parent_object_container()) + \
-               '/objects/' + attribute_container.get_name()
+               '/' + attribute_container.get_name()
 
     def _get_object_container_topic(self, object_container):
         if not object_container:
-            return '<no parent>' + '/objects/' + '<no name>'
+            return '<no parent>' + '/' + '<no name>'
         parentObjectContainer = object_container.get_parent_object_container()
         if parentObjectContainer:
-            return self._get_object_container_topic(parentObjectContainer) + '/objects/' + object_container.get_name()
+            return self._get_object_container_topic(parentObjectContainer) + '/' + object_container.get_name()
 
         parentNodeContainer = object_container.get_parent_node_container()
         if parentNodeContainer:
-            return self._get_node_container_topic(parentNodeContainer) + '/nodes/' + object_container.get_name()
+            return self._get_node_container_topic(parentNodeContainer) + '/' + object_container.get_name()
 
     @staticmethod
     def _get_node_container_topic(node_container):
