@@ -19,6 +19,7 @@ from cloudio.endpoint.message_format.factory import MessageFormatFactory
 from cloudio.endpoint.message_format.json_format import JsonMessageFormat
 from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
 from cloudio.endpoint.topicuuid import TopicUuid
+from typing import List
 
 version = ''
 # Get endpoint python version info from init file
@@ -164,6 +165,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         self._client.set_on_message_callback(self._onMessageArrived)
         # Register callback method to get notified after message was published (received by the MQTT broker)
         self._client.set_on_message_published(self._on_message_published)
+
+
         # Start the client
         self._client.start()
 
@@ -400,7 +403,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         """This callback is called after the MQTT client has successfully connected to cloud.iO.
         """
         # Announce our presence to the broker
-        # self.announce()
+        self.announce()
         # It is too early here because the endpoint model
         # is not loaded at this moment
 
@@ -444,7 +447,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         return action
 
     @staticmethod
-    def get_topic_levels(topic: str) -> list[str]:
+    def get_topic_levels(topic: str) -> List[str]:
         """Breaks the topic into its pieces.
         """
         topic_levels = topic.split('/')
