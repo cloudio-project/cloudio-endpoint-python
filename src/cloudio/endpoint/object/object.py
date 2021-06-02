@@ -142,19 +142,12 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         :return: The cloudio object found or None
         """
         if location:
-            if len(location) > 0:
-                if location[-1] == 'objects':  # Compare with last element (peek element)
-                    location.pop()  # Remove last item
                     if len(location) > 0:
                         if location[-1] in self.get_objects():
                             obj = self.get_objects()[location.pop()]
                             if obj:
                                 return obj.find_attribute(location)
-                elif location[-1] == 'attributes':
-                    self.get_attributes()  # Update attributes list
-                    location.pop()  # Remove last item
-                    if len(location) > 0:
-                        if location[-1] in self.get_attributes():
+                        elif location[-1] in self.get_attributes():
                             attribute = self.get_attributes()[location.pop()]
                             if attribute:
                                 return attribute

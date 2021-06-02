@@ -92,14 +92,11 @@ class CloudioNode(CloudioObjectContainer):
         """
         if location:
             if len(location) > 0:
-                if location[-1] == 'objects':      # Compare with the last element
-                    location.pop()     # Remove last item (peek item)
-                    if len(location) > 0:
-                        if location[-1] in self.get_objects():
-                            # Get object from container (dictionary) by key
-                            obj = self.get_objects()[location.pop()]
-                            if obj:
-                                return obj.find_attribute(location)
+                if location[-1] in self.get_objects():
+                    # Get object from container (dictionary) by key
+                    obj = self.get_objects()[location.pop()]
+                    if obj:
+                        return obj.find_attribute(location)
         return None
 
     def find_object(self, location) -> CloudioObject or None:
