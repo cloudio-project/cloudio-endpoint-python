@@ -54,7 +54,7 @@ class CloudioRuntimeNode(CloudioNode):
                                ' (registered within endpoint)!')
 
         if interface_name not in self.interfaces:
-            self.interfaces[interface_name] = interface_name
+            self.interfaces.append(interface_name)
 
     def declare_implemented_interfaces(self, interface_names):
         for interfaceName in interface_names:
@@ -67,6 +67,8 @@ class CloudioRuntimeNode(CloudioNode):
 
         if hasattr(self, 'objects') and len(self.objects) > 0:
             attrDict['objects'] = self.objects
+
+        attrDict['implements'] = self.interfaces;
 
         return encoder.default(attrDict)
 

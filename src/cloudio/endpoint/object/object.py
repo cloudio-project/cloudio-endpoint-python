@@ -233,14 +233,11 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
         """
         attrDict = {}
 
-        if self.conforms is not None and len(self.conforms) > 0:
-            attrDict['conforms'] = self.conforms
+        attrDict['conforms'] = self.conforms
 
-        if hasattr(self, 'objects') and len(self.objects) > 0:
-            attrDict['objects'] = self.objects
+        attrDict['objects'] = self.objects
 
-        if hasattr(self, '_attributes') and len(self._attributes) > 0:
-            attrDict['attributes'] = self._attributes
+        attrDict['attributes'] = self._attributes
 
         return encoder.default(attrDict)
 
