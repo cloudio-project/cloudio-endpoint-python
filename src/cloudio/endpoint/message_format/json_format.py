@@ -30,6 +30,11 @@ class JsonMessageFormat(CloudioMessageFormat):
 
         data['nodes'] = nodes
 
+        #TODO clean endpoint serialization
+        data['version'] = "v0.2"
+        data['messageFormatVersion'] = 2
+        data['supportedFormats'] = ["JSON"]
+
         message = ''
         # Encode data to json formatted byte array
         message += self._encoder.encode(data)

@@ -11,7 +11,7 @@ class CloudioNode(CloudioObjectContainer):
         super(CloudioNode, self).__init__()
         self.parent = None
         self.name = None
-        self.interfaces = {}
+        self.interfaces = []
         self.objects = {}           # type: dict[CloudioObject]
 
         self._update_cloudio_objects()
