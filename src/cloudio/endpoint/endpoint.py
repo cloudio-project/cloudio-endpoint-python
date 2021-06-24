@@ -62,11 +62,15 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
     MQTT_PERSISTENCE_DEFAULT = MQTT_PERSISTENCE_FILE
     MQTT_PERSISTENCE_LOCATION = 'ch.hevs.cloudio.endpoint.persistenceLocation'
 
-    CERT_AUTHORITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.authorityCert'
+    CERT_AUTHORITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.authorityCert'  # pem file
+
     ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.version'  # tlsv1.0 or tlsv1.2
-    ENDPOINT_IDENTITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'  # PKCS12 based file (*.p12)
     ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'  # (*.pem)
     ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientKey'  # (*.pem)
+    CERT_JSON = "ch.hevs.cloudio.endpoint.ssl.certs" # When using the JSON format certificates
+
+
+
 
     log = logging.getLogger(__name__)
 
@@ -144,11 +148,11 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         self.options.set_will('@offline/' + uuid, will_message, 1, False)
 
         self.options.ca_file = configuration.get_property(self.CERT_AUTHORITY_FILE_PROPERTY, None)
+
         self.options.client_cert_file = configuration.get_property(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
         self.options.client_key_file = configuration.get_property(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
-        self.options.username = configuration.get_property('username')
-        self.options.password = configuration.get_property('password')
         self.options.tls_version = configuration.get_property(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
+        self.options.jsonCerts = configuration.get_property(self.CERT_JSON, None)
 
         # Make path usable
         self.options.ca_file = path_helpers.prettify(self.options.ca_file)
@@ -156,7 +160,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         self.options.client_key_file = path_helpers.prettify(self.options.client_key_file)
 
         self._client = mqtt.MqttReconnectClient(host,
-                                                client_id=self.uuid + '-endpoint-',
+                                                client_id=self.uuid,
                                                 clean_session=self.clean_session,
                                                 options=self.options)
         # Register callback method for connection established
