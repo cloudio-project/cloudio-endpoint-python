@@ -234,12 +234,9 @@ class _InternalObject(CloudioObjectContainer, CloudioAttributeContainer):
 
         return encoder.default(attrDict)
 
-    ######################################################################
-    # Private methods
-    #
-    @staticmethod
-    def _get_conforms():
-        return None
 
-    def _set_conforms(self, data_class):
-        pass
+    def get_conforms(self):
+        return self.conforms
+
+    def set_conforms(self, data_class: str):
+        self.conforms = data_class

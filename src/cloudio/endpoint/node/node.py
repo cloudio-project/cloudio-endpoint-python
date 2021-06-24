@@ -16,9 +16,6 @@ class CloudioNode(CloudioObjectContainer):
 
         self._update_cloudio_objects()
 
-        # TODO Implement add to annotation
-        self._add_implemented_interface_to_annotation()
-
     def _update_cloudio_objects(self):
         # Check each field of the actual node
         for field in dir(self):
@@ -28,8 +25,6 @@ class CloudioNode(CloudioObjectContainer):
                 if isinstance(attr, CloudioObject):
                     print('Node: Got an attribute based on an CloudioObject class')
 
-    def _add_implemented_interface_to_annotation(self):
-        pass
 
     ######################################################################
     # Interface implementations
