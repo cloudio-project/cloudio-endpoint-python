@@ -72,4 +72,17 @@ class CloudioRuntimeNode(CloudioNode):
 
         return encoder.default(attrDict)
 
+    def get_interfaces(self):
+        return self.interfaces
+
+    def remove_interface(self, interface:str):
+        if interface in self.interfaces:
+            self.interfaces.remove(interface)
+            return True
+        else:
+            return False
+
+    def add_interface(self, interface:str):
+        self.interfaces.append(interface)
+
 # TODO Create and implement CloudioRuntimeNodeBuilder class
