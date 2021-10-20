@@ -33,7 +33,7 @@ class JsonMessageFormat(CloudioMessageFormat):
         #TODO clean endpoint serialization
         data['version'] = "v0.2"
         data['messageFormatVersion'] = 2
-        data['supportedFormats'] = ["JSON"]
+        data['supportedFormats'] = ["JSON", "CBOR"]
 
         message = ''
         # Encode data to json formatted byte array
