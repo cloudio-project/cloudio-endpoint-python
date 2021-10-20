@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-
+from .cbor_format import CborMessageFormat
 from .json_format import JsonMessageFormat
-from .jsonzip_format import JsonZipMessageFormat
 
 
 class MessageFormatFactory():
@@ -9,7 +8,7 @@ class MessageFormatFactory():
 
     Currently supported message formats are:
     - '{': json format
-    - 'z': zipped json format
+    - '0b101': cbor json format
     """
 
     formats = {}  # key: int, values: CloudioMessageFormat
@@ -23,11 +22,11 @@ class MessageFormatFactory():
             return cls.formats[messageFormatId]
         else:
             newFormat = None
-            if messageFormatId == '{':
+            #123 = "{"
+            if messageFormatId == 123:
                 newFormat = JsonMessageFormat()
                 cls.formats[messageFormatId] = newFormat
-            if messageFormatId == 'z':
-                newFormat = JsonZipMessageFormat()
+            elif (messageFormatId & 0b11100000) == 0b10100000:
+                newFormat = CborMessageFormat()
                 cls.formats[messageFormatId] = newFormat
-
             return newFormat

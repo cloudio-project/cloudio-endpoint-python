@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import cloudio.common.mqtt as mqtt
 import cloudio.common.utils.timestamp_helpers as TimeStampProvider
 import time
+
 from cloudio.common.core.threaded import Threaded
 from cloudio.common.utils import path_helpers
 from cloudio.common.utils.resource_loader import ResourceLoader
@@ -15,6 +16,7 @@ from cloudio.endpoint.exception.cloudio_modification_exception import CloudioMod
 from cloudio.endpoint.exception.invalid_property_exception import InvalidPropertyException
 from cloudio.endpoint.interface.message_format import CloudioMessageFormat
 from cloudio.endpoint.interface.node_container import CloudioNodeContainer
+from cloudio.endpoint.message_format.cbor_format import CborMessageFormat
 from cloudio.endpoint.message_format.factory import MessageFormatFactory
 from cloudio.endpoint.message_format.json_format import JsonMessageFormat
 from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
@@ -117,7 +119,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 exit(message)
 
         self._retry_interval = 10  # Connect retry interval in seconds
-        self.message_format = JsonMessageFormat()
+        self.message_format = CborMessageFormat()
 
         # Check if 'host' property is present in config file
         host = configuration.get_property(self.MQTT_HOST_URI_PROPERTY)
@@ -253,13 +255,10 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
     def _processReceivedMessage(self, msg) -> bool:
         try:
-            # Need to convert from bytes to string
-            payload = msg.payload.decode('utf-8')
-
             # First determine the message format (first byte identifies the message format).
-            message_format = MessageFormatFactory.messageFormat(payload[0])
+            message_format = MessageFormatFactory.messageFormat(bytearray(msg.payload)[0])
             if message_format == None:
-                self.log.error('Message-format ' + payload[0] + " not supported!")
+                self.log.error('Message-format ' + bytearray(msg.payload)[0] + " not supported!")
                 return
 
             topic_levels = self.get_topic_levels(msg.topic)
@@ -272,7 +271,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             action = topic_levels[0]
             if action == '@set':
                 location.pop()
-                self._set(msg.topic, location, message_format, payload)
+                self._set(msg.topic, location, message_format, msg.payload)
             else:
                 self.log.error('Method \"' + action + '\" not supported!')
         except Exception as exception:
