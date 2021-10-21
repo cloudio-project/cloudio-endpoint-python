@@ -21,7 +21,7 @@ class CloudioMessageFormat(object):
         :param endpoint: Endpoint to serialize.
         :type endpoint: CloudioEndpoint
         :return: Raw data representation of the endpoint.
-        :rtype: bytearray
+        :rtype: Json or Cbor serialized
         """
         pass
 
@@ -33,7 +33,7 @@ class CloudioMessageFormat(object):
         :param node: Node to serialize.
         :type node: CloudioNode
         :return: Raw data representation of the node.
-        :rtype: bytearray
+        :rtype: Json or Cbor serialized
         """
         pass
 
@@ -45,7 +45,7 @@ class CloudioMessageFormat(object):
         :param attribute: Attribute to serialize.
         :type attribute: CloudioAttribute
         :return: Raw data representation of the attribute.
-        :rtype: bytearray
+        :rtype: Json or Cbor serialized
         """
         pass
 
@@ -55,7 +55,7 @@ class CloudioMessageFormat(object):
            according to the data.
 
         :param data: Data received in the MQTT message.
-        :type data: bytearray
+        :type data: Json or Cbor serialized
         :param attribute: Attribute to update using the raw message data.
         :type attribute: CloudioAttribute
         """
