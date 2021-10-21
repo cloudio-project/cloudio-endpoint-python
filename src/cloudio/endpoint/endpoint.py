@@ -19,7 +19,6 @@ from cloudio.endpoint.interface.message_format import CloudioMessageFormat
 from cloudio.endpoint.interface.node_container import CloudioNodeContainer
 from cloudio.endpoint.message_format.cbor_format import CborMessageFormat
 from cloudio.endpoint.message_format.factory import MessageFormatFactory
-from cloudio.endpoint.message_format.json_format import JsonMessageFormat
 from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
 from cloudio.endpoint.topicuuid import TopicUuid
 from typing import List

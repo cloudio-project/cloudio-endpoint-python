@@ -2,41 +2,26 @@ import cbor
 import json
 
 from cloudio.endpoint.interface import CloudioMessageFormat
-from cloudio.endpoint.message_format.json_format import JsonMessageFormat
+from cloudio.endpoint.message_format.generic_format import GenericMessageFormat
 
 
 class CborMessageFormat(CloudioMessageFormat):
+    """Encodes messages using CBOR.
+
+    All messages have to start with the identifier for this format 0b101.
+    """
     def __init__(self):
-        self._jsonFormat = JsonMessageFormat()
+        self._genericFormat = GenericMessageFormat()
         pass
 
     def serialize_endpoint(self, endpoint):
-        data = bytearray(cbor.dumps(self._jsonFormat.serialize_endpoint(endpoint)))
-
-        # delete the first characters produce by cbor library until "{"
-        while data[0] != 123:
-            del data[0]
-
-        return data
+        return cbor.dumps(self._genericFormat.serialize_endpoint(endpoint))
 
     def serialize_node(self, node):
-        data = bytearray(cbor.dumps(self._jsonFormat.serialize_node(node)))
-
-        # delete the first characters produce by cbor library until "{"
-        while data[0] != 123:
-            del data[0]
-
-        return data
+        return cbor.dumps(self._genericFormat.serialize_node(node))
 
     def serialize_attribute(self, attribute):
-        data = bytearray(cbor.dumps(self._jsonFormat.serialize_attribute(attribute)))
-
-        #delete the first characters produce by cbor library until "{"
-        while data[0] != 123:
-            del data[0]
-
-        return data
+        return cbor.dumps(self._genericFormat.serialize_attribute(attribute))
 
     def deserialize_attribute(self, data, attribute):
-        a = cbor.loads(data)
-        self._jsonFormat.deserialize_attribute(json.dumps(a), attribute)
+        self._genericFormat.deserialize_attribute(cbor.loads(data), attribute)
