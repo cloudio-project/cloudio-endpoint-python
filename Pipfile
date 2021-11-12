@@ -13,6 +13,7 @@ twine = "*"
 [packages]
 configobj = "*"
 cloudio-common-python = "==0.3.0"
+cbor = "==1.0.0"
 
 [requires]
 python_version = "3.9"
