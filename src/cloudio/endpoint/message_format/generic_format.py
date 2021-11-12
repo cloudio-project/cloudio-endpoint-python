@@ -28,7 +28,6 @@ class GenericMessageFormat(CloudioMessageFormat):
 
         data['nodes'] = nodes
 
-        #TODO clean endpoint serialization
         data['version'] = "v0.2"
         data['messageFormatVersion'] = 2
         data['supportedFormats'] = ["JSON", "CBOR"]
