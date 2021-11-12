@@ -71,7 +71,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
     ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientKey'  # (*.pem)
     CERT_JSON = "ch.hevs.cloudio.endpoint.ssl.certs" # When using the JSON format certificates
 
-
+    ENDPOINT_UUID = "ch.hevs.cloudio.endpoint.uuid"
 
 
     log = logging.getLogger(__name__)
@@ -120,6 +120,9 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
         self._retry_interval = 10  # Connect retry interval in seconds
         self.message_format = CborMessageFormat()
+
+        # Use the uuid defined in the properties file if exists
+        self.uuid = configuration.get_property(self.ENDPOINT_UUID, self.uuid)
 
         # Check if 'host' property is present in config file
         host = configuration.get_property(self.MQTT_HOST_URI_PROPERTY)
