@@ -1,5 +1,4 @@
 import cbor
-import json
 
 from cloudio.endpoint.interface import CloudioMessageFormat
 from cloudio.endpoint.message_format.generic_format import GenericMessageFormat
