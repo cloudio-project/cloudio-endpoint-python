@@ -69,7 +69,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
     ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.version'  # tlsv1.0 or tlsv1.2
     ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'  # (*.pem)
     ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientKey'  # (*.pem)
-    CERT_JSON = "ch.hevs.cloudio.endpoint.ssl.certs" # When using the JSON format certificates
+    CERT_JSON = "ch.hevs.cloudio.endpoint.ssl.certs"  # When using the JSON format certificates
 
     ENDPOINT_UUID = "ch.hevs.cloudio.endpoint.uuid"
 
@@ -123,6 +123,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
         # Use the uuid defined in the properties file if exists
         self.uuid = configuration.get_property(self.ENDPOINT_UUID, self.uuid)
+        uuid = self.uuid
 
         # Check if 'host' property is present in config file
         host = configuration.get_property(self.MQTT_HOST_URI_PROPERTY)
@@ -150,7 +151,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
         # Last will is a message with the UUID of the endpoint and no payload.
         will_message = 'DEAD'
-        self.options.set_will('@offline/' + uuid, will_message, 1, False)
+        self.options.set_will('@offline/' + self.uuid, will_message, 1, False)
 
         self.options.ca_file = configuration.get_property(self.CERT_AUTHORITY_FILE_PROPERTY, None)
 
