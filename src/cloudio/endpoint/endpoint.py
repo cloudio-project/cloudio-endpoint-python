@@ -3,7 +3,6 @@
 
 import logging
 import os
-import traceback
 from dataclasses import dataclass
 
 import cloudio.common.mqtt as mqtt
@@ -278,8 +277,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 self._set(msg.topic, location, message_format, msg.payload)
             else:
                 self.log.error('Method \"' + action + '\" not supported!')
-        except Exception:
-            traceback.print_exc()
+        except Exception as exception:
+            self.log.error(exception, exc_info=True)
 
     def _on_message_published(self, client, userdata, mid):
         # Called by the MQTT client _thread!
@@ -394,8 +393,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
             self._publish(topic, payload, timestamp=attribute.get_timestamp())
         except Exception as exception:
-            self.log.error('Exception :' + exception.message)
-            traceback.print_exc()
+            self.log.error(exception, exc_info=True)
 
     def attribute_has_changed_by_cloud(self, attribute):
         """Informs the endpoint that an underlying attribute has changed (initiated from the cloud).
@@ -487,8 +485,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 else:
                     raise Exception('Unknown action type!')
             except Exception as exception:
-                self.log.error('Exception :' + exception.message)
-                traceback.print_exc()
+                    self.log.error(exception, exc_info=True)
 
     def _purgePersistentDataStore(self):
         """Tries to send stored messages to cloud.iO.

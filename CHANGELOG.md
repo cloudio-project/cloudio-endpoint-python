@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1 - (2021-08-20)
+- Fixed exception bug in endpoint class
+
 ## 1.1.0 - (2021-04-13)
 - Updated to `cloudio-common-python` v0.3.0
 
