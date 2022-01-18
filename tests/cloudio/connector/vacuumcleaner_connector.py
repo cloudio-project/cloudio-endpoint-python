@@ -21,8 +21,8 @@ class VacuumCleanerConnector(object):
     """
     log = logging.getLogger(__name__)
 
-    def __init__(self, cloudio_endpoint_name):
-        self.endpoint = CloudioEndpoint(cloudio_endpoint_name)
+    def __init__(self, cloudio_endpoint_name, locations: str or list = None):
+        self.endpoint = CloudioEndpoint(cloudio_endpoint_name, locations=locations)
 
     def get_endpoint_name(self):
         return self.endpoint.get_name()

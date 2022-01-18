@@ -7,9 +7,9 @@ import json
 import unittest
 
 from tests.cloudio.paths import update_working_directory
-from connector.vacuumcleaner_connector import VacuumCleanerConnector
-from model.vacuum_cleaner import VacuumCleaner
-from client.vacuumcleaner_client import VacuumCleanerClient
+from tests.cloudio.connector.vacuumcleaner_connector import VacuumCleanerConnector
+from tests.cloudio.model.vacuum_cleaner import VacuumCleaner
+from tests.cloudio.client.vacuumcleaner_client import VacuumCleanerClient
 
 update_working_directory()  # Needed when: 'pipenv run python -m unittest tests/cloudio/{this_file}.py'
 
@@ -59,7 +59,7 @@ class TestCloudioPersistenceMemory(unittest.TestCase):
     log = logging.getLogger(__name__)
 
     def setUp(self):
-        self.connector = VacuumCleanerConnector(VACUUM_CLEANER_NAME)  # Searches file '<VACUUM_CLEANER_NAME>.properties'
+        self.connector = VacuumCleanerConnector(VACUUM_CLEANER_NAME, "path:../config/")  # Searches file '<VACUUM_CLEANER_NAME>.properties'
         self.cloudioEndPoint = self.connector.endpoint
         self.msgToSend = 70     # How many messages to send
 
