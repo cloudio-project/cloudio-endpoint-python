@@ -487,6 +487,9 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 elif action == '@nodeAdded':
                     msg_id = 'PendingNodeAdded-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
                     self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                elif action == '@transaction':
+                    msg_id = 'PendingTransaction-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
                 else:
                     raise Exception('Unknown action type!')
             except Exception as exception:
@@ -500,7 +503,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
             action_map = {
                 'PendingUpdate-': '@update',
-                'PendingNodeAdded-': '@nodeAdded'}
+                'PendingNodeAdded-': '@nodeAdded',
+                'PendingTransaction-': '@transaction'}
 
             for key in self.persistence.keys():
                 if self.is_online():
