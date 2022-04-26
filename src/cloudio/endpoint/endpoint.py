@@ -22,6 +22,8 @@ from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpoin
 from cloudio.endpoint.topicuuid import TopicUuid
 from typing import List
 
+from cloudio.endpoint.transaction.transaction import Transaction
+
 version = ''
 # Get endpoint python version info from init file
 with open(os.path.dirname(os.path.realpath(__file__)) + '/version.py') as vf:
@@ -93,6 +95,9 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # Used for debug/testing purpose only
         self._published_not_acknowledged_message = dict()  # type: dict[mqtt.MQTTMessageInfo]
         self._published_not_acknowledged_high_water_mark = 0
+
+        self._in_transaction = False
+        self._transaction = Transaction()
 
         self.log.debug('Creating Endpoint %s' % uuid)
 
@@ -521,6 +526,25 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                     time.sleep(0)  # Give other threads time to do its job
                 else:
                     break
+
+    def begin_transaction(self):
+        self._in_transaction = True
+
+    def commit_transaction(self):
+        self._in_transaction = False
+        try:
+            # Create the MQTT message using the given message format.
+            topic = '@transaction/' + self.uuid
+            payload = self.message_format.serialize_transaction(self._transaction)
+
+            self._publish(topic, payload)
+
+            self._transaction.clear_attributes()
+        except Exception as exception:
+            self.log.error(exception, exc_info=True)
+
+    def rollback_transaction(self):
+        self._transaction.clear_attributes()
 
 
 if __name__ == '__main__':

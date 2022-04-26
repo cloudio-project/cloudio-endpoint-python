@@ -98,6 +98,16 @@ class GenericMessageFormat(CloudioMessageFormat):
                 else:
                     raise IOError('Attribute type not supported!')
 
+    def serialize_transaction(self, transaction):
+        data = {}
+        attributes = transaction.get_attributes()
+        data['attributes'] = {}
+
+        for a in attributes:
+            attributes[a.get_uuid().to_string()] = self.serialize_attribute(a)
+
+        return data
+
 
 class _GenericMessageEncoder(json.JSONEncoder):
     def __init__(self):

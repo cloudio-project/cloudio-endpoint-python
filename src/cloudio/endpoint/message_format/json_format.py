@@ -32,3 +32,9 @@ class JsonMessageFormat(CloudioMessageFormat):
 
     def deserialize_attribute(self, data, attribute):
         self._genericFormat.deserialize_attribute(json.loads(data), attribute)
+
+    def serialize_transaction(self, transaction):
+        message = ''
+        # Encode data to json formatted byte array
+        message += json.dumps(self._genericFormat.serialize_transaction(transaction))
+        return message

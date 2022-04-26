@@ -24,3 +24,6 @@ class CborMessageFormat(CloudioMessageFormat):
 
     def deserialize_attribute(self, data, attribute):
         self._genericFormat.deserialize_attribute(cbor.loads(data), attribute)
+
+    def serialize_transaction(self, transaction):
+        return cbor.dumps(self._genericFormat.serialize_transaction(transaction))
