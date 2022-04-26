@@ -60,3 +60,15 @@ class CloudioMessageFormat(object):
         :type attribute: CloudioAttribute
         """
         pass
+
+    @abstractmethod
+    def serialize_transaction(self, transaction):
+        """A CloudioMessageFormat implementation should return the encoded payload of the serialization of the
+                   given transaction.
+
+                :param transaction: Node to serialize.
+                :type transaction: Transaction
+                :return: Raw data representation of the node.
+                :rtype: Json or Cbor serialized
+                """
+        pass
