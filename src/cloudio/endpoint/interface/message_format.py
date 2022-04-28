@@ -72,3 +72,7 @@ class CloudioMessageFormat(object):
                 :rtype: Json or Cbor serialized
                 """
         pass
+
+    @abstractmethod
+    def serialize_delayed(self, persistence):
+        pass

@@ -108,6 +108,33 @@ class GenericMessageFormat(CloudioMessageFormat):
 
         return data
 
+    def serialize_delayed(self, persistence):
+        data = {'timestamp': timestamp_helpers.get_time_in_milliseconds(), 'messages': list()}
+
+        action_map = {
+            'PendingUpdate-': '@update',
+            'PendingNodeAdded-': '@nodeAdded',
+            'PendingTransaction-': '@transaction'}
+
+        for key in persistence.keys():
+            for pending_data_type, action in action_map.items():
+                # Check pending data type
+                if key.startswith(pending_data_type):
+                    # Get the pending update persistent object from store
+                    pending_update = persistence.get(key)
+
+                    if pending_update is not None:
+                        print('Copy pers: ' + key + ': ' + pending_update.get_data())
+
+                        # Get the uuid of the endpoint
+                        uuid = pending_update.get_uuid_from_persistence_key(key)
+
+                        message = {'topic': action + '/' + uuid, 'data': pending_update.get_data()}
+
+                        data['messages'].append(message)
+                    break
+        return data
+
 
 class _GenericMessageEncoder(json.JSONEncoder):
     def __init__(self):

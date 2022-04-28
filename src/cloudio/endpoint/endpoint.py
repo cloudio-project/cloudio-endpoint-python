@@ -467,6 +467,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # Check if there are messages in the persistence store
         if self.is_online() and self.persistence and len(self.persistence.keys()) > 0:
             # Try to send stored messages to cloud.iO
+            self._publish('@delayed/'+self.uuid, self.message_format.serialize_delayed(self.persistence))
             self._purgePersistentDataStore()
 
     def _put_persistent_data_store(self, topic, payload, timestamp):
@@ -499,37 +500,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         """Tries to send stored messages to cloud.iO.
         """
         if self.persistence:
-            print(str(len(self.persistence.keys())) + ' in persistence')
-
-            action_map = {
-                'PendingUpdate-': '@update',
-                'PendingNodeAdded-': '@nodeAdded',
-                'PendingTransaction-': '@transaction'}
-
-            for key in self.persistence.keys():
-                if self.is_online():
-                    for pending_data_type, action in action_map.items():
-                        # Check pending data type
-                        if key.startswith(pending_data_type):
-                            # Get the pending update persistent object from store
-                            pending_update = self.persistence.get(key)
-
-                            if pending_update is not None:
-                                print('Copy pers: ' + key + ': ' + pending_update.get_data())
-
-                                # Get the uuid of the endpoint
-                                uuid = pending_update.get_uuid_from_persistence_key(key)
-
-                                # Try to send the update to the broker and remove it from the storage
-                                topic = action + '/' + uuid
-                                self._publish(topic, pending_update.get_data())
-
-                                # Remove key from store
-                                self.persistence.remove(key)
-                            break
-                    time.sleep(0)  # Give other threads time to do its job
-                else:
-                    break
+            self.persistence.clear()
 
     def begin_transaction(self):
         self._in_transaction = True

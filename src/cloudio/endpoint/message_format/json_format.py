@@ -38,3 +38,9 @@ class JsonMessageFormat(CloudioMessageFormat):
         # Encode data to json formatted byte array
         message += json.dumps(self._genericFormat.serialize_transaction(transaction))
         return message
+
+    def serialize_delayed(self, persistence):
+        message = ''
+        # Encode data to json formatted byte array
+        message += json.dumps(self._genericFormat.serialize_delayed(persistence))
+        return message

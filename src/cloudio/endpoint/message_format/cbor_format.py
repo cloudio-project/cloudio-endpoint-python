@@ -27,3 +27,6 @@ class CborMessageFormat(CloudioMessageFormat):
 
     def serialize_transaction(self, transaction):
         return cbor.dumps(self._genericFormat.serialize_transaction(transaction))
+
+    def serialize_delayed(self, persistence):
+        return cbor.dumps(self._genericFormat.serialize_delayed(persistence))
