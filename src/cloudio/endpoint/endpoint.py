@@ -366,6 +366,9 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 if attribute:
                     # Deserialize the message into the attribute
                     message_format.deserialize_attribute(data, attribute)
+
+                    # Send the didSet message
+                    self._publish(str(topic).replace('@set', '@didSet'), message_format.serialize_attribute(attribute))
                 else:
                     self.log.error('Attribute \"' + location[0] + '\" in node \"' + node.get_name() + '\" not found!')
             else:
@@ -490,6 +493,9 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                     self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
                 elif action == '@transaction':
                     msg_id = 'PendingTransaction-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                elif action == '@didSet':
+                    msg_id = 'PendingDidSet-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
                     self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
                 else:
                     raise Exception('Unknown action type!')

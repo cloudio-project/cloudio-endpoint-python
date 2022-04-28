@@ -114,7 +114,9 @@ class GenericMessageFormat(CloudioMessageFormat):
         action_map = {
             'PendingUpdate-': '@update',
             'PendingNodeAdded-': '@nodeAdded',
-            'PendingTransaction-': '@transaction'}
+            'PendingDidSet-': '@didSet',
+            'PendingTransaction-': '@transaction'
+        }
 
         for key in persistence.keys():
             for pending_data_type, action in action_map.items():
