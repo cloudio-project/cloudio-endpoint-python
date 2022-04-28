@@ -68,11 +68,19 @@ class CloudioMessageFormat(object):
 
                 :param transaction: Node to serialize.
                 :type transaction: Transaction
-                :return: Raw data representation of the node.
+                :return: Raw data representation of the transaction.
                 :rtype: Json or Cbor serialized
                 """
         pass
 
     @abstractmethod
     def serialize_delayed(self, persistence):
+        """A CloudioMessageFormat implementation should return the encoded payload of the serialization of the
+                   given persistence.
+
+                :param persistence: Node to serialize.
+                :type persistence: MqttClientPersistence
+                :return: Raw data representation of the persistence.
+                :rtype: Json or Cbor serialized
+                """
         pass
