@@ -337,6 +337,13 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 else:
                     self.log.info('Not sending \'@nodeAdded\' message. No connection to broker!')
 
+    def remove_node(self, node_name):
+        if node_name in self.nodes:
+            del self.nodes[node_name]
+            self._publish('@nodeRemoved/' + self.uuid + '/' + node_name, None)
+        else:
+            raise Exception('Cannot remove node ' + node_name + '. Node not found!')
+
     def get_node(self, node_name):
         """Returns the node identified by the given name
         :param node_name The Name of the node
@@ -490,6 +497,9 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                     self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
                 elif action == '@nodeAdded':
                     msg_id = 'PendingNodeAdded-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                elif action == '@nodeRemoved':
+                    msg_id = 'PendingNodeRemoved-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
                     self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
                 elif action == '@transaction':
                     msg_id = 'PendingTransaction-' + ';'.join(topic_levels) + '-' + str(int(timestamp))

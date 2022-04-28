@@ -114,6 +114,7 @@ class GenericMessageFormat(CloudioMessageFormat):
         action_map = {
             'PendingUpdate-': '@update',
             'PendingNodeAdded-': '@nodeAdded',
+            'PendingNodeRemoved-': "@nodeRemoved",
             'PendingDidSet-': '@didSet',
             'PendingTransaction-': '@transaction'
         }
