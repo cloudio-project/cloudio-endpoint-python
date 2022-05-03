@@ -400,15 +400,17 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         :param attribute:
         :type attribute: CloudioAttribute
         """
+        if self._in_transaction:
+            self._transaction.add_attribute(attribute)
+        else:
+            try:
+                # Create the MQTT message using the given message format.
+                topic = '@update/' + attribute.get_uuid().to_string()
+                payload = self.message_format.serialize_attribute(attribute)
 
-        try:
-            # Create the MQTT message using the given message format.
-            topic = '@update/' + attribute.get_uuid().to_string()
-            payload = self.message_format.serialize_attribute(attribute)
-
-            self._publish(topic, payload, timestamp=attribute.get_timestamp())
-        except Exception as exception:
-            self.log.error(exception, exc_info=True)
+                self._publish(topic, payload, timestamp=attribute.get_timestamp())
+            except Exception as exception:
+                self.log.error(exception, exc_info=True)
 
     def attribute_has_changed_by_cloud(self, attribute):
         """Informs the endpoint that an underlying attribute has changed (initiated from the cloud).

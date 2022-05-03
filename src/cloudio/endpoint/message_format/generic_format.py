@@ -104,7 +104,7 @@ class GenericMessageFormat(CloudioMessageFormat):
         data['attributes'] = {}
 
         for a in attributes:
-            attributes[a.get_uuid().to_string()] = self.serialize_attribute(a)
+            data['attributes'][a.get_uuid().to_string()] = self.serialize_attribute(a)
 
         return data
 
