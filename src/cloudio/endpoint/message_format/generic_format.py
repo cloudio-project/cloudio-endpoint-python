@@ -30,7 +30,7 @@ class GenericMessageFormat(CloudioMessageFormat):
 
         data['version'] = "v0.2"
         data['messageFormatVersion'] = 2
-        data['supportedFormats'] = ["JSON", "CBOR"]
+        data['supportedFormats'] = endpoint.supported_message_formats
 
         message = ''
         # Encode data to json formatted byte array

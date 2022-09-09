@@ -65,6 +65,9 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
     MQTT_PERSISTENCE_PROPERTY = 'ch.hevs.cloudio.endpoint.persistence'
     MQTT_PERSISTENCE_DEFAULT = MQTT_PERSISTENCE_FILE
     MQTT_PERSISTENCE_LOCATION = 'ch.hevs.cloudio.endpoint.persistenceLocation'
+    MQTT_CONNECT_RETRY_INTERVAL = 'ch.hevs.cloudio.endpoint.connectRetryInterval'  # default to 10
+    MQTT_KEEPALIVE_INTERVAL = 'ch.hevs.cloudio.endpoint.keepAliveInterval'  # default to 60
+    MQTT_VERIFY_TLS = 'ch.hevs.cloudio.endpoint.ssl.verifyHostname'  # default to True
 
     CERT_AUTHORITY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.authorityCert'  # pem file
 
@@ -74,6 +77,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
     ENDPOINT_UUID = "ch.hevs.cloudio.endpoint.uuid"
 
+    ENDPOINT_MESSAGE_FORMAT = 'ch.hevs.cloudio.endpoint.messageFormat'  # cbor or json
+    ENDPOINT_SUPPORTED_MESSAGE_FORMATS = 'ch.hevs.cloudio.endpoint.supportedMessageFormats'  # comma separated message format list
 
     log = logging.getLogger(__name__)
 
@@ -122,8 +127,10 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                     message += ' - ' + location + '\n'
                 exit(message)
 
-        self._retry_interval = 10  # Connect retry interval in seconds
-        self.message_format = CborMessageFormat()
+        self.message_format = JsonMessageFormat() if configuration.get_property(self.ENDPOINT_MESSAGE_FORMAT,
+                                                                                'cbor').lower() == 'json' else CborMessageFormat()
+        self.supported_message_formats = configuration.get_property(self.ENDPOINT_SUPPORTED_MESSAGE_FORMATS,
+                                                                    'JSON, CBOR').upper().replace(' ', '').split(',')
 
         # Use the uuid defined in the properties file if exists
         self.uuid = configuration.get_property(self.ENDPOINT_UUID, self.uuid)
@@ -131,6 +138,8 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
 
         # Check if 'host' property is present in config file
         host = configuration.get_property(self.MQTT_HOST_URI_PROPERTY)
+
+        host = host.replace('ssl://', '')
         if host == '':
             exit('Missing mandatory property "' + self.MQTT_HOST_URI_PROPERTY + '"')
 
@@ -152,6 +161,12 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             self.persistence.open(client_id=self.uuid, server_uri=host)
 
         self.options = mqtt.MqttConnectOptions()
+
+        self.options.keepalive_interval = configuration.get_property(self.MQTT_KEEPALIVE_INTERVAL,
+                                                                     60)  # Keepalive interval in seconds
+        self.options.connect_retry_interval = configuration.get_property(self.MQTT_CONNECT_RETRY_INTERVAL,
+                                                                         10)  # Connect retry interval in seconds
+        self.options.verify_tls = not (configuration.get_property(self.MQTT_VERIFY_TLS, 'true').lower() == 'false')
 
         # Last will is a message with the UUID of the endpoint and no payload.
         will_message = 'DEAD'
@@ -178,7 +193,6 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         self._client.set_on_message_callback(self._onMessageArrived)
         # Register callback method to get notified after message was published (received by the MQTT broker)
         self._client.set_on_message_published(self._on_message_published)
-
 
         # Start the client
         self._client.start()
@@ -288,7 +302,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # Called by the MQTT client _thread!
 
         # if mid % 100 == 0:
-            # print('Msg #{} sent'.format(mid))
+        # print('Msg #{} sent'.format(mid))
 
         # Remove the sent message from the list
         if mid in self._published_not_acknowledged_message:
@@ -478,7 +492,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         # Check if there are messages in the persistence store
         if self.is_online() and self.persistence and len(self.persistence.keys()) > 0:
             # Try to send stored messages to cloud.iO
-            self._publish('@delayed/'+self.uuid, self.message_format.serialize_delayed(self.persistence))
+            self._publish('@delayed/' + self.uuid, self.message_format.serialize_delayed(self.persistence))
             self._purgePersistentDataStore()
 
     def _put_persistent_data_store(self, topic, payload, timestamp):
@@ -492,7 +506,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             topic_levels = self.get_topic_levels(topic)
             topic_levels.pop(0)  # Remove action
 
-            json = JsonMessageFormat() # Only json allowed in pendingUpdate
+            json = JsonMessageFormat()  # Only json allowed in pendingUpdate
 
             try:
                 if action == '@update':
@@ -513,7 +527,7 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
                 else:
                     raise Exception('Unknown action type!')
             except Exception as exception:
-                    self.log.error(exception, exc_info=True)
+                self.log.error(exception, exc_info=True)
 
     def _purgePersistentDataStore(self):
         """Tries to send stored messages to cloud.iO.
