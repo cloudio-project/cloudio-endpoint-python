@@ -18,6 +18,7 @@ from cloudio.endpoint.interface.message_format import CloudioMessageFormat
 from cloudio.endpoint.interface.node_container import CloudioNodeContainer
 from cloudio.endpoint.message_format.cbor_format import CborMessageFormat
 from cloudio.endpoint.message_format.factory import MessageFormatFactory
+from cloudio.endpoint.message_format.json_format import JsonMessageFormat
 from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
 from cloudio.endpoint.topicuuid import TopicUuid
 from typing import List
@@ -493,22 +494,24 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
             topic_levels = self.get_topic_levels(topic)
             topic_levels.pop(0)  # Remove action
 
+            json = JsonMessageFormat() # Only json allowed in pendingUpdate
+
             try:
                 if action == '@update':
                     msg_id = 'PendingUpdate-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
-                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(json.dumps(self.message_format.loads(payload))))
                 elif action == '@nodeAdded':
                     msg_id = 'PendingNodeAdded-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
-                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(json.dumps(self.message_format.loads(payload))))
                 elif action == '@nodeRemoved':
                     msg_id = 'PendingNodeRemoved-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
-                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(json.dumps(self.message_format.loads(payload))))
                 elif action == '@transaction':
                     msg_id = 'PendingTransaction-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
-                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(json.dumps(self.message_format.loads(payload))))
                 elif action == '@didSet':
                     msg_id = 'PendingDidSet-' + ';'.join(topic_levels) + '-' + str(int(timestamp))
-                    self.persistence.put(msg_id, mqtt.PendingUpdate(payload))
+                    self.persistence.put(msg_id, mqtt.PendingUpdate(json.dumps(self.message_format.loads(payload))))
                 else:
                     raise Exception('Unknown action type!')
             except Exception as exception:

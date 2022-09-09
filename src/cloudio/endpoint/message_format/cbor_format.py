@@ -9,6 +9,7 @@ class CborMessageFormat(CloudioMessageFormat):
 
     All messages have to start with the identifier for this format 0b101.
     """
+
     def __init__(self):
         self._genericFormat = GenericMessageFormat()
         pass
@@ -30,3 +31,9 @@ class CborMessageFormat(CloudioMessageFormat):
 
     def serialize_delayed(self, persistence):
         return cbor.dumps(self._genericFormat.serialize_delayed(persistence))
+
+    def dumps(self, data):
+        return cbor.dumps(data)
+
+    def loads(self, data):
+        return cbor.loads(data)

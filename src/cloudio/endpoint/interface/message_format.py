@@ -84,3 +84,11 @@ class CloudioMessageFormat(object):
                 :rtype: Json or Cbor serialized
                 """
         pass
+
+    @abstractmethod
+    def dumps(self, data):
+        pass
+
+    @abstractmethod
+    def loads(self, data):
+        pass

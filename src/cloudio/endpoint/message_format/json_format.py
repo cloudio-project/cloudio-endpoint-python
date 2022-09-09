@@ -9,9 +9,11 @@ class JsonMessageFormat(CloudioMessageFormat):
 
     All messages have to start with the identifier for this format 0x7B ('{' character).
     """
+
     def __init__(self):
         self._genericFormat = GenericMessageFormat()
         pass
+
     def serialize_endpoint(self, endpoint):
         message = ''
         # Encode data to json formatted byte array
@@ -44,3 +46,12 @@ class JsonMessageFormat(CloudioMessageFormat):
         # Encode data to json formatted byte array
         message += json.dumps(self._genericFormat.serialize_delayed(persistence))
         return message
+
+    def dumps(self, data):
+        message = ''
+        # Encode data to json formatted byte array
+        message += json.dumps(data)
+        return message
+
+    def loads(self, data):
+        return json.loads(data)

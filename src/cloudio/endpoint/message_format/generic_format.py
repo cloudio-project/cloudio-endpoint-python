@@ -129,13 +129,26 @@ class GenericMessageFormat(CloudioMessageFormat):
                     if pending_update is not None:
                         print('Copy pers: ' + key + ': ' + pending_update.get_data())
 
-                        # Get the uuid of the endpoint
-                        uuid = pending_update.get_uuid_from_persistence_key(key)
+                        uuid = key.replace(';', '/')
 
-                        message = {'topic': action + '/' + uuid, 'data': pending_update.get_data()}
+                        split = uuid.split('-')
+                        split.pop(0)
+                        split.pop()
+
+                        uuid = split.pop(0)
+                        for c in split:
+                            uuid += ('-' + c)
+
+                        message = {'topic': action + '/' + uuid, 'data': json.loads(pending_update.get_data())}
 
                         data['messages'].append(message)
                     break
+        return data
+
+    def dumps(self, data):
+        return data
+
+    def loads(self, data):
         return data
 
 
