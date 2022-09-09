@@ -71,7 +71,6 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
     ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.version'  # tlsv1.0 or tlsv1.2
     ENDPOINT_IDENTITY_CERT_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientCert'  # (*.pem)
     ENDPOINT_IDENTITY_KEY_FILE_PROPERTY = 'ch.hevs.cloudio.endpoint.ssl.clientKey'  # (*.pem)
-    CERT_JSON = "ch.hevs.cloudio.endpoint.ssl.certs"  # When using the JSON format certificates
 
     ENDPOINT_UUID = "ch.hevs.cloudio.endpoint.uuid"
 
@@ -163,7 +162,6 @@ class CloudioEndpoint(Threaded, CloudioNodeContainer):
         self.options.client_cert_file = configuration.get_property(self.ENDPOINT_IDENTITY_CERT_FILE_PROPERTY, None)
         self.options.client_key_file = configuration.get_property(self.ENDPOINT_IDENTITY_KEY_FILE_PROPERTY, None)
         self.options.tls_version = configuration.get_property(self.ENDPOINT_IDENTITY_TLS_VERSION_PROPERTY, 'tlsv1.2')
-        self.options.jsonCerts = configuration.get_property(self.CERT_JSON, None)
 
         # Make path usable
         self.options.ca_file = path_helpers.prettify(self.options.ca_file)
