@@ -22,6 +22,7 @@ from cloudio.endpoint.message_format.json_format import JsonMessageFormat
 from cloudio.endpoint.properties_endpoint_configuration import PropertiesEndpointConfiguration
 from cloudio.endpoint.topicuuid import TopicUuid
 from typing import List
+from sys import exit
 
 from cloudio.endpoint.transaction.transaction import Transaction
 
